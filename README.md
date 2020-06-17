@@ -142,6 +142,6 @@ You should now see video from the robot on your mobile phone or other device. Cl
 
 This software is intended for use with S T R E T C H (TM) RESEARCH EDITION, which is a robot produced and sold by Hello Robot Inc. For further information, including inquiries about dual licensing, please contact Hello Robot Inc.
 
-For license details for this repository, see the LICENSE files.
+For license details for this repository, see the LICENSE files, including Tutorial_LICENSE.md, WebRTC_Project_LICENSE.md, and LICENSE.md. Some other sources and licenses are described by comments found within the code.
 
 The [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) license applies to all code written by Hello Robot Inc. contained within this repository. We have attempted to note where code was derived from other sources and the governing licenses. 
