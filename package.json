@@ -13,7 +13,7 @@
         "express": "^4.16.2",
         "express-session": "^1.15.6",
         "helmet": "^3.9.0",
-        "mongoose": "^4.12.6",
+        "mongoose": "^5.9.19",
         "morgan": "^1.9.0",
         "passport": "^0.4.0",
         "passport-local": "^1.0.0",
