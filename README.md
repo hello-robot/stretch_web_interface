@@ -8,6 +8,20 @@ The *stretch_web_interface* repository holds prototype code for use with the S T
 
 **WARNING: This is prototype code that has not been well tested. We are making it available in its current state, since we believe it may have value to the community. There are security issues associated with the current code, especially if you use the default credentials. Use this code at your own risk.** 
 
+### Structure
+
+The web interface works via WebRTC. Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. Internally, we have used [puppeteer](https://github.com/puppeteer/puppeteer) to automate the robot's browser so that the robot can automatically launch and login on boot. 
+
+### Web Server Details
+
+In the example below, the server runs on the robot. In a production environment, you would use an external server, instead of the robot, to handle things like connecting robots and operators behind firewalls. At Hello Robot, we have used a virtual server with [Amazon Lightsail](https://aws.amazon.com/lightsail/). When used on a production server with proper certificates, this system supports HTTPS without scary messages. At Hello Robot, we used [Let's Encrypt](https://letsencrypt.org/) to help us achieve this. 
+
+The web server uses the [Express](https://expressjs.com/) web framework with [Pug](https://pugjs.org/api/getting-started.html) templates. The server provides a WebRTC [signaling service](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/) using [socket.io](https://socket.io/). It uses [Redis](https://redis.io/) to store sessions. 
+
+[passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB contents found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
+
+By default, [send_recv_av.js](./shared/send_recv_av.js) is configured to use a free STUN server provided by Google. Commented out code shows how at Hello Robot we configured the server to use our own STUN and TURN server. We ran a [coturn](https://github.com/coturn/coturn) TURN and STUN server on Ubuntu 16.04 using apt to install it on the same Amazon Lightsail virtual server we used for the web server. 
+
 ## Installation 
 
 The *stretch_web_interface* repository depends on [stretch_ros](http://github.com/hello-robot/stretch_ros).
@@ -36,10 +50,7 @@ sudo ./web_interface_installation.sh
 
 WARNING: The script uninstalls tornado using pip to avoid a rosbridge websocket immediate disconnection issue. This could break other software on your robot.
 
-
 ## Use
-
-The web interface works via WebRTC. Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. Internally, we have used [puppeteer](https://github.com/puppeteer/puppeteer) to automate the robot's browser so that the robot can automatically launch and login on boot. 
 
 First, make sure the robot is calibrated. For example you can fun the following command.
 
@@ -59,16 +70,6 @@ In another terminal, run the following command to start the web server on the ro
 roscd stretch_web_interface/bash_scripts/
 ./start_desktop_dev_env.sh 
 ```
-
-### Web Server Details
-
-In a production environment, you would use an external server, instead of the robot, to handle things like connecting robots and operators behind firewalls. At Hello Robot, we have used a virtual server with [Amazon Lightsail](https://aws.amazon.com/lightsail/). When used on a production server with proper certificates, this system supports HTTPS without scary messages. At Hello Robot, we used [Let's Encrypt](https://letsencrypt.org/) to help us achieve this. 
-
-The web server uses the [Express](https://expressjs.com/) web framework with [Pug](https://pugjs.org/api/getting-started.html) templates. The server provides a WebRTC [signaling service](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/) using [socket.io](https://socket.io/). It uses [Redis](https://redis.io/) to store sessions. 
-
-[passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB contents found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
-
-By default, [send_recv_av.js](./shared/send_recv_av.js) is configured to use a free STUN server provided by Google. Commented out code shows how at Hello Robot we configured the server to use our own STUN and TURN server. We ran a [coturn](https://github.com/coturn/coturn) TURN and STUN server on Ubuntu 16.04 using apt to install it on the same Amazon Lightsail virtual server we used for the web server. 
 
 ### Start the Robot's Browser
 
