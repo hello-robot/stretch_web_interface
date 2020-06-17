@@ -1,5 +1,7 @@
 
-Some of the code within this repository is derived from tutorial code found via the following links. This code relates to using mongoose, passport and express. The original code was released under the MIT License described below.
+Some of the code within this repository is derived from tutorial code found via 
+the following links. This code relates to using mongoose, passport and express. 
+The original code was released under the MIT License described below.
 
 https://github.com/didinj/node-express-passport-mongoose-auth
 https://www.djamware.com/post/58bd823080aca7585c808ebf/nodejs-expressjs-mongoosejs-and-passportjs-authentication
