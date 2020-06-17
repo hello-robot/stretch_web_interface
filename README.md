@@ -20,7 +20,7 @@ The web server uses the [Express](https://expressjs.com/) web framework with [Pu
 
 [passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB contents found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
 
-By default, [send_recv_av.js](./shared/send_recv_av.js) is configured to use a free STUN server provided by Google. Commented out code shows how at Hello Robot we configured the server to use our own STUN and TURN server. We ran a [coturn](https://github.com/coturn/coturn) TURN and STUN server on Ubuntu 16.04 using apt to install it on the same Amazon Lightsail virtual server we used for the web server. 
+By default, [send_recv_av.js](./shared/send_recv_av.js) is configured to use a free STUN server provided by Google. At Hello Robot, we configured the server to use our own [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/). There is code that we've commented out that we used to achieve this. We ran our own [coturn](https://github.com/coturn/coturn) TURN and STUN server on the Amazon Lightsail virtual server that we used to run the web interface server. At the time, we used Ubuntu 16.04 and installed coturn using apt.  
 
 ## Installation 
 
