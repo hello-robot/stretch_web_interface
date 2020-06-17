@@ -10,7 +10,7 @@ The *stretch_web_interface* repository holds prototype code for use with the Str
 
 ### Structure
 
-The web interface works via WebRTC. Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. Internally, we have used [puppeteer](https://github.com/puppeteer/puppeteer) to automate the robot's browser so that the robot can automatically launch and login on boot. 
+The web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. Internally, we have used [puppeteer](https://github.com/puppeteer/puppeteer) to automate the robot's browser so that the robot can automatically launch and login on boot. 
 
 ### Web Server Details
 
