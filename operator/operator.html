@@ -1,0 +1,352 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <!-- META tags go here -->
+    <!-- This can improve the appearance of web pages on mobile devices. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--<meta name="viewport" content="height=device-height, initial-scale=1.0">-->
+    
+  </head>
+  <body>
+
+    <div>
+      <div class="recordswitch">
+	<button id="record">Start Recording</button>
+	<button id="download" disabled>Download Recording</button>
+      </div>
+
+      <div class="select-robot">
+	<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
+	
+	<input id="hangup" type="button" value="hang up" onclick="hangup();" />
+	<label for="audioSource">Audio in: </label><select id="audioSource"></select>
+	<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+      </div>
+      <br/>
+    </div>
+    
+    
+    <div>
+      <div class="switch">
+	<input type="radio" class="switch-input" name="mode-switch" value="nav" id="nav_mode_button" checked>
+	<label for="nav_mode_button" class="switch-label switch-label-0" onclick="turnModeOn('nav')">Drive</label>
+	
+	<input type="radio" class="switch-input" name="mode-switch" value="low_arm" id="low_arm_mode_button">
+	<label for="low_arm_mode_button" class="switch-label switch-label-1" onclick="turnModeOn('low_arm')">Arm &dArr;</label>
+	
+	<input type="radio" class="switch-input" name="mode-switch" value="high_arm" id="high_arm_mode_button">
+	<label for="high_arm_mode_button" class="switch-label switch-label-2" onclick="turnModeOn('high_arm')">Arm &uArr;</label>
+	
+	<input type="radio" class="switch-input" name="mode-switch" value="hand" id="hand_mode_button">
+	<label for="hand_mode_button" class="switch-label switch-label-3" onclick="turnModeOn('hand')">Hand</label>
+	
+	<input type="radio" class="switch-input" name="mode-switch" value="look" id="look_mode_button">
+	<label for="look_mode_button" class="switch-label switch-label-4" onclick="turnModeOn('look')">Look</label>
+	<span class="switch-selection"></span>	
+      </div>
+      
+      <div class="onoffswitch">
+	<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+	<label class="onoffswitch-label" for="myonoffswitch">
+	  <span class="onoffswitch-inner"></span>
+	  <span class="onoffswitch-switch"></span>
+	</label>
+      </div>
+
+    </div>
+    
+
+    
+    <div id="video_div">
+      <video id="remoteVideo" autoplay></video>
+      
+      <!--<svg id="video_ui_overlay" viewBox="0 0 1920 1080">-->
+      <svg id="video_ui_overlay">
+	
+	<svg id="nav_ui_overlay" preserveAspectRatio="none">
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="nav_do_nothing_region"
+            >
+            <title>do nothing</title>
+          </path>
+
+<!-- 
+<svg id="right_arrow" version="1.1" viewBox="0.0 0.0 37.79527559055118 37.79527559055118" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><clipPath id="p.0"><path d="m0 0l37.795277 0l0 37.795277l-37.795277 0l0 -37.795277z" clip-rule="nonzero"></path></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l37.795277 0l0 37.795277l-37.795277 0z" fill-rule="evenodd"></path><path fill="#ffffff" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path><path stroke="#000000" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path></g></svg>
+
+-->
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="nav_forward_region"
+            onclick="moveForwardMedium()"
+            >
+            <title>move forward</title>
+          </path>
+
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="nav_backward_region"
+            onclick="moveBackwardMedium()"
+            >
+            <title>move backward</title>
+          </path>
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="nav_turn_left_region"
+            onclick="turnLeftMedium()"   
+            >
+            <title>turn left</title>
+          </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="nav_turn_right_region"
+            onclick="turnRightMedium()"   
+            >
+	    <title>turn right</title>
+	  </path>
+
+	</svg>
+
+	
+	<svg id="low_arm_ui_overlay" preserveAspectRatio="none">
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_down_region"
+            onclick="liftDownMedium()"   
+            >
+            <title>arm down</title>
+          </path>
+	  
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_up_region"
+            onclick="liftUpMedium()"   
+            >
+            <title>arm up</title>
+	  </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_retract_region"
+            onclick="armRetractMedium()"   
+            >
+            <title>retract arm</title>
+          </path>
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_extend_region"
+            onclick="armExtendMedium()"   
+            >
+            <title>extend arm</title>
+          </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_base_forward_region"
+            onclick="moveForwardMedium()"
+            >
+            <title>move forward</title>
+          </path>
+
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="low_arm_base_backward_region"
+            onclick="moveBackwardMedium()"
+            >
+            <title>move backward</title>
+          </path>
+	  
+	</svg>
+
+	
+	<svg id="high_arm_ui_overlay" preserveAspectRatio="none">
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_down_region"
+            onclick="liftDownMedium()"   
+            >
+            <title>arm down</title>
+          </path>
+	  
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_up_region"
+            onclick="liftUpMedium()"   
+            >
+            <title>arm up</title>
+	  </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_retract_region"
+            onclick="armRetractMedium()"   
+            >
+            <title>retract arm</title>
+          </path>
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_extend_region"
+            onclick="armExtendMedium()"   
+            >
+            <title>extend arm</title>
+          </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_base_forward_region"
+            onclick="moveForwardMedium()"
+            >
+            <title>move forward</title>
+          </path>
+
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="high_arm_base_backward_region"
+            onclick="moveBackwardMedium()"
+            >
+            <title>move backward</title>
+          </path>
+
+	</svg>
+
+	
+	<svg id="hand_ui_overlay" preserveAspectRatio="none">
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="hand_open_region"
+            onclick="gripperOpen()"   
+            >
+            <title>open gripper</title>
+	  </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="hand_close_region"
+            onclick="gripperClose()"   
+            >
+            <title>close gripper</title>
+          </path>
+
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="hand_in_region"
+            onclick="wristIn()"   
+            >
+            <title>gripper in</title>
+          </path>
+          
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="hand_out_region"
+            onclick="wristOut()"   
+            >
+            <title>gripper out</title>
+          </path>
+
+	</svg>
+
+	
+	<svg id="look_ui_overlay" preserveAspectRatio="none">
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="look_up_region"
+            onclick="lookUp()"   
+            >
+            <title>look up</title>
+          </path>
+	  
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="look_down_region"
+            onclick="lookDown()"   
+            >
+            <title>look_down</title>
+          </path>
+	  
+	  <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="look_left_region"
+            onclick="lookLeft()"   
+            >
+            <title>look left</title>
+          </path>
+
+          <path
+            fill-opacity="0.0"
+            stroke-opacity="1.0"
+            id="look_right_region"
+            onclick="lookRight()"   
+            >
+            <title>look right</title>
+          </path>
+	  
+	</svg>
+	
+      </svg>
+      
+    </div>      
+
+    
+</div>
+
+<link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
+<script src="../shared/video_dimensions.js"></script>
+<script src="operator.js"></script>
+<script type='text/javascript' > 
+  var velocityControlOn = false;
+  var noWristOn = true;
+</script>
+<script src="operator_ui_regions.js"></script>
+<!--<script type="module">
+    import {createUiRegions} from '/operator/operator_ui_regions.js';
+    createUiRegions();
+    </script>-->
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<!--<script src="../shared/sensors.js"></script>-->
+<script src="../shared/commands.js"></script>
+<script src="operator_acquire_av.js"></script>
+<script src="operator_recorder.js"></script>
+<script src="../shared/send_recv_av.js"></script>
+<script type='text/javascript' >
+  function runOnOpenDataChannel() {
+  // When the robot and the operator are first connected, switch to navigation mode.
+  console.log('starting in navigation mode')
+  turnModeOn('nav')
+  }
+</script>
+</body>
+</html>

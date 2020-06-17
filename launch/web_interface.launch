@@ -1,0 +1,16 @@
+<launch>
+  
+  <!-- REALSENSE D435i -->
+  <include file="$(find stretch_core)/launch/d435i_high_resolution.launch"></include>
+  <!-- -->
+  
+  <!-- STRETCH DRIVER -->
+  <param name="/stretch_driver/broadcast_odom_tf" type="bool" value="false"/>
+  <include file="$(find stretch_core)/launch/stretch_driver.launch"></include>
+  <!-- -->
+
+  <!-- ROSBRIDGE -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"></include>
+  <!-- -->
+  
+</launch>

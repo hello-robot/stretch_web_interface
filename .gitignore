@@ -1,0 +1,8 @@
+# Emacs related
+*~
+\#*\#
+.\#*
+
+# Python related
+*.pyc
+*.so

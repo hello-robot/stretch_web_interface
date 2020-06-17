@@ -1,0 +1,364 @@
+
+:root {
+    --mode-button-width: 55px;
+    /* --mode-button-width: 15%; */
+}
+
+/* #video_div { */
+/*     height:90%; */
+/* } */
+
+#video_div {
+/*    height:90%;
+    top: 70px;
+    left: 0px; */
+    /* "touch-action: manipulation" disables double-tap zoom. The default
+    behavior creates problems when trying to click rapidly and with
+    low-latency responsiveness on a mobile device. Panning and pinch
+    zoom gestures are still allowed. This made a big difference with
+    tests from a Pixel 2XL phone (Android).*/
+    touch-action: manipulation; 
+}
+
+#remoteVideo {
+    position:absolute;
+    top: 144px;
+    left: 10px;
+    /*height:80%; */
+    height: 620px;
+    z-index:1;
+}
+
+#video_ui_overlay {
+    position:absolute;
+    top: 144px;
+    left: 10px;
+    /*top: calc(0.23 * var(--video-height));*/ /*144px;*/
+    /*left: calc(0.16 * var(--video-height));*/ /*10px;*/
+    /*height:80%; */
+    height: 620px;
+    z-index:2;
+}
+
+
+#nav_do_nothing_region {
+    cursor: not-allowed; 
+}
+
+#nav_forward_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#nav_backward_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#nav_turn_left_region {
+    cursor: url('left_turn_medium.png'), auto;
+}
+
+#nav_turn_right_region {
+    cursor: url('right_turn_medium.png'), auto;
+}
+
+
+#low_arm_down_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#low_arm_up_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#low_arm_extend_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#low_arm_retract_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#low_arm_base_forward_region {
+    cursor: url('left_arrow_medium.png'), auto; 
+}
+
+#low_arm_base_backward_region {
+    cursor: url('right_arrow_medium.png'), auto;
+}
+
+
+#high_arm_up_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#high_arm_down_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#high_arm_extend_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#high_arm_retract_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#high_arm_base_forward_region {
+    cursor: url('left_arrow_medium.png'), auto; 
+}
+
+#high_arm_base_backward_region {
+    cursor: url('right_arrow_medium.png'), auto;
+}
+
+
+#hand_open_region {
+    cursor: url('gripper_open_medium.png'), auto;
+}
+
+#hand_close_region {
+    cursor: url('gripper_close_medium.png'), auto;
+}
+
+#hand_in_region {
+    cursor: url('left_turn_medium.png'), auto;
+}
+
+#hand_out_region {
+    cursor: url('right_turn_medium.png'), auto;
+}
+
+
+
+#look_up_region {
+    cursor: url('up_arrow_medium.png'), auto;
+}
+
+#look_down_region {
+    cursor: url('down_arrow_medium.png'), auto;
+}
+
+#look_left_region {
+    cursor: url('left_arrow_medium.png'), auto; 
+}
+
+#look_right_region {
+    cursor: url('right_arrow_medium.png'), auto;
+}
+
+
+
+/***************************************************/
+/* Initial code prior to editing                   */
+/* http://www.cssflow.com/snippets/toggle-switches */
+/* Toggle Switch                                   */
+/* May 30, 2012                                    */
+/* MIT License                                     */
+/***************************************************/
+
+/* Initial code prior to editing                   */
+/*
+ * Copyright (c) 2012-2013 Thibaut Courouble
+ * http://www.cssflow.com
+ *
+ * Licensed under the MIT License:
+ * http://www.opensource.org/licenses/mit-license.php
+ */
+
+.switch {
+    display: inline-block;
+  position: relative;
+  /*margin: 20px auto;*/
+  height: 52px; /*26px;*/
+  /* width:  calc(var(--mode-button-width) * 6); */
+  width:  calc(var(--mode-button-width) * 5);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.switch-label {
+  position: relative;
+  z-index: 2;
+  float: left;
+  width: var(--mode-button-width); /*116px;*/
+  line-height: 52px; /*26px;*/
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  
+  font-size: 15px;
+  color: white;
+  font-family: Trebuchet, Arial, sans-serif;
+  /*font-weight: bold;*/
+}
+.switch-label:active {
+  font-weight: bold;
+}
+
+.switch-label-off {
+  padding-left: 2px;
+}
+
+.switch-label-on {
+  padding-right: 2px;
+}
+
+/*
+ * Note: using adjacent or general sibling selectors combined with
+ *       pseudo classes doesn't work in Safari 5.0 and Chrome 12.
+ *       See this article for more info and a potential fix:
+ *       http://css-tricks.com/webkit-sibling-bug/
+ */
+.switch-input {
+  display: none;
+}
+.switch-input:checked + .switch-label {
+  font-weight: bold;
+  color: rgba(255, 255, 255, 1.0);
+  text-shadow: 0 1px rgba(255, 255, 255, 0.25);
+/*  transition: 0.15s ease-out; */
+  transition: 0.1s ease-out;
+}
+
+.switch-input:checked + .switch-label-0 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 0);
+}
+
+.switch-input:checked + .switch-label-1 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 1);
+}
+
+.switch-input:checked + .switch-label-2 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 2); 
+}
+
+.switch-input:checked + .switch-label-3 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 3);
+}
+
+.switch-input:checked + .switch-label-4 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 4);
+}
+
+/* .switch-input:checked + .switch-label-5 ~ .switch-selection { */
+/*     left: calc(var(--mode-button-width) * 5); */
+/* } */
+
+
+.switch-selection {
+  display: block;
+  position: relative;
+  z-index: 1;
+  top: 2px;
+  left: 2px;
+  width: var(--mode-button-width);
+  height: 50px; /*22px;*/
+  background: #0000ff; /*#3aa2d0;*/
+  border-radius: 3px;
+  background-image: linear-gradient(to bottom, #4fc9ee, #0000ff); /*#3aa2d0);*/
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 0 2px rgba(0, 0, 0, 0.2);
+  /*transition: left 0.15s ease-out;*/
+  transition: left 0.1s ease-out;
+}
+
+
+
+/***************************************************/
+
+
+/* Initial code prior to editing                   */
+/****************************************************************************/
+/* generated "Mic On" / "Mic Off" switch with the following website         */
+/* https://proto.io/freebies/onoff/                                         */
+/* more reference websites                                                  */
+/* https://foundation.zurb.com/sites/docs/switch.html                       */
+/* https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox */
+/****************************************************************************/
+
+
+.onoffswitch {
+    display: inline-block;
+    left: 10px;
+    position: relative;
+    /*width: 97px;*/
+    /*width: 90px;*/
+    width: 50px;
+}
+
+.onoffswitch-checkbox {
+    display: none;
+}
+
+.onoffswitch-label {
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid #999999;
+    border-radius: 20px;
+}
+
+.onoffswitch-inner {
+    display: block;
+    width: 200%;
+    margin-left: -100%;
+    /*transition: margin 0.3s ease-in 0s;*/
+}
+
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block;
+    float: left;
+    width: 50%;
+    height: 46px; /*22px;*/
+    padding: 0;
+    line-height: 46px; /*22px;*/
+    /*font-size: 15px;*/
+    font-size: 15px;
+    color: white;
+    font-family: Trebuchet, Arial, sans-serif;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.onoffswitch-inner:before {
+    /*    content: "Mic On";*/
+    content: "Mic";
+    padding-left: 10px;
+    background-color: #F22121; color: #FFFFFF;
+}
+
+.onoffswitch-inner:after {
+    /*    content: "Mic Off";*/
+    content: "Mic";
+    padding-left: 10px;
+    background-color: #EEEEEE; color: #999999;
+    /*text-align: right;*/
+}
+.onoffswitch-switch {
+    /*
+    display: block; 
+    width: 18px; 
+    margin: 8.5px;
+    background: #FFFFFF;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    */
+    /*right: 58px;*/
+    /*right: 42px;*/
+    /*right: 42px;*/
+    /*border: 2px solid #999999; border-radius: 20px;*/
+    /*transition: all 0.3s ease-in 0s; */
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}
+
+/********************************************************************/

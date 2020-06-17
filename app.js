@@ -1,0 +1,214 @@
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var helmet = require('helmet')
+
+var session = require('express-session');
+// https://github.com/tj/connect-redis
+var RedisStore = require('connect-redis')(session);
+
+/////////////////
+// required for socket.io to use passport's authentication
+// see the following website for information about this
+// https://www.codementor.io/tips/0217388244/sharing-passport-js-sessions-with-both-express-and-socket-io
+
+// don't confuse this with passport.socket.io, which is wrong!
+// https://www.npmjs.com/package/passport.socketio
+// https://github.com/jfromaniello/passport.socketio
+var passportSocketIo = require('passport.socketio');
+var cookieParser = require('cookie-parser');
+
+// https://www.npmjs.com/package/connect-redis
+// use redis for session store
+//var sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
+var sessionStore = new RedisStore(
+    {
+        host: "localhost",
+        port: 6379,
+    }
+);
+
+/////////////////
+
+mongoose.Promise = global.Promise;
+console.log('start mongoose');
+
+mongoose.connect('mongodb://localhost/node-auth', { useMongoClient: true})
+    .then(() =>  console.log('connection successful'))
+    .catch((err) => console.error(err));
+
+var index = require('./routes/index');
+
+var app = express();
+
+// "Helmet helps you secure your Express apps by setting various HTTP headers."
+console.log('use helmet');
+app.use(helmet());
+
+
+/////////////////////////
+//
+// Only allow use of HTTPS and redirect HTTP requests to HTTPS
+//
+// code derived from
+// https://stackoverflow.com/questions/24015292/express-4-x-redirect-http-to-https
+
+console.log('require https');
+app.all('*', ensureSecure); // at top of routing calls
+
+function ensureSecure(req, res, next){
+    if(req.secure){
+        // OK, continue
+        return next();
+    };
+    // handle port numbers if you need non defaults
+    res.redirect('https://' + req.hostname + req.url); // express 4.x
+};
+/////////////////////////
+
+
+// view engine setup
+console.log('set up the view engine');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+var secret_string = 'you should change this secret string';
+
+app.use(session({
+    secret: secret_string,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: true,
+        sameSite: true
+    }
+}));
+
+//var RedisStore = require('connect-redis')(session);
+
+// set up passport for user authorization (logging in, etc.)
+console.log('set up passport');
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+// make files in the public directory available to everyone
+console.log('make public directory contents available to everyone');
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', index);
+
+// passport configuration
+console.log('configure passport');
+var User = require('./models/User');
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+console.log('set up error handling');
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+//////////////////////////////////////////////////////////
+
+// check if user is an approved and logged-in robot
+function isRobot(data) {
+    return (data.user &&
+            data.user.logged_in &&
+            data.user.approved &&
+            (data.user.role === 'robot'));
+};
+
+// check if user is an approved and logged-in operator
+function isOperator(data) {
+    return (data.user &&
+            data.user.logged_in &&
+            data.user.approved &&
+            (data.user.role === 'operator'));
+};
+
+
+// based on passport.socketio documentation
+// https://github.com/jfromaniello/passport.socketio
+
+function onAuthorizeSuccess(data, accept){
+    console.log('');
+    console.log('successful connection to socket.io');
+    console.log('data.user =');
+    console.log(data.user);
+    
+    if(isRobot(data) || isOperator(data)) {
+        console.log('connection authorized!');
+        accept();
+    } else {
+        console.log('connection attempt from unauthorized source!');
+        // reject connection (for whatever reason)
+        accept(new Error('not authorized'));
+    }
+}
+
+function onAuthorizeFail(data, message, error, accept){
+    console.log('');
+    console.log('#######################################################');
+    console.log('failed connection to socket.io:', message);
+    console.log('data.headers =');
+    console.log(data.headers);
+    
+    // console.log('message =');
+    // console.log(message);
+    // console.log('error =');
+    // console.log(error);
+    // console.log('accept =');
+    // console.log(accept);
+    
+    console.log('#######################################################');
+    console.log('');
+
+    // error indicates whether the fail is due to an error or just an unauthorized client
+    if(error) throw new Error(message);
+    // send the (not-fatal) error-message to the client and deny the connection
+    //return accept(new Error(message));
+    return accept(new Error("You are not authorized to connect."));
+}
+
+
+ioauth = passportSocketIo.authorize({
+    key: 'connect.sid',
+    secret: secret_string,
+    store: sessionStore,
+    cookieParser: cookieParser,
+    success: onAuthorizeSuccess,
+    fail: onAuthorizeFail
+});
+
+
+module.exports = {
+    app: app,
+    ioauth: ioauth
+};

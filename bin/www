@@ -1,0 +1,74 @@
+#!/usr/bin/env node
+
+// Module Dependencies
+var {app, ioauth} = require('../app');
+var debug = require('debug')('hello-robot-server:server');
+
+var fs = require('fs');
+
+if (process.env.HELLO_ROBOT_ENV && (process.env.HELLO_ROBOT_ENV === "development")) {
+    var options = {
+	key: fs.readFileSync('./certificates/homemade_privkey.pem'),
+	cert: fs.readFileSync('./certificates/homemade_certificate.crt')
+    };
+}
+else {
+    var options = {
+	key: fs.readFileSync('/etc/letsencrypt/live/pilot.hello-robot.io/privkey.pem'),
+	cert: fs.readFileSync('/etc/letsencrypt/live/pilot.hello-robot.io/cert.pem'),
+	ca: fs.readFileSync('/etc/letsencrypt/live/pilot.hello-robot.io/chain.pem')
+    };
+}
+
+var server = require('http').Server(app);
+var secure_server = require('https').Server(options, app);
+
+// set up signaling server that connects robots and operators
+var io = require('socket.io')(secure_server);
+io.use(ioauth);
+require('../signaling_sockets.js')(io);
+
+console.log('set port number to 443')
+var port = 443
+app.set('port', port);
+
+// Listen to the port 
+console.log('listen to port 80');
+server.listen(80);
+secure_server.listen(port);
+secure_server.on('error', onError);
+secure_server.on('listening', onListening);
+
+// Listen for error events on an HTTP server
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+
+    // informative error messages
+    switch (error.code) {
+    case 'EACCES':
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
+    case 'EADDRINUSE':
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
+    default:
+        throw error;
+    }
+}
+
+// Listen for listening events on an HTTP server
+function onListening() {
+    var addr = secure_server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+}
