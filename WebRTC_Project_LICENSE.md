@@ -1,6 +1,10 @@
 
-The following license covers the original code from which some of
-the web interface code was derived (e.g., operator_acquire_av.js, robot_acquire_av.js).
+The following license covers the original code from which some of the web 
+interface code was derived (e.g., operator_acquire_av.js, robot_acquire_av.js). 
+The original code was released in the following respository, which contains
+WebRTC example code.
+
+https://github.com/webrtc/samples
 
 ======================================
 
