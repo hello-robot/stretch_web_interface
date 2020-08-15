@@ -6,3 +6,5 @@
 # Python related
 *.pyc
 *.so
+
+node_modules

@@ -50,6 +50,15 @@ cd ~/catkin_ws/src/stretch_web_interface/
 mongorestore -d node-auth ./mongodb/test-users-db-20171021/node-auth/
 echo "Done."
 
+# MONGODB-COMPASS
+echo ""
+echo "Installing MongoDB-Compass, which is a GUI to view the contents of a Mongo Database."
+wget https://downloads.mongodb.com/compass/mongodb-compass_1.12.1_amd64.deb
+sudo dpkg -i mongodb-compass_1.12.1_amd64.deb
+sudo apt --fix-broken install
+sudo apt -y install libgconf2-4
+rm mongodb-compass_1.12.1_amd64.deb
+
 # REDIS
 echo ""
 echo "Install redis for the web server."
@@ -59,7 +68,7 @@ echo "Done."
 # REMOVE TORNADO VIA PIP
 echo ""
 echo "Remove tornado using pip to avoid rosbridge websocket immediate disconnection issue."
-pip uninstall tornado
+pip uninstall -y tornado
 echo "Done."
 
 echo ""
