@@ -1,4 +1,5 @@
 
+var modifiers = ["verysmall", "small", "medium", "large", "verylarge"];
 
 function lookLeft() {
     var cmd = {type:"command",
@@ -388,6 +389,34 @@ function executeCommandBySize(size, command, smallCommandArgs, mediumCommandArgs
     }
 }
 
+/*
+* VELOCITY SETTINGS
+*/
+
+var headMedV = 0.1;
+var driveTransMedV = 100.0;
+var driveRotMedV = 10.0;
+var liftMedV = 100.0;
+var extendMedV = 100.0;
+var wristMedV = 0.1;
+
+var vScales = [0.1, 0.5, 1.0, 1.5, 2.0];
+
+var headV = [];
+var driveTransV = [];
+var driveRotV = [];
+var liftV = [];
+var extendV = [];
+var wristV = [];  
+
+for (let s in vScales){
+  headV.push(s*headMedV);
+  driveTransV.push(s*driveTransMedV);
+  driveRotV.push(s*driveRotMedV);
+  liftV.push(s*liftMedV);
+  extendV.push(s*extendMedV);
+  wristV.push(s*wristMedV);
+}
 
 var headCommands = {
     "up": function(size) {
@@ -412,10 +441,6 @@ var driveCommands = {
     "forward": function(size) {
         console.log('drive: forward command received...executing');
 	
-        // executeCommandBySize(size, baseTranslate,
-        //                      [-1.0, 10.0], // -1cm at 10 cm/s
-        //                      [-10.0, 40.0]); // -10cm at 40 cm/s
-
         executeCommandBySize(size, baseTranslate,
                              [-10.0, 200.0], //dist (mm), speed (mm/s)
                              [-100.0, 200.0]); //dist (mm), speed (mm/s)
@@ -424,20 +449,12 @@ var driveCommands = {
     "backward": function(size) {
         console.log('drive: backward command received...executing');
 
-	// executeCommandBySize(size, baseTranslate,
-        //                      [1.0, 10.0], // 1cm at 10 cm/s
-        //                      [10.0, 40.0]); // 10cm at 40 cm/s
-	
         executeCommandBySize(size, baseTranslate,
                              [10.0, 200.0], //dist (mm), speed (mm/s)
                              [100.0, 200.0]); //dist (mm), speed (mm/s)
     },
     "turn_right": function(size) {
         console.log('drive: turn_right command received...executing');
-
-	// executeCommandBySize(size, baseTurn,
-        //                      [1.0, 10.0], // 1deg at 10 cm/s wheel velocity 
-        //                      [10.0, 20.0]); // 10deg at 20 cm/s wheel velocity 
 
         executeCommandBySize(size, baseTurn,
                              [1.0, 300.0], // angle (deg), angular speed (deg/s)
@@ -446,11 +463,8 @@ var driveCommands = {
     },
     "turn_left": function(size) {
         console.log('drive: turn_left command received...executing');
-        // executeCommandBySize(size, baseTurn,
-        //                      [-1.0, 10.0], // -1deg at 10 cm/s wheel velocity 
-        //                      [-10.0, 20.0]); // -10deg at 20 cm/s wheel velocity
 
-	executeCommandBySize(size, baseTurn,
+      	executeCommandBySize(size, baseTurn,
                              [-1.0, 300.0], // angle (deg), angular speed (deg/s)
                              [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
     }
@@ -460,11 +474,7 @@ var liftCommands = {
     "up": function(size) {
         console.log('lift: up command received...executing');
 
-	// executeCommandBySize(size, lift,
-        //                      [1.0, 10.0], // 1cm at 10 cm/s
-        //                      [5.0, 20.0]); // 5cm at 30 cm/s
-	
-	executeCommandBySize(size, liftMove,
+      	executeCommandBySize(size, liftMove,
                              [10.0, -1], // dist (mm), timeout (s)
                              [100.0, -1]); // dist (mm), timeout (s)
    
@@ -473,11 +483,7 @@ var liftCommands = {
     "down": function(size) {
         console.log('lift: down command received...executing');
 	
-        // executeCommandBySize(size, lift,
-        //                      [-1.0, 10.0], // -1cm at 10 cm/s
-        //                      [-5.0, 20.0]); // -5cm at 30 cm/s
-
-	executeCommandBySize(size, liftMove,
+      	executeCommandBySize(size, liftMove,
                              [-10.0, -1], // dist (mm), timeout (s)
                              [-100.0, -1]); // dist (mm), timeout (s)
 
@@ -487,21 +493,15 @@ var liftCommands = {
 var armCommands = {
     "extend": function(size) {
         console.log('arm: extend command received...executing');
-        // executeCommandBySize(size, arm,
-        //                      [1.0, 10.0], // 1cm at 10 cm/s
-        //                      [5.0, 20.0]); // 5cm at 20 cm/s
 
-	executeCommandBySize(size, armMove,
+      	executeCommandBySize(size, armMove,
                              [10.0, -1], // dist (mm), timeout (s)
                              [100.0, -1]); // dist (mm), timeout (s)
     },
     "retract": function(size) {
         console.log('arm: retract command received...executing');
-        // executeCommandBySize(size, arm,
-        //                      [-1.0, 10.0], // -1cm at 10 cm/s
-        //                      [-5.0, 20.0]); // -5cm at 20 cm/s
-
-	executeCommandBySize(size, armMove,
+      
+      	executeCommandBySize(size, armMove,
                              [-10.0, -1], // dist (mm), timeout (s)
                              [-100.0, -1]); // dist (mm), timeout (s)
 
