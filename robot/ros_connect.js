@@ -14,7 +14,6 @@ var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version
 
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
-
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
     url : 'ws://localhost:9090'
@@ -163,28 +162,44 @@ function sendCommandBody(cmd) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+var autoViewOn = false;
+
+function setAutoView(isOn) {
+    autoViewOn = isOn;
+    console.log("autoViewOn: " + autoViewOn);
+}
+
+function toggleAutoView() {
+    let onoffButton = document.getElementById("autoViewOn");
+    setAutoView(onoffButton.checked);
+}
+
 //Called from mode switch
 
 function robotModeOn(modeKey) {
     console.log('robotModeOn called with modeKey = ' + modeKey)
     
-    if (modeKey === 'nav') {
-	var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
-	headNavPoseGoal.send()
-	console.log('sending navigation pose to head')	
+    // This is where the head pose gets set when mode is switched.
+    if (autoViewOn) {
+        if (modeKey === 'nav') {
+        var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
+        headNavPoseGoal.send()
+        console.log('sending navigation pose to head')  
+        }
+
+        if (modeKey === 'low_arm') {
+        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9})
+        headManPoseGoal.send()
+        console.log('sending manipulation pose to head')    
+        }
+
+        if (modeKey === 'high_arm') {
+        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
+        headManPoseGoal.send()
+        console.log('sending manipulation pose to head')
+        }        
     }
 
-    if (modeKey === 'low_arm') {
-	var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9})
-	headManPoseGoal.send()
-	console.log('sending manipulation pose to head')	
-    }
-
-    if (modeKey === 'high_arm') {
-	var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
-	headManPoseGoal.send()
-	console.log('sending manipulation pose to head')
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

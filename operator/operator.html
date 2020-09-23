@@ -10,23 +10,6 @@
   <body>
 
     <div>
-      <div class="recordswitch">
-	<button id="record">Start Recording</button>
-	<button id="download" disabled>Download Recording</button>
-      </div>
-
-      <div class="select-robot">
-	<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
-	
-	<input id="hangup" type="button" value="hang up" onclick="hangup();" />
-	<label for="audioSource">Audio in: </label><select id="audioSource"></select>
-	<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
-      </div>
-      <br/>
-    </div>
-    
-    
-    <div>
       <div class="switch">
 	<input type="radio" class="switch-input" name="mode-switch" value="nav" id="nav_mode_button" checked>
 	<label for="nav_mode_button" class="switch-label switch-label-0" onclick="turnModeOn('nav')">Drive</label>
@@ -317,15 +300,33 @@
 	
       </svg>
       
-    </div>      
+    </div>
 
+    <hr>
+    <div>
+      <div class="recordswitch">
+  <button id="record">Start Recording</button>
+  <button id="download" disabled>Download Recording</button>
+      </div>
+
+      <div class="select-robot">
+  <label for="robotToControl">Robot: </label><select id="robotToControl"></select>
+  
+  <input id="hangup" type="button" value="hang up" onclick="hangup();" />
+  <label for="audioSource">Audio in: </label><select id="audioSource"></select>
+  <label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+      </div>
+      <br/>
+    </div>
     
 </div>
 
 <link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
 <script src="../shared/video_dimensions.js"></script>
 <script src="operator.js"></script>
-<script type='text/javascript' > 
+<script type='text/javascript' >
+  /*Interesting.. There is a variable here for velocity 
+  control, but not referenced anywhere else. */
   var velocityControlOn = false;
   var noWristOn = true;
 </script>

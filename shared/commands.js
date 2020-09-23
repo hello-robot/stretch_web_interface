@@ -296,6 +296,9 @@ var interfaceMode = 'nav';
 var interfaceModifier = 'no_wrist';
 
 
+/**
+* modekey in {'nav', 'low_arm', 'high_arm', 'hand', 'look' }
+*/
 function turnModeOn(modeKey) {
     console.log('turnModeOn: modeKey = ' + modeKey)
     var cmd;
