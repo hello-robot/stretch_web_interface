@@ -31,7 +31,9 @@
 
 #video_ui_overlay {
     position:absolute;
-    top: 144px;
+    border: 1px solid gray;
+    /*top: 144px;*/
+    top: 63px;
     left: 10px;
     /*top: calc(0.23 * var(--video-height));*/ /*144px;*/
     /*left: calc(0.16 * var(--video-height));*/ /*10px;*/
