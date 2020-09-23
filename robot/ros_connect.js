@@ -181,25 +181,33 @@ function robotModeOn(modeKey) {
     
     // This is where the head pose gets set when mode is switched.
     if (autoViewOn) {
-        if (modeKey === 'nav') {
-        var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
-        headNavPoseGoal.send()
-        console.log('sending navigation pose to head')  
-        }
-
-        if (modeKey === 'low_arm') {
-        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9})
-        headManPoseGoal.send()
-        console.log('sending manipulation pose to head')    
-        }
-
-        if (modeKey === 'high_arm') {
-        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
-        headManPoseGoal.send()
-        console.log('sending manipulation pose to head')
-        }        
+        setView(modeKey);
+    }
+    else {
+        console.log("Not changing view automatically on control mode change.");
     }
 
+}
+
+function setView(modeKey) {
+    
+    if (modeKey === 'nav') {
+    var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
+    headNavPoseGoal.send()
+    console.log('sending navigation pose to head')  
+    }
+
+    if (modeKey === 'low_arm') {
+    var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9})
+    headManPoseGoal.send()
+    console.log('sending manipulation pose to head')    
+    }
+
+    if (modeKey === 'high_arm') {
+    var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
+    headManPoseGoal.send()
+    console.log('sending manipulation pose to head')
+    }    
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
