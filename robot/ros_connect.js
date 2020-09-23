@@ -162,35 +162,13 @@ function sendCommandBody(cmd) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-var autoViewOn = false;
-
-function setAutoView(isOn) {
-    autoViewOn = isOn;
-    console.log("autoViewOn: " + autoViewOn);
-}
-
-function toggleAutoView() {
-    let onoffButton = document.getElementById("autoViewOn");
-    setAutoView(onoffButton.checked);
-}
-
 //Called from mode switch
 
 function robotModeOn(modeKey) {
     console.log('robotModeOn called with modeKey = ' + modeKey)
     
     // This is where the head pose gets set when mode is switched.
-    if (autoViewOn) {
-        setView(modeKey);
-    }
-    else {
-        console.log("Not changing view automatically on control mode change.");
-    }
 
-}
-
-function setView(modeKey) {
-    
     if (modeKey === 'nav') {
     var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
     headNavPoseGoal.send()
@@ -207,7 +185,10 @@ function setView(modeKey) {
     var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
     headManPoseGoal.send()
     console.log('sending manipulation pose to head')
-    }    
+    } 
+
+    // We can add other presets here 
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
