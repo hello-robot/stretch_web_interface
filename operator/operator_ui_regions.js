@@ -34,6 +34,7 @@ function showSvg(elementId) {
     document.getElementById(elementId).style.display = 'block';
 }
 
+// TODO: This might be redundant with 'interfaceMode' remove after checking
 var currentMode = null;
 
 function turnModeUiOn(modeKey) {
