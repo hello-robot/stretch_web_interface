@@ -309,7 +309,7 @@ function turnModeOn(modeKey) {
 
   // Send command to back-end to change the camera view based on mode
   if (autoViewOn) {
-      setView(modeKey);
+      setCameraView(modeKey);
   }
   else {
       console.log("Not changing view automatically on control mode change.");
@@ -323,7 +323,7 @@ function turnModeOn(modeKey) {
 * Preset views only available for modeKey in {'nav', 'low_arm', 'high_arm'}
 */
 
-function setView(modeKey) {
+function setCameraView(modeKey) {
     var cmd;
     if(noWristOn === false) {
   cmd = {type:"command",

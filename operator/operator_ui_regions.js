@@ -34,8 +34,10 @@ function showSvg(elementId) {
     document.getElementById(elementId).style.display = 'block';
 }
 
+var currentMode = null;
 
 function turnModeUiOn(modeKey) {
+    currentMode = modeKey;
     var buttonName = modeKey + '_mode_button'
     console.log('setting to checked: buttonName = ' + buttonName)
     // This might not be working as expected. I may need to set all
@@ -51,6 +53,10 @@ function turnModeUiOn(modeKey) {
     modeRegions[modeKey].map(showSvg)
 }
 
+function setCameraViewPreset() {
+    if (currentMode != null)
+        setCameraView(currentMode);
+}
 
 var navModeRegionIds
 var lowArmModeRegionIds
