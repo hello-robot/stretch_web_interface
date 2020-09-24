@@ -481,13 +481,16 @@ var liftV = [];
 var extendV = [];
 var wristV = [];  
 
-for (let s in vScales){
+for (let i=0; i<vScales.length; i++){
+  let s = vScales[i];
   headV.push(s*headMedV);
   driveTransV.push(s*driveTransMedV);
   driveRotV.push(s*driveRotMedV);
   liftV.push(s*liftMedV);
   extendV.push(s*extendMedV);
   wristV.push(s*wristMedV);
+
+  console.log(headV);
 }
 
 var headCommands = {
