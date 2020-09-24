@@ -38,6 +38,30 @@
 	</label>
       </div>
 
+     
+    </div>
+
+      <div class="switch-2">
+        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall" checked>
+        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
+        
+        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
+        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
+        
+        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium">
+        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
+        
+        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
+        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
+        
+        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
+        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
+        <span class="switch-selection switch-selection-sm"></span>
+      </div>
+
+    <div class="presetView">
+      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
+    </div>
     <!-- </div> -->
     
 
@@ -302,33 +326,8 @@
       </svg>
     </div>
 
-      
-    </div>
-
-      <div class="switch-2">
-        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall" checked>
-        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-        
-        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-        
-        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium">
-        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-        
-        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-        
-        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-        <span class="switch-selection switch-selection-sm"></span>
-      </div>
-
-    <div class="presetView">
-      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
-    </div>
-
-
     <hr>
+ 
     <div>
       <div class="recordswitch">
   <button id="record">Start Recording</button>

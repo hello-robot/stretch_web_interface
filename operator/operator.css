@@ -25,9 +25,9 @@
 }
 
 #remoteVideo {
-    border: 0px orange dashed;
+    border: 1px orange dashed;
     position:absolute;
-    top: 63px;
+    top: 116px;
     left: 10px;
     /*height:80%; */
     height: 620px;
