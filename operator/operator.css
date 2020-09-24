@@ -20,9 +20,14 @@
     touch-action: manipulation; 
 }
 
+.video-container{
+  border: 3px green dashed;
+}
+
 #remoteVideo {
+    border: 0px orange dashed;
     position:absolute;
-    top: 144px;
+    top: 63px;
     left: 10px;
     /*height:80%; */
     height: 620px;
@@ -30,16 +35,17 @@
 }
 
 #video_ui_overlay {
-    position:absolute;
+    position:relative;
     border: 1px solid gray;
     /*top: 144px;*/
-    top: 63px;
-    left: 10px;
+    top: 0px;
+    left: 0px;
     /*top: calc(0.23 * var(--video-height));*/ /*144px;*/
     /*left: calc(0.16 * var(--video-height));*/ /*10px;*/
     /*height:80%; */
     height: 620px;
     z-index:2;
+    margin: 0px 0px;
 }
 
 
