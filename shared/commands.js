@@ -508,7 +508,7 @@ var headCommands = {
     "down": function(size) {
       console.log('head: down command received...executing');
       let vel = headV[modifiers[size]];
-      headTilt(vel);
+      headTilt(-vel);
       // headTilt(-0.1)
     },
     "left": function(size) {
@@ -520,7 +520,7 @@ var headCommands = {
     "right": function(size) {
       console.log('head: right command received...executing');
       let vel = headV[modifiers[size]];
-      headPan(vel);
+      headPan(-vel);
       // headPan(-0.1)
     }
 }  
@@ -539,7 +539,7 @@ var driveCommands = {
         console.log('drive: backward command received...executing');
 
       let vel = driveTransV[modifiers[size]];
-      baseTranslate(driveTransMedDist, vel);
+      baseTranslate(-driveTransMedDist, vel);
         // executeCommandBySize(size, baseTranslate,
         //                      [10.0, 200.0], //dist (mm), speed (mm/s)
         //                      [100.0, 200.0]); //dist (mm), speed (mm/s)
@@ -558,7 +558,7 @@ var driveCommands = {
         console.log('drive: turn_left command received...executing');
 
       let vel = driveRotV[modifiers[size]];
-      baseTurn(driveRotMedDist, vel);
+      baseTurn(-driveRotMedDist, vel);
       	// executeCommandBySize(size, baseTurn,
        //                       [-1.0, 300.0], // angle (deg), angular speed (deg/s)
        //                       [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
@@ -580,7 +580,7 @@ var liftCommands = {
         console.log('lift: down command received...executing');
 	
       let vel = liftV[modifiers[size]];
-      liftMove(liftMedDist, -1, vel);
+      liftMove(-liftMedDist, -1, vel);
       	// executeCommandBySize(size, liftMove,
        //                       [-10.0, -1], // dist (mm), timeout (s)
        //                       [-100.0, -1]); // dist (mm), timeout (s)
@@ -602,7 +602,7 @@ var armCommands = {
         console.log('arm: retract command received...executing');
       
       let vel = extendV[modifiers[size]];
-      armMove(extendMedDist, -1, vel);
+      armMove(-extendMedDist, -1, vel);
       	// executeCommandBySize(size, armMove,
        //                       [-10.0, -1], // dist (mm), timeout (s)
        //                       [-100.0, -1]); // dist (mm), timeout (s)
@@ -621,7 +621,7 @@ var wristCommands = {
     "out": function(nothing) {
       console.log('wrist: wrist_out command received...executing');
       let vel = wristV[modifiers[size]];
-      wristMove(wristMedDist, vel)
+      wristMove(-wristMedDist, vel)
       //wristMove(-0.1)
     },    
     "stop_all_motion": function(nothing) {
