@@ -200,10 +200,10 @@ function baseTranslate(dist, vel) {
     console.log('sending baseTranslate command')
 
     if (dist > 0.0){
-	var baseForwardPoseGoal = generatePoseGoal({'translate_mobile_base': -0.02})
+	var baseForwardPoseGoal = generatePoseGoal({'translate_mobile_base': -vel})
 	baseForwardPoseGoal.send()
     } else if (dist < 0.0) {
-	var baseBackwardPoseGoal = generatePoseGoal({'translate_mobile_base': 0.02})
+	var baseBackwardPoseGoal = generatePoseGoal({'translate_mobile_base': vel})
 	baseBackwardPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"translate", dist:dist, vel:vel});
@@ -215,10 +215,10 @@ function baseTurn(ang_deg, vel) {
     console.log('sending baseTurn command')
     
     if (ang_deg > 0.0){
-	var baseTurnLeftPoseGoal = generatePoseGoal({'rotate_mobile_base': -0.1})
+	var baseTurnLeftPoseGoal = generatePoseGoal({'rotate_mobile_base': -vel})
 	baseTurnLeftPoseGoal.send()
     } else if (ang_deg < 0.0) {
-	var baseTurnRightPoseGoal = generatePoseGoal({'rotate_mobile_base': 0.1})
+	var baseTurnRightPoseGoal = generatePoseGoal({'rotate_mobile_base': vel})
 	baseTurnRightPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
@@ -243,27 +243,25 @@ function sendIncrementalMove(jointName, jointValueInc) {
     return false
 }
 
-
-
-function armMove(dist, timeout) {
+function armMove(dist, timeout, vel) {
     console.log('attempting to sendarmMove command')
     var jointValueInc = 0.0
     if (dist > 0.0) {
-	jointValueInc = 0.02
+	jointValueInc = vel;
     } else if (dist < 0.0) {
-	jointValueInc = -0.02
+	jointValueInc = -vel;
     }
     sendIncrementalMove('wrist_extension', jointValueInc)
    //sendCommandBody({type: "arm", action:"move", dist:dist, timeout:timeout});
 }
  
-function liftMove(dist, timeout) {
+function liftMove(dist, timeout, vel) {
     console.log('attempting to sendliftMove command')
     var jointValueInc = 0.0
     if (dist > 0.0) {
-	jointValueInc = 0.02
+	jointValueInc = vel;
     } else if (dist < 0.0) {
-	jointValueInc = -0.02
+	jointValueInc = -vel;
     }
     sendIncrementalMove('joint_lift', jointValueInc)
     //sendCommandBody({type: "lift", action:"move", dist:dist, timeout:timeout});
@@ -282,13 +280,13 @@ function gripperDeltaAperture(deltaWidthCm) {
     //sendCommandWrist({type:'gripper', action:'delta', delta_aperture_cm:deltaWidthCm});
 }
 
-function wristMove(angRad) {
+function wristMove(angRad, vel) {
     console.log('attempting to send wristMove command')
     var jointValueInc = 0.0
     if (angRad > 0.0) {
-	jointValueInc = 0.1
+	jointValueInc = vel;
     } else if (angRad < 0.0) {
-	jointValueInc = -0.1
+	jointValueInc = -vel;
     }
     sendIncrementalMove('joint_wrist_yaw', jointValueInc)
 }
