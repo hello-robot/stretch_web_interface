@@ -267,7 +267,7 @@ function addTaskTime(taskID, userIndex, isStart) {
   console.log('task: '+taskID+' start: '+isStart + ' @time:' + time);
   let eventName = "Task" + taskID + (isStart?"Started":"Ended")
   removeAllEvents(userIndex, eventName);
-  logUserEvent(userIDs[userIndex], eventName, time);
+  logUserTimedEvent(userIDs[userIndex], time, eventName, "");
 }
 
 function removeAllEvents(userIndex, eventName) {
@@ -280,7 +280,8 @@ function removeAllEvents(userIndex, eventName) {
     let t = timestamps[i];
     let event = data[t];
     if (event.eventName == eventName){
-      dbRef.update({t:null});
+      let newEventLog = {};
+      dbRef.update({t:"null"});
       console.log("Deleting " + t);
     }
   }
@@ -292,6 +293,24 @@ function addParticipantID(userIndex) {
   console.log("Adding participant ID " + participantName + " for user " + userIDs[userIndex]);
   // Update the database
   logUserEvent(userIDs[userIndex], "SessionStarted", participantName);
+}
+
+function logUserTimedEvent(uid, timeStamp, eventName, eventInfo) {
+  eventLog = {};
+  if (eventInfo == undefined)
+    eventInfo = "";
+  let dir = 'users/' + uid + '/';
+  let dbRef = firebase.database().ref(dir);
+  let date = new Date(Number(timeStamp)* 1000);
+  eventLog["eventName"] = eventName;
+  eventLog["eventInfo"] = eventInfo;
+  eventLog["date"] = date.toDateString();
+  eventLog["time"] = date.toTimeString();
+  let newEventLog = {};
+  newEventLog[timeStamp] = eventLog;
+  dbRef.update(newEventLog);
+  console.log("Adding timed event: ------");
+  console.log(newEventLog);
 }
 
 function logUserEvent(uid, eventName, eventInfo) {
