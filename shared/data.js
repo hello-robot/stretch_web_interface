@@ -161,11 +161,26 @@ function addParticipantID(userIndex) {
   console.log("Adding participant ID " + participantName + " for user " + userIDs[userIndex]);
 
   // Update the database
-
-  let dir = "/users/" + robotId + "/";
-  let dbRef = firebase.database().ref(dir);
-  let updates = {"programs":thisRobotPrograms};
-  dbRef.update(updates);
-
+  logUserEvent(userIDs[userIndex], "SessionStarted", participantName);
 }
+
+function logUserEvent(uid, eventName, eventInfo) {
+  eventLog = {};
+  if (eventInfo == undefined)
+    eventInfo = "";
+  let dir = 'users/' + uid + '/';
+  let dbRef = firebase.database().ref(dir);
+  let date = new Date();
+  let timeStamp = date.getTime();
+  eventLog["eventName"] = eventName;
+  eventLog["eventInfo"] = eventInfo;
+  eventLog["date"] = date.toDateString();
+  eventLog["time"] = date.toTimeString();
+  let newEventLog = {};
+  newEventLog[timeStamp] = eventLog;
+  dbRef.update(newEventLog);
+  console.log("Adding event: ------");
+  console.log(newEventLog);
+}
+
 
