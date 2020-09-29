@@ -274,7 +274,7 @@ function addTaskTime(taskID, userIndex, isStart) {
   console.log("Adding task time for user " + userIDs[userIndex]);
   console.log('task: '+taskID+' start: '+isStart + ' @time:' + time);
   let eventName = "Task" + taskID + (isStart?"Started":"Ended")
-  removeAllEvents(eventName);
+  removeAllEvents(userIndex, eventName);
   logUserEvent(userIDs[userIndex], eventName, time);
 }
 
