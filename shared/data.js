@@ -47,6 +47,10 @@ function updateUsersList(snapshot) {
     let t1End = "N/A";
     let t2Start = "N/A";
     let t2End = "N/A";
+    let t3Start = "N/A";
+    let t3End = "N/A";
+    let t4Start = "N/A";
+    let t4End = "N/A";
 
     // Figure out what data is available for the user
     for (var j=0; j<timestamps.length; j++) {
@@ -81,6 +85,14 @@ function updateUsersList(snapshot) {
         t2Start = t;
       if (event.eventName == "Task2Ended")
         t2End = t;
+      if (event.eventName == "Task3Started")
+        t3Start = t;
+      if (event.eventName == "Task3Ended")
+        t3End = t;
+      if (event.eventName == "Task4Started")
+        t4Start = t;
+      if (event.eventName == "Task4Ended")
+        t4End = t;
     }
 
     // Display available data for the user
@@ -119,17 +131,26 @@ function updateUsersList(snapshot) {
                         '<span> <b>Session start time:</b> '+ sessionStartTime + "</span> <br>" +
                         '<span> <b>Session start time stamp:</b> '+ sessionStartStamp + "</span>";
     cardBodyDiv.appendChild(timeDiv);
+    let hr1 = document.createElement('hr');
+    cardBodyDiv.appendChild(hr1);
+
+    //====================================//
 
     let summaryDiv = document.createElement('div');
     summaryDiv.innerHTML = '<b>Number of events:</b> '+ timestamps.length;
     summaryDiv.setAttribute('class', 'mb-2');
     cardBodyDiv.appendChild(summaryDiv);
+    let hr2 = document.createElement('hr');
+    cardBodyDiv.appendChild(hr2);
+
+    //====================================//
 
     let participantDiv = document.createElement('div');
     participantDiv.setAttribute('class', 'mb-2');
     let participantSpan = document.createElement('span');
     participantSpan.setAttribute('class', 'mr-4');
-    participantSpan.innerHTML = '<b>Participant ID:</b> '+ participantID;
+    participantSpan.innerHTML = '<b>Database user ID:</b> ' + uid + '<br>' +
+                                '<b>Participant ID:</b> ' + participantID;
     let participantText = document.createElement('input');
     participantText.setAttribute('type', 'text');
     participantText.setAttribute('id', 'participant'+i);
@@ -143,6 +164,32 @@ function updateUsersList(snapshot) {
     participantDiv.appendChild(participantText);
     participantDiv.appendChild(addParticipantButton);
     cardBodyDiv.appendChild(participantDiv);
+    let hr3 = document.createElement('hr');
+    cardBodyDiv.appendChild(hr3);
+
+    //====================================//
+
+    let t1Div = getTaskTimeDiv(t1Start, 1, i, true, isAdmin);
+    cardBodyDiv.appendChild(t1Div);
+    let t1eDiv = getTaskTimeDiv(t1End, 1, i, false, isAdmin);
+    cardBodyDiv.appendChild(t1eDiv);
+    let t2Div = getTaskTimeDiv(t2Start, 2, i, true, isAdmin);
+    cardBodyDiv.appendChild(t2Div);
+    let t2eDiv = getTaskTimeDiv(t2End, 2, i, false, isAdmin);
+    cardBodyDiv.appendChild(t2eDiv);
+    let t3Div = getTaskTimeDiv(t3Start, 3, i, true, isAdmin);
+    cardBodyDiv.appendChild(t3Div);
+    let t3eDiv = getTaskTimeDiv(t3End, 3, i, false, isAdmin);
+    cardBodyDiv.appendChild(t3eDiv);
+    let t4Div = getTaskTimeDiv(t4Start, 4, i, true, isAdmin);
+    cardBodyDiv.appendChild(t4Div);
+    let t4eDiv = getTaskTimeDiv(t4End, 4, i, false, isAdmin);
+    cardBodyDiv.appendChild(t4eDiv);
+
+    let hr4 = document.createElement('hr');
+    cardBodyDiv.appendChild(hr4);
+
+    //====================================//
 
     cardHeaderDiv.appendChild(expandButton);
     collapseDiv.appendChild(cardBodyDiv);
@@ -154,12 +201,44 @@ function updateUsersList(snapshot) {
   }
 }
 
+function getTaskTimeDiv(current, taskID, userIndex, isStart, isAdmin) {
+  let t1Div = document.createElement('div');
+  t1Div.setAttribute('class', 'mb-2');
+  let t1Span = document.createElement('span');
+  t1Span.setAttribute('class', 'mr-4');
+  t1Span.innerHTML = '<b>Task ' + taskID + ' ' + 
+                      (isStart?'start':'end') + ':</b> ' + current;
+  let t1Text = document.createElement('input');
+  t1Text.setAttribute('type', 'text');
+  let uniqueID = 'task'+taskID+'user'+userIndex+'start'+isStart;
+  t1Text.setAttribute('id', uniqueID);
+  let t1AddButton = document.createElement('button');
+  t1AddButton.setAttribute('class', 'btn btn-primary btn-small');
+  t1AddButton.setAttribute('onclick', 'addTaskTime('+ taskID +','+ userIndex +','+ isStart + ')');
+  if (!isAdmin)
+    t1AddButton.setAttribute('disabled', 'true');
+  t1AddButton.innerHTML = "Update";
+  t1Div.appendChild(t1Span);
+  t1Div.appendChild(t1Text);
+  t1Div.appendChild(t1AddButton);
+  return t1Div;
+}
+
+
+function addTaskTime(taskID, userIndex, isStart) {
+  let uniqueID = 'task'+taskID+'user'+userIndex+'start'+isStart;
+  let timeText = document.getElementById(uniqueID);
+  let time = timeText.value;
+  console.log("Adding task time for user " + userIDs[userIndex]);
+  console.log('task: '+taskID+' start: '+isStart + ' @time:' + time);
+  let eventName = "Task" + taskID + (isStart?"Started":"Ended")
+  logUserEvent(userIDs[userIndex], eventName, time);
+}
+
 function addParticipantID(userIndex) {
   let participantText = document.getElementById('participant' + userIndex);
   let participantName = participantText.value;
-
   console.log("Adding participant ID " + participantName + " for user " + userIDs[userIndex]);
-
   // Update the database
   logUserEvent(userIDs[userIndex], "SessionStarted", participantName);
 }
