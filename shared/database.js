@@ -157,20 +157,23 @@ function Database(config, readyCallback) {
     Database.uid = null;
   }
   
-  Database.logEvent = function(eventName, eventLog) {
+  Database.logEvent = function(eventName, eventInfo) {
     if (Database.isLogging) {
-      if (eventLog == undefined)
-        eventLog = {};
-      var dir = 'users/' + (Database.uid);
-      var dbRef = firebase.database().ref(dir);
-      var date = new Date();
-      eventLog["timeStamp"] = date.getTime();
+      eventLog = {};
+      if (eventInfo == undefined)
+        eventInfo = "";
+      let dir = 'users/' + (Database.uid);
+      let dbRef = firebase.database().ref(dir);
+      let date = new Date();
+      let timeStamp = date.getTime();
+      eventLog["eventName"] = eventName;
+      eventLog["eventInfo"] = eventInfo;
       eventLog["date"] = date.toDateString();
       eventLog["time"] = date.toTimeString();
-      var newEventLog = {};
-      newEventLog[eventName] = eventLog;
+      let newEventLog = {};
+      newEventLog[timeStamp] = eventLog;
       dbRef.update(newEventLog);
-      console.log("Logging event: ----------");
+      console.log("Logging event: ------");
       console.log(newEventLog);
     }
   }
