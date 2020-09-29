@@ -289,7 +289,7 @@ function removeAllEvents(userIndex, eventName) {
     let t = timestamps[i];
     let event = data[t];
     if (event.eventName == eventName){
-      dbRef.delete(t);
+      dbRef.update({t:null});
     }
   }
 }
