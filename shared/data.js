@@ -52,6 +52,11 @@ function updateUsersList(snapshot) {
     let t4Start = "N/A";
     let t4End = "N/A";
 
+    let t1Events = 0;
+    let t2Events = 0;
+    let t3Events = 0;
+    let t4Events = 0;
+
     // Figure out what data is available for the user
     for (var j=0; j<timestamps.length; j++) {
       let t = timestamps[j];
@@ -93,6 +98,39 @@ function updateUsersList(snapshot) {
         t4Start = t;
       if (event.eventName == "Task4Ended")
         t4End = t;
+    }
+
+    // Go through events again to count events per task
+    for (var j=0; j<timestamps.length; j++) {
+      let t = timestamps[j];
+      let event = data[t];
+
+      if (event.eventName != "SessionStarted") {
+        if (t1Start != "N/A" && t1End != "N/A") {
+          console.log("This: " + Number(t) + 
+            " ?> start: " + Number(t1Start) + "  ---- " + 
+            (Number(t) > Number(t1Start)));
+
+          console.log("This: " + Number(t) + 
+            " ?> end: " + Number(t1End) + "  ---- " + 
+            (Number(t) < Number(t1End)));
+
+          if (Number(t) > Number(t1Start) && Number(t) < Number(t1End))
+            t1Events++;
+        }
+        if (t2Start != "N/A" && t2End != "N/A") {
+          if (Number(t) > Number(t2Start) && Number(t) < Number(t2End))
+            t2Events++;
+        }
+        if (t3Start != "N/A" && t3End != "N/A") {
+          if (Number(t) > Number(t3Start) && Number(t) < Number(t3End))
+            t3Events++;
+        }
+        if (t4Start != "N/A" && t4End != "N/A") {
+          if (Number(t) > Number(t4Start) && Number(t) < Number(t4End))
+            t4Events++;
+        }
+      }
     }
 
     // Display available data for the user
@@ -137,7 +175,11 @@ function updateUsersList(snapshot) {
     //====================================//
 
     let summaryDiv = document.createElement('div');
-    summaryDiv.innerHTML = '<b>Number of events:</b> '+ timestamps.length;
+    summaryDiv.innerHTML = '<b>Total number of events:</b> '+ timestamps.length + '<br>' +
+                  '<b>--Task 1 events:</b> '+ t1Events + '<br>' + 
+                  '<b>--Task 2 events:</b> '+ t2Events + '<br>' + 
+                  '<b>--Task 3 events:</b> '+ t3Events + '<br>' + 
+                  '<b>--Task 4 events:</b> '+ t4Events; 
     summaryDiv.setAttribute('class', 'mb-2');
     cardBodyDiv.appendChild(summaryDiv);
     let hr2 = document.createElement('hr');
@@ -232,7 +274,24 @@ function addTaskTime(taskID, userIndex, isStart) {
   console.log("Adding task time for user " + userIDs[userIndex]);
   console.log('task: '+taskID+' start: '+isStart + ' @time:' + time);
   let eventName = "Task" + taskID + (isStart?"Started":"Ended")
+  removeAllEvents(eventName);
   logUserEvent(userIDs[userIndex], eventName, time);
+}
+
+function removeAllEvents(userIndex, eventName) {
+  let uid = userIDs[userIndex];
+  let data = userData[uid];
+  let timestamps = Object.keys(data);
+  let stampsToRemove = [];
+  let dir = 'users/' + uid + '/';
+  let dbRef = firebase.database().ref(dir);
+  for (let i=0; i<timestamps.length; i++) {
+    let t = timestamps[j];
+    let event = data[t];
+    if (event.eventName == eventName){
+      dbRef.delete(t);
+    }
+  }
 }
 
 function addParticipantID(userIndex) {
