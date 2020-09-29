@@ -286,7 +286,7 @@ function removeAllEvents(userIndex, eventName) {
   let dir = 'users/' + uid + '/';
   let dbRef = firebase.database().ref(dir);
   for (let i=0; i<timestamps.length; i++) {
-    let t = timestamps[j];
+    let t = timestamps[i];
     let event = data[t];
     if (event.eventName == eventName){
       dbRef.delete(t);
