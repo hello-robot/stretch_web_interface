@@ -107,14 +107,6 @@ function updateUsersList(snapshot) {
 
       if (event.eventName != "SessionStarted") {
         if (t1Start != "N/A" && t1End != "N/A") {
-          console.log("This: " + Number(t) + 
-            " ?> start: " + Number(t1Start) + "  ---- " + 
-            (Number(t) > Number(t1Start)));
-
-          console.log("This: " + Number(t) + 
-            " ?> end: " + Number(t1End) + "  ---- " + 
-            (Number(t) < Number(t1End)));
-
           if (Number(t) > Number(t1Start) && Number(t) < Number(t1End))
             t1Events++;
         }
@@ -282,7 +274,6 @@ function removeAllEvents(userIndex, eventName) {
   let uid = userIDs[userIndex];
   let data = userData[uid];
   let timestamps = Object.keys(data);
-  let stampsToRemove = [];
   let dir = 'users/' + uid + '/';
   let dbRef = firebase.database().ref(dir);
   for (let i=0; i<timestamps.length; i++) {
@@ -290,6 +281,7 @@ function removeAllEvents(userIndex, eventName) {
     let event = data[t];
     if (event.eventName == eventName){
       dbRef.update({t:null});
+      console.log("Deleting " + t);
     }
   }
 }
