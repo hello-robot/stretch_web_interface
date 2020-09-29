@@ -274,14 +274,13 @@ function removeAllEvents(userIndex, eventName) {
   let uid = userIDs[userIndex];
   let data = userData[uid];
   let timestamps = Object.keys(data);
-  let dir = 'users/' + uid + '/';
-  let dbRef = firebase.database().ref(dir);
   for (let i=0; i<timestamps.length; i++) {
     let t = timestamps[i];
     let event = data[t];
+    let dir = 'users/' + uid + '/' + t + '/';
+    let dbRef = firebase.database().ref(dir);
     if (event.eventName == eventName){
-      let newEventLog = {};
-      dbRef.update({t:"null"});
+      dbRef.remove();
       console.log("Deleting " + t);
     }
   }
@@ -301,7 +300,7 @@ function logUserTimedEvent(uid, timeStamp, eventName, eventInfo) {
     eventInfo = "";
   let dir = 'users/' + uid + '/';
   let dbRef = firebase.database().ref(dir);
-  let date = new Date(Number(timeStamp)* 1000);
+  let date = new Date(Number(timeStamp));
   eventLog["eventName"] = eventName;
   eventLog["eventInfo"] = eventInfo;
   eventLog["date"] = date.toDateString();
