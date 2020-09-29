@@ -3,8 +3,10 @@ var modifiers = {"verysmall":0, "small":1, "medium":2, "large":3, "verylarge":4}
 var currentV = "medium";
 
 function setVelocity(newV) {
-  if (Object.keys(modifiers).includes(newV))
+  if (Object.keys(modifiers).includes(newV)){
     currentV = newV;
+    Database.logEvent("SpeedChange", newV);
+  }
   else
     console.log("Invalid velocity: " + newV);
 }
@@ -15,6 +17,7 @@ function lookLeft() {
                name:"left",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LookLeft", currentV);
 }
 
 function lookRight() {
@@ -23,6 +26,7 @@ function lookRight() {
                name:"right",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LookRight", currentV);
 }
 
 function lookUp() {
@@ -31,6 +35,7 @@ function lookUp() {
                name:"up",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LookUp", currentV);
 }
 
 function lookDown() {
@@ -39,6 +44,7 @@ function lookDown() {
                name:"down",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LookDown", currentV);
 }
 
 function moveForward() {
@@ -47,6 +53,7 @@ function moveForward() {
                name:"forward",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("MoveForward", currentV);
 }
 
 function moveForwardMedium() {
@@ -71,6 +78,7 @@ function moveBackward() {
                name:"backward",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("MoveBackward", currentV);
 }
 
 function moveBackwardMedium() {
@@ -95,6 +103,7 @@ function turnLeft() {
                name:"turn_left",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("TurnLeft", currentV);
 }
 
 function turnLeftMedium() {
@@ -119,6 +128,7 @@ function turnRight() {
                name:"turn_right",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("TurnRight", currentV);
 }
 
 function turnRightMedium() {
@@ -143,6 +153,7 @@ function liftUp() {
                name:"up",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LiftUp", currentV);
 }
 
 function liftUpMedium() {
@@ -167,6 +178,7 @@ function liftDown() {
                name:"down",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("LiftDown", currentV);
 }
 
 function liftDownMedium() {
@@ -191,6 +203,7 @@ function armRetract() {
                name:"retract",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("ArmRetract", currentV);
 }
 
 function armRetractMedium() {
@@ -215,6 +228,7 @@ function armExtend() {
                name:"extend",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("ArmExtend", currentV);
 }
 
 function armExtendMedium() {
@@ -256,6 +270,7 @@ function gripperClose() {
                name:"close",
                modifier:"medium"};
     sendData(cmd);
+    Database.logEvent("GripperClose", "medium");
 }
 
 function gripperOpen() {
@@ -264,6 +279,7 @@ function gripperOpen() {
                name:"open",
                modifier:"medium"};
     sendData(cmd);
+    Database.logEvent("GripperOpen", "medium");
 }
 
 function gripperCloseFull() {
@@ -329,6 +345,7 @@ function wristIn() {
                name:"in",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("WristIn", currentV);
 }
 
 function wristOut() {
@@ -337,6 +354,7 @@ function wristOut() {
                name:"out",
                modifier:currentV};
     sendData(cmd);
+    Database.logEvent("WristOut", currentV);
 }
 
 function wristBendAuto(ang_deg) {
@@ -390,6 +408,7 @@ function turnModeOn(modeKey) {
 
   // Update the front-end for the new mode
   turnModeUiOn(modeKey)
+  Database.logEvent("ModeChange", modeKey);
 }
 
 /**
@@ -413,6 +432,7 @@ function setCameraView(modeKey) {
     }
     interfaceMode = modeKey
     sendData(cmd)
+    Database.logEvent("SetCameraView", modeKey);
 }
 
 var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look']
