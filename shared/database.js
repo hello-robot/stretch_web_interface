@@ -9,10 +9,10 @@ var config = {
   appId: "1:410461558772:web:e0bb0518c01269b1eacba1"
 };
 
-var db = new Database(config, databaseReadyCallback);
-
 function databaseReadyCallback() {
   console.log("Ready to log data on the database.");
+  // Create directory in database to save this user's data
+  Database.logEvent("SessionStarted");
 }
 
 /*
@@ -140,9 +140,6 @@ function Database(config, readyCallback) {
           signinInfo.style.display = 'none';
         }
       }
-
-      // Create directory in database to save this user's data
-      Database.logEvent("SessionStarted");
 
       if (Database.readyCallback != null || Database.readyCallback != undefined)
         Database.readyCallback();

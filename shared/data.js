@@ -28,7 +28,7 @@ function updateUsersList(snapshot) {
                 && admins.includes(Database.userEmail);  
 
   console.log("Received data for " + userIDs.length + " users.");
-  console.log("User is admin? " + isAdmin);
+  // console.log("User is admin? " + isAdmin);
   
   let userListDiv = document.getElementById("userList");
   userListDiv.innerHTML = "";

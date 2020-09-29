@@ -330,6 +330,7 @@
  
     <div>
       <div class="recordswitch">
+  <button id="taskButton" onclick="updateTask()">Start Task 1</button>
   <button id="record">Start Recording</button>
   <button id="download" disabled>Download Recording</button>
       </div>
@@ -374,6 +375,7 @@
 <script src="../shared/send_recv_av.js"></script>
 <script src="../shared/database.js"></script>
 <script type='text/javascript' >
+  var db = new Database(config, databaseReadyCallback);
   function runOnOpenDataChannel() {
   // When the robot and the operator are first connected, switch to navigation mode.
   console.log('starting in navigation mode')
