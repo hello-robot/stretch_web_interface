@@ -104,6 +104,11 @@ function updateUsersList(snapshot) {
         t4End = t;
     }
 
+    let t1ModeList = [];
+    let t2ModeList = [];
+    let t3ModeList = [];
+    let t4ModeList = [];
+
     // Go through events again to count events per task
     for (var j=0; j<timestamps.length; j++) {
       let t = timestamps[j];
@@ -112,31 +117,46 @@ function updateUsersList(snapshot) {
       if (event.eventName != "SessionStarted") {
         if (t1Start != "N/A" && t1End != "N/A") {
           t1Duration = (Number(t1End) - Number(t1Start))/1000.0;
-          if (Number(t) > Number(t1Start) && Number(t) < Number(t1End))
+          if (Number(t) > Number(t1Start) && Number(t) < Number(t1End)) {
             t1Events++;
+            if (event.eventName == "ModeChange") {
+              let modeName = event.eventInfo;
+              t1ModeList.push([Number(t),modeName]);
+            }            
+          }
         }
         if (t2Start != "N/A" && t2End != "N/A") {
           t2Duration = (Number(t2End) - Number(t2Start))/1000.0;
-          if (Number(t) > Number(t2Start) && Number(t) < Number(t2End))
+          if (Number(t) > Number(t2Start) && Number(t) < Number(t2End)){
             t2Events++;
+            if (event.eventName == "ModeChange") {
+              let modeName = event.eventInfo;
+              t2ModeList.push([Number(t),modeName]);
+            }            
+          }
         }
         if (t3Start != "N/A" && t3End != "N/A") {
           t3Duration = (Number(t3End) - Number(t3Start))/1000.0;
-          if (Number(t) > Number(t3Start) && Number(t) < Number(t3End))
+          if (Number(t) > Number(t3Start) && Number(t) < Number(t3End)){
             t3Events++;
+            if (event.eventName == "ModeChange") {
+              let modeName = event.eventInfo;
+              t3ModeList.push([Number(t),modeName]);
+            }            
+          }
         }
         if (t4Start != "N/A" && t4End != "N/A") {
           t4Duration = (Number(t4End) - Number(t4Start))/1000.0;
-          if (Number(t) > Number(t4Start) && Number(t) < Number(t4End))
+          if (Number(t) > Number(t4Start) && Number(t) < Number(t4End)){
             t4Events++;
+            if (event.eventName == "ModeChange") {
+              let modeName = event.eventInfo;
+              t4ModeList.push([Number(t),modeName]);
+            }            
+          }
         }
       }
     }
-
-    let t1DurationString = Math.floor(t1Duration/60.0) + ":" + (Math.round(t1Duration%60)<10?"0":"") + Math.round(t1Duration%60);
-    let t2DurationString = Math.floor(t2Duration/60.0) + ":" + (Math.round(t2Duration%60)<10?"0":"") + Math.round(t2Duration%60);
-    let t3DurationString = Math.floor(t3Duration/60.0) + ":" + (Math.round(t3Duration%60)<10?"0":"") + Math.round(t3Duration%60);
-    let t4DurationString = Math.floor(t4Duration/60.0) + ":" + (Math.round(t4Duration%60)<10?"0":"") + Math.round(t4Duration%60);
 
     // Display available data for the user
 
@@ -179,6 +199,11 @@ function updateUsersList(snapshot) {
 
     //====================================//
 
+    let t1DurationString = Math.floor(t1Duration/60.0) + ":" + (Math.round(t1Duration%60)<10?"0":"") + Math.round(t1Duration%60);
+    let t2DurationString = Math.floor(t2Duration/60.0) + ":" + (Math.round(t2Duration%60)<10?"0":"") + Math.round(t2Duration%60);
+    let t3DurationString = Math.floor(t3Duration/60.0) + ":" + (Math.round(t3Duration%60)<10?"0":"") + Math.round(t3Duration%60);
+    let t4DurationString = Math.floor(t4Duration/60.0) + ":" + (Math.round(t4Duration%60)<10?"0":"") + Math.round(t4Duration%60);
+
     let summaryDiv = document.createElement('div');
     summaryDiv.innerHTML = '<b>Total number of events:</b> '+ timestamps.length + '<br>' +
                   '<b>--Task 1 events:</b> '+ t1Events + '<br>' + 
@@ -193,6 +218,19 @@ function updateUsersList(snapshot) {
     cardBodyDiv.appendChild(summaryDiv);
     let hr2 = document.createElement('hr');
     cardBodyDiv.appendChild(hr2);
+
+    //====================================//
+
+    let svg1Div = getModeSVGDiv(1, t1ModeList, t1Start, t1Duration);
+    let svg2Div = getModeSVGDiv(2, t2ModeList, t2Start, t2Duration);
+    let svg3Div = getModeSVGDiv(3, t3ModeList, t3Start, t3Duration);
+    let svg4Div = getModeSVGDiv(4, t4ModeList, t4Start, t4Duration);
+    cardBodyDiv.appendChild(svg1Div);
+    cardBodyDiv.appendChild(svg2Div);
+    cardBodyDiv.appendChild(svg3Div);
+    cardBodyDiv.appendChild(svg4Div);
+    let hr25 = document.createElement('hr');
+    cardBodyDiv.appendChild(hr25);
 
     //====================================//
 
@@ -275,6 +313,48 @@ function getTaskTimeDiv(current, taskID, userIndex, isStart, isAdmin) {
   return t1Div;
 }
 
+
+function getModeSVGDiv(tID, t1ModeList, t1Start, t1Duration) {
+  let svg1Div = document.createElement('div');
+  let t1SVG = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+  t1SVG.setAttribute('width', "600px");
+  t1SVG.setAttribute('height', "50px");
+  // t1SVG.setAttribute('style', "border: 1px red solid;");
+  for (let n=0; n<t1ModeList.length; n++){
+    t1ModeList[n][0] -= Number(t1Start);
+    t1ModeList[n][0] /= 1000.0;
+  }
+  // console.log(t1ModeList);
+  for (let n=1; n<t1ModeList.length-1; n++){
+    let w = Math.round(600.0*(t1ModeList[n+1][0] - t1ModeList[n][0])/t1Duration) + 1;
+    let x = Math.round(600.0*(t1ModeList[n][0] - t1ModeList[0][0])/t1Duration);
+    let rect = document.createElementNS("http://www.w3.org/2000/svg",'rect');
+    // console.log("w: " + w + " x: " + x);
+    rect.setAttribute('width', w);
+    rect.setAttribute('height', 25);
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', 5);
+    rect.setAttribute('height', 30);
+    if (t1ModeList[n][1] == "nav")
+      rect.setAttribute('fill', "#ff9900");
+    else if (t1ModeList[n][1] == "look")
+      rect.setAttribute('fill', "#ffd966");
+    else if (t1ModeList[n][1] == "low_arm")
+      rect.setAttribute('fill', "#6d9eeb");
+    else if (t1ModeList[n][1] == "high_arm")
+      rect.setAttribute('fill', "#3c78d8");
+    else if (t1ModeList[n][1] == "hand")
+      rect.setAttribute('fill', "yellowgreen");
+    t1SVG.appendChild(rect);
+  }
+
+  let t1span = document.createElement('span');
+  t1span.setAttribute("class", "mr-2");
+  t1span.innerHTML = "Task " + tID;
+  svg1Div.appendChild(t1span);
+  svg1Div.appendChild(t1SVG);
+  return svg1Div;
+}
 
 function addTaskTime(taskID, userIndex, isStart) {
   let uniqueID = 'task'+taskID+'user'+userIndex+'start'+isStart;
