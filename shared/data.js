@@ -56,6 +56,10 @@ function updateUsersList(snapshot) {
     let t2Events = 0;
     let t3Events = 0;
     let t4Events = 0;
+    let t1Duration = 0;
+    let t2Duration = 0;
+    let t3Duration = 0;
+    let t4Duration = 0;
 
     // Figure out what data is available for the user
     for (var j=0; j<timestamps.length; j++) {
@@ -107,23 +111,32 @@ function updateUsersList(snapshot) {
 
       if (event.eventName != "SessionStarted") {
         if (t1Start != "N/A" && t1End != "N/A") {
+          t1Duration = (Number(t1End) - Number(t1Start))/1000.0;
           if (Number(t) > Number(t1Start) && Number(t) < Number(t1End))
             t1Events++;
         }
         if (t2Start != "N/A" && t2End != "N/A") {
+          t2Duration = (Number(t2End) - Number(t2Start))/1000.0;
           if (Number(t) > Number(t2Start) && Number(t) < Number(t2End))
             t2Events++;
         }
         if (t3Start != "N/A" && t3End != "N/A") {
+          t3Duration = (Number(t3End) - Number(t3Start))/1000.0;
           if (Number(t) > Number(t3Start) && Number(t) < Number(t3End))
             t3Events++;
         }
         if (t4Start != "N/A" && t4End != "N/A") {
+          t4Duration = (Number(t4End) - Number(t4Start))/1000.0;
           if (Number(t) > Number(t4Start) && Number(t) < Number(t4End))
             t4Events++;
         }
       }
     }
+
+    let t1DurationString = Math.floor(t1Duration/60.0) + ":" + (Math.round(t1Duration%60)<10?"0":"") + Math.round(t1Duration%60);
+    let t2DurationString = Math.floor(t2Duration/60.0) + ":" + (Math.round(t2Duration%60)<10?"0":"") + Math.round(t2Duration%60);
+    let t3DurationString = Math.floor(t3Duration/60.0) + ":" + (Math.round(t3Duration%60)<10?"0":"") + Math.round(t3Duration%60);
+    let t4DurationString = Math.floor(t4Duration/60.0) + ":" + (Math.round(t4Duration%60)<10?"0":"") + Math.round(t4Duration%60);
 
     // Display available data for the user
 
@@ -171,7 +184,11 @@ function updateUsersList(snapshot) {
                   '<b>--Task 1 events:</b> '+ t1Events + '<br>' + 
                   '<b>--Task 2 events:</b> '+ t2Events + '<br>' + 
                   '<b>--Task 3 events:</b> '+ t3Events + '<br>' + 
-                  '<b>--Task 4 events:</b> '+ t4Events; 
+                  '<b>--Task 4 events:</b> '+ t4Events + '<br>' +  
+                  '<b>--Task 1 duration:</b> '+ t1DurationString + '<br>' + 
+                  '<b>--Task 2 duration:</b> '+ t2DurationString + '<br>' + 
+                  '<b>--Task 3 duration:</b> '+ t3DurationString + '<br>' + 
+                  '<b>--Task 4 duration:</b> '+ t4DurationString; 
     summaryDiv.setAttribute('class', 'mb-2');
     cardBodyDiv.appendChild(summaryDiv);
     let hr2 = document.createElement('hr');
