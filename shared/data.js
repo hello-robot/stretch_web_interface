@@ -102,6 +102,12 @@ function updateUsersList(snapshot) {
         t4Start = t;
       if (event.eventName == "Task4Ended")
         t4End = t;
+
+      if (event.eventName == "Task5Started")
+        console.log('Task5Started: ' + t);
+      if (event.eventName == "Task5Ended")
+        console.log('Task5Ended: ' + t);
+
     }
 
     let t1ModeList = [];
@@ -157,6 +163,58 @@ function updateUsersList(snapshot) {
         }
       }
     }
+
+
+    // Obtain mode statistics
+    let modeCounts = {"nav":0, "look":0, "low_arm":0, "high_arm":0, "hand":0};
+
+    for (let n=0; n<t1ModeList.length; n++){
+      t1ModeList[n][0] -= Number(t1Start);
+      t1ModeList[n][0] /= 1000.0;
+      let mode = t1ModeList[n][1];
+      modeCounts[mode]++;
+    }
+    for (let n=0; n<t2ModeList.length; n++){
+      t2ModeList[n][0] -= Number(t2Start);
+      t2ModeList[n][0] /= 1000.0;
+      let mode = t2ModeList[n][1];
+      modeCounts[mode]++;
+    }
+    for (let n=0; n<t3ModeList.length; n++){
+      t3ModeList[n][0] -= Number(t3Start);
+      t3ModeList[n][0] /= 1000.0;
+      let mode = t3ModeList[n][1];
+      modeCounts[mode]++;
+    }
+    for (let n=0; n<t4ModeList.length; n++){
+      t4ModeList[n][0] -= Number(t4Start);
+      t4ModeList[n][0] /= 1000.0;
+      let mode = t4ModeList[n][1];
+      modeCounts[mode]++;
+    }
+
+    let modeDurations = {"nav":0, "look":0, "low_arm":0, "high_arm":0, "hand":0};
+    for (let n=0; n<t1ModeList.length-1; n++)
+      modeDurations[t1ModeList[n][1]] += (t1ModeList[n+1][0] - t1ModeList[n][0]);
+    for (let n=0; n<t2ModeList.length-1; n++)
+      modeDurations[t2ModeList[n][1]] += (t2ModeList[n+1][0] - t2ModeList[n][0]);
+    for (let n=0; n<t3ModeList.length-1; n++)
+      modeDurations[t3ModeList[n][1]] += (t3ModeList[n+1][0] - t3ModeList[n][0]);
+    for (let n=0; n<t4ModeList.length-1; n++)
+      modeDurations[t4ModeList[n][1]] += (t4ModeList[n+1][0] - t4ModeList[n][0]);
+
+    let keys = Object.keys(modeDurations);
+    for (let k=0; k<keys.length; k++) {
+      let key = keys[k];
+      modeDurations[key] /= modeCounts[key];
+    }
+
+    let modesDataString = "Tab"  + "\t" + "Occurrences" + "\t" + "Average duration" + "\n" +
+                          "Arm1"  + "\t" + modeCounts["low_arm"] + "\t" + modeDurations["low_arm"] + "\n" +
+                          "Arm2"  + "\t" + modeCounts["high_arm"] + "\t" + modeDurations["high_arm"] + "\n" +
+                          "Drive"  + "\t" + modeCounts["nav"] + "\t" + modeDurations["nav"] + "\n" +
+                          "Hand"  + "\t" + modeCounts["hand"] + "\t" + modeDurations["hand"] + "\n" +
+                          "Look"  + "\t" + modeCounts["look"] + "\t" + modeDurations["look"] + "\n";
 
     // Display available data for the user
 
@@ -221,6 +279,24 @@ function updateUsersList(snapshot) {
 
     //====================================//
 
+    let modesDiv = document.createElement('div');
+    let modesSpan = document.createElement('span');
+    modesSpan.setAttribute('class', 'mr-4');
+    modesSpan.innerHTML = "<b>Usage of tabs/modes</b><br>"
+
+    let textArea = document.createElement('textarea');
+    textArea.setAttribute("rows", 4);
+    textArea.setAttribute("cols", 50);
+    textArea.value = modesDataString;
+
+    modesDiv.appendChild(modesSpan);
+    modesDiv.appendChild(textArea);
+    cardBodyDiv.appendChild(modesDiv);
+
+    cardBodyDiv.appendChild(document.createElement('hr'));
+
+    //====================================//
+
     let svg1Div = getModeSVGDiv(1, t1ModeList, t1Start, t1Duration);
     let svg2Div = getModeSVGDiv(2, t2ModeList, t2Start, t2Duration);
     let svg3Div = getModeSVGDiv(3, t3ModeList, t3Start, t3Duration);
@@ -229,8 +305,8 @@ function updateUsersList(snapshot) {
     cardBodyDiv.appendChild(svg2Div);
     cardBodyDiv.appendChild(svg3Div);
     cardBodyDiv.appendChild(svg4Div);
-    let hr25 = document.createElement('hr');
-    cardBodyDiv.appendChild(hr25);
+
+    cardBodyDiv.appendChild(document.createElement('hr'));
 
     //====================================//
 
@@ -320,11 +396,9 @@ function getModeSVGDiv(tID, t1ModeList, t1Start, t1Duration) {
   t1SVG.setAttribute('width', "600px");
   t1SVG.setAttribute('height', "50px");
   // t1SVG.setAttribute('style', "border: 1px red solid;");
-  for (let n=0; n<t1ModeList.length; n++){
-    t1ModeList[n][0] -= Number(t1Start);
-    t1ModeList[n][0] /= 1000.0;
-  }
-  // console.log(t1ModeList);
+
+  // console.log(JSON.stringify(t1ModeList));
+
   for (let n=1; n<t1ModeList.length-1; n++){
     let w = Math.round(600.0*(t1ModeList[n+1][0] - t1ModeList[n][0])/t1Duration) + 1;
     let x = Math.round(600.0*(t1ModeList[n][0] - t1ModeList[0][0])/t1Duration);
