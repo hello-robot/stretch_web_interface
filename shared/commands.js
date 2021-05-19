@@ -559,7 +559,7 @@ var driveCommands = {
         console.log('drive: backward command received...executing');
 
       let vel = driveTransV[modifiers[size]];
-      baseTranslate(driveTransMedDist, vel);
+      baseTranslate(-driveTransMedDist, vel);
         // executeCommandBySize(size, baseTranslate,
         //                      [10.0, 200.0], //dist (mm), speed (mm/s)
         //                      [100.0, 200.0]); //dist (mm), speed (mm/s)
