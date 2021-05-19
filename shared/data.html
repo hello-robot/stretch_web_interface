@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <!-- META tags go here -->
+    <!-- This can improve the appearance of web pages on mobile devices. -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+<body onload="initializeData()">
+  <div class="container-fluid px-sm-5 pb-4">
+    <div class="row">
+      <div class="col text-center">
+        <h1 class="display-4">Stretch Study User Data</h1>
+      </div>
+    </div>
+    <div class="row flex-row-reverse">
+      <div class="mb-2" id="googleSignInButton">
+        <button class="btn btn-google" type="button" onclick="signInWithGoogle()"><img class="img-button" src="assets/web/2x/btn_google_signin_light_focus_web@2x.png" style="width: 150px;" id="googleIMG"></button>
+      </div>
+      <div class="mb-2" id="googleSignInInfo" style="display:none;"></div>
+    </div>
+    <div class="row">
+      <div class="col" id="userList"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="data.js"></script>
+  <script src="database.js"></script>
+
+</body>
+</html>

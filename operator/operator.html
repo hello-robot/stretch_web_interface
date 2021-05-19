@@ -42,13 +42,13 @@
     </div>
 
       <div class="switch-2">
-        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall" checked>
+        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
         <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
         
         <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
         <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
         
-        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium">
+        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
         <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
         
         <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
@@ -330,6 +330,7 @@
  
     <div>
       <div class="recordswitch">
+  <button id="taskButton" onclick="updateTask()">Start Task 1</button>
   <button id="record">Start Recording</button>
   <button id="download" disabled>Download Recording</button>
       </div>
@@ -372,7 +373,9 @@
 <script src="operator_acquire_av.js"></script>
 <script src="operator_recorder.js"></script>
 <script src="../shared/send_recv_av.js"></script>
+<script src="../shared/database.js"></script>
 <script type='text/javascript' >
+  var db = new Database(config, databaseReadyCallback);
   function runOnOpenDataChannel() {
   // When the robot and the operator are first connected, switch to navigation mode.
   console.log('starting in navigation mode')
