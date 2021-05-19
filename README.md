@@ -30,7 +30,7 @@ Clone the *stretch_web_interface* repository to ~/catkin_ws/src/ on the robot.
 
 ```
 cd ~/catkin_ws/src/
-git clone https://hello-robot/stretch_web_interface
+git clone https://github.com/hcrlab/stretch_web_interface.git
 ```
 
 Run catkin_make.
