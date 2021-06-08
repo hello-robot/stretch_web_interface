@@ -8,6 +8,11 @@
 /*     height:90%; */
 /* } */
 
+
+#main-container {
+border: 2px red solid;
+}
+
 #video_div {
 /*    height:90%;
     top: 70px;
