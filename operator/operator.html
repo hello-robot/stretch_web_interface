@@ -382,12 +382,12 @@
 <script src="../shared/send_recv_av.js"></script>
 <script src="../shared/database.js"></script>
 <script type='text/javascript' >
-  var db = new Database(config, databaseReadyCallback);
   function runOnOpenDataChannel() {
   // When the robot and the operator are first connected, switch to navigation mode.
-  console.log('starting in navigation mode')
-  turnModeOn('nav')
+  	console.log('starting in navigation mode')
+  	turnModeOn('nav')
   }
+  var db = new Database(config, runOnOpenDataChannel);
 </script>
 </body>
 </html>
