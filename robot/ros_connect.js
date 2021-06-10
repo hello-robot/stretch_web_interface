@@ -84,8 +84,13 @@ jointStateTopic.subscribe(function(message) {
     }
 
     // send wrist joint effort
-    var newJointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
-    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': newJointEffort}
+    var yawJointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
+    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': yawJointEffort}
+    sendData(message)
+
+    // send gripper effort
+    var gripperJointEffort = getJointEffort(jointState, 'joint_gripper_finger_left')
+    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': gripperJointEffort}
     sendData(message)
     
     // Header header
