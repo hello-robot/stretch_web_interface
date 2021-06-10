@@ -13,7 +13,7 @@
   	<div class="container-fluid px-sm-3 d-flex justify-content-center">
   		<div>
 
-	    <div>
+	    <div class="d-flex align-items-center">
 
 	      <div class="switch">
 			<input type="radio" class="switch-input" name="mode-switch" value="nav" id="nav_mode_button" checked>
@@ -41,6 +41,7 @@
 			  <span class="onoffswitch-switch"></span>
 			</label>
 	      </div>
+
 	    </div>
 
 	    <div class="switch-2">
@@ -61,15 +62,17 @@
 	        <span class="switch-selection switch-selection-sm"></span>
 	    </div>
 
-	    <div class="presetView">
+	    <div class="presetView mb-2">
 	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
 	    </div>
 
-	    <div id="video_div">
-	      <video id="remoteVideo" autoplay></video>
-	      
+	    <div class="video_div">
+
+	      <div class="background"><video id="remoteVideo" autoplay></video></div>
 	      <!--<svg id="video_ui_overlay" viewBox="0 0 1920 1080">-->
-	      <svg id="video_ui_overlay">
+
+	      <div class="foreground">	      	
+	      	<svg id="video_ui_overlay">
 		
 	    	<svg id="nav_ui_overlay" preserveAspectRatio="none">
 	          <path
@@ -322,9 +325,8 @@
 	          </path>
 		  
 	      	</svg>
-	      </svg>
+	      </svg></div>
 	    </div>
-
 	</div>
 	</div>
 
