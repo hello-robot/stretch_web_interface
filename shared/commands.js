@@ -11,6 +11,30 @@ function setVelocity(newV) {
     console.log("Invalid velocity: " + newV);
 }
 
+// Continuous actions
+
+var activeAction = null;
+
+function startAction(actionName) {
+  console.log("Starting action: " + actionName);
+  activeAction = actionName;
+}
+
+function stopAction() {
+  console.log("Stopping action: " + activeAction);
+  activeAction = null;
+}
+
+var updateFrequency = 200; //milliseconds
+function updateInterface() {
+  if (activeAction != null) {
+    window[activeAction]();
+  }
+}
+window.setInterval(updateInterface, updateFrequency);
+
+// Discrete (one time) actions
+
 function lookLeft() {
     var cmd = {type:"command",
                subtype:"head",
@@ -21,12 +45,12 @@ function lookLeft() {
 }
 
 function lookRight() {
-    var cmd = {type:"command",
-               subtype:"head",
-               name:"right",
-               modifier:currentV};
-    sendData(cmd);
-    Database.logEvent("LookRight", currentV);
+  var cmd = {type:"command",
+             subtype:"head",
+             name:"right",
+             modifier:currentV};
+  sendData(cmd);
+  Database.logEvent("LookRight", currentV);
 }
 
 function lookUp() {
@@ -56,22 +80,6 @@ function moveForward() {
     Database.logEvent("MoveForward", currentV);
 }
 
-function moveForwardMedium() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"forward",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function moveForwardSmall() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"forward",
-               modifier:"small"};
-    sendData(cmd);
-}
-
 function moveBackward() {
     var cmd = {type:"command",
                subtype:"drive",
@@ -79,22 +87,6 @@ function moveBackward() {
                modifier:currentV};
     sendData(cmd);
     Database.logEvent("MoveBackward", currentV);
-}
-
-function moveBackwardMedium() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"backward",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function moveBackwardSmall() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"backward",
-               modifier:"small"};
-    sendData(cmd);
 }
 
 function turnLeft() {
@@ -106,22 +98,6 @@ function turnLeft() {
     Database.logEvent("TurnLeft", currentV);
 }
 
-function turnLeftMedium() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"turn_left",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function turnLeftSmall() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"turn_left",
-               modifier:"small"};
-    sendData(cmd);
-}
-
 function turnRight() {
     var cmd = {type:"command",
                subtype:"drive",
@@ -129,22 +105,6 @@ function turnRight() {
                modifier:currentV};
     sendData(cmd);
     Database.logEvent("TurnRight", currentV);
-}
-
-function turnRightMedium() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"turn_right",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function turnRightSmall() {
-    var cmd = {type:"command",
-               subtype:"drive",
-               name:"turn_right",
-               modifier:"small"};
-    sendData(cmd);
 }
 
 function liftUp() {
@@ -156,22 +116,6 @@ function liftUp() {
     Database.logEvent("LiftUp", currentV);
 }
 
-function liftUpMedium() {
-    var cmd = {type:"command",
-               subtype:"lift",
-               name:"up",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function liftUpSmall() {
-    var cmd = {type:"command",
-               subtype:"lift",
-               name:"up",
-               modifier:"small"};
-    sendData(cmd);
-}
-
 function liftDown() {
     var cmd = {type:"command",
                subtype:"lift",
@@ -179,22 +123,6 @@ function liftDown() {
                modifier:currentV};
     sendData(cmd);
     Database.logEvent("LiftDown", currentV);
-}
-
-function liftDownMedium() {
-    var cmd = {type:"command",
-               subtype:"lift",
-               name:"down",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function liftDownSmall() {
-    var cmd = {type:"command",
-               subtype:"lift",
-               name:"down",
-               modifier:"small"};
-    sendData(cmd);
 }
 
 function armRetract() {
@@ -206,22 +134,6 @@ function armRetract() {
     Database.logEvent("ArmRetract", currentV);
 }
 
-function armRetractMedium() {
-    var cmd = {type:"command",
-               subtype:"arm",
-               name:"retract",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function armRetractSmall() {
-    var cmd = {type:"command",
-               subtype:"arm",
-               name:"retract",
-               modifier:"small"};
-    sendData(cmd);
-}
-
 function armExtend() {
     var cmd = {type:"command",
                subtype:"arm",
@@ -229,39 +141,6 @@ function armExtend() {
                modifier:currentV};
     sendData(cmd);
     Database.logEvent("ArmExtend", currentV);
-}
-
-function armExtendMedium() {
-    var cmd = {type:"command",
-               subtype:"arm",
-               name:"extend",
-               modifier:"medium"};
-    sendData(cmd);
-}
-
-function armExtendSmall() {
-    var cmd = {type:"command",
-               subtype:"arm",
-               name:"extend",
-               modifier:"small"};
-    sendData(cmd);
-}
-
-
-function wristVelocityBend(degPerSec) {
-    var cmd = {type:"command",
-               subtype:"wrist",
-               name:"bend_velocity",
-               modifier:degPerSec};
-    sendData(cmd);
-}
-
-function gripperSetGoal(goalWidthCm) {
-    var cmd = {type:"command",
-               subtype:"gripper",
-               name:"set_goal",
-               modifier:goalWidthCm};
-    sendData(cmd);
 }
 
 function gripperClose() {
@@ -281,6 +160,27 @@ function gripperOpen() {
     sendData(cmd);
     Database.logEvent("GripperOpen", "medium");
 }
+
+function wristIn() {
+    var cmd = {type:"command",
+               subtype:"wrist",
+               name:"in",
+               modifier:currentV};
+    sendData(cmd);
+    Database.logEvent("WristIn", currentV);
+}
+
+function wristOut() {
+    var cmd = {type:"command",
+               subtype:"wrist",
+               name:"out",
+               modifier:currentV};
+    sendData(cmd);
+    Database.logEvent("WristOut", currentV);
+}
+
+
+// Following functions are NOT currently in use
 
 function gripperCloseFull() {
     var cmd = {type:"command",
@@ -322,6 +222,22 @@ function wristVelocityBend(deg_per_sec) {
     sendData(cmd);
 }
 
+function wristVelocityBend(degPerSec) {
+    var cmd = {type:"command",
+               subtype:"wrist",
+               name:"bend_velocity",
+               modifier:degPerSec};
+    sendData(cmd);
+}
+
+function gripperSetGoal(goalWidthCm) {
+    var cmd = {type:"command",
+               subtype:"gripper",
+               name:"set_goal",
+               modifier:goalWidthCm};
+    sendData(cmd);
+}
+
 function wristBendDown() {
     var cmd = {type:"command",
                subtype:"wrist",
@@ -336,25 +252,6 @@ function wristBendUp() {
                name:"bend_up",
                modifier:"medium"};
     sendData(cmd);
-}
-
-
-function wristIn() {
-    var cmd = {type:"command",
-               subtype:"wrist",
-               name:"in",
-               modifier:currentV};
-    sendData(cmd);
-    Database.logEvent("WristIn", currentV);
-}
-
-function wristOut() {
-    var cmd = {type:"command",
-               subtype:"wrist",
-               name:"out",
-               modifier:currentV};
-    sendData(cmd);
-    Database.logEvent("WristOut", currentV);
 }
 
 function wristBendAuto(ang_deg) {

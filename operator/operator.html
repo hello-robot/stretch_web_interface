@@ -8,7 +8,7 @@
   	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   	<link rel="stylesheet" href="styles/style.processed.css">
   </head>
-  <body>
+  <body onmouseup="stopAction()">
 
   	<div class="container-fluid px-sm-3 d-flex justify-content-center">
   		<div>
@@ -93,6 +93,7 @@
 	            stroke-opacity="1.0"
 	            id="nav_forward_region"
 	            onclick="moveForward()"
+	            onmousedown="startAction('moveForward')"
 	            >
 	            <title>move forward</title>
 	          </path>
@@ -102,6 +103,7 @@
 	            stroke-opacity="1.0"
 	            id="nav_backward_region"
 	            onclick="moveBackward()"
+	            onmousedown="startAction('moveBackward')"
 	            >
 	            <title>move backward</title>
 	          </path>
@@ -111,6 +113,7 @@
 	            stroke-opacity="1.0"
 	            id="nav_turn_left_region"
 	            onclick="turnLeft()"   
+	            onmousedown="startAction('turnLeft')"
 	            >
 	            <title>turn left</title>
 	          </path>
@@ -120,6 +123,7 @@
 	            stroke-opacity="1.0"
 	            id="nav_turn_right_region"
 	            onclick="turnRight()"   
+	            onmousedown="startAction('turnRight')"
 	            >
 		    <title>turn right</title>
 		  </path>
@@ -133,7 +137,8 @@
 	            fill-opacity="0.0"
 	            stroke-opacity="1.0"
 	            id="low_arm_down_region"
-	            onclick="liftDown()"   
+	            onclick="liftDown()"
+	            onmousedown="startAction('liftDown')"
 	            >
 	            <title>arm down</title>
 	          </path>
@@ -143,6 +148,7 @@
 	            stroke-opacity="1.0"
 	            id="low_arm_up_region"
 	            onclick="liftUp()"   
+	            onmousedown="startAction('liftUp')"
 	            >
 	            <title>arm up</title>
 		  </path>
@@ -152,6 +158,7 @@
 	            stroke-opacity="1.0"
 	            id="low_arm_retract_region"
 	            onclick="armRetract()"   
+	            onmousedown="startAction('armRetract')"
 	            >
 	            <title>retract arm</title>
 	          </path>
@@ -161,6 +168,7 @@
 	            stroke-opacity="1.0"
 	            id="low_arm_extend_region"
 	            onclick="armExtend()"   
+	            onmousedown="startAction('armExtend')"
 	            >
 	            <title>extend arm</title>
 	          </path>
@@ -170,6 +178,7 @@
 	            stroke-opacity="1.0"
 	            id="low_arm_base_forward_region"
 	            onclick="moveForward()"
+	            onmousedown="startAction('moveForward')"
 	            >
 	            <title>move forward</title>
 	          </path>
@@ -179,6 +188,7 @@
 	            stroke-opacity="1.0"
 	            id="low_arm_base_backward_region"
 	            onclick="moveBackward()"
+	            onmousedown="startAction('moveBackward')"
 	            >
 	            <title>move backward</title>
 	          </path>
@@ -193,6 +203,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_down_region"
 	            onclick="liftDown()"   
+	            onmousedown="startAction('liftDown')"
 	            >
 	            <title>arm down</title>
 	          </path>
@@ -202,6 +213,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_up_region"
 	            onclick="liftUp()"   
+	            onmousedown="startAction('liftUp')"
 	            >
 	            <title>arm up</title>
 		  </path>
@@ -211,6 +223,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_retract_region"
 	            onclick="armRetract()"   
+	            onmousedown="startAction('armRetract')"
 	            >
 	            <title>retract arm</title>
 	          </path>
@@ -220,6 +233,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_extend_region"
 	            onclick="armExtend()"   
+	            onmousedown="startAction('armExtend')"
 	            >
 	            <title>extend arm</title>
 	          </path>
@@ -229,6 +243,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_base_forward_region"
 	            onclick="moveForward()"
+	            onmousedown="startAction('moveForward')"
 	            >
 	            <title>move forward</title>
 	          </path>
@@ -238,6 +253,7 @@
 	            stroke-opacity="1.0"
 	            id="high_arm_base_backward_region"
 	            onclick="moveBackward()"
+	            onmousedown="startAction('moveBackward')"
 	            >
 	            <title>move backward</title>
 	          </path>
@@ -252,6 +268,7 @@
 	            stroke-opacity="1.0"
 	            id="hand_open_region"
 	            onclick="gripperOpen()"   
+	            onmousedown="startAction('gripperOpen')"
 	            >
 	            <title>open gripper</title>
 		  </path>
@@ -261,6 +278,7 @@
 	            stroke-opacity="1.0"
 	            id="hand_close_region"
 	            onclick="gripperClose()"   
+	            onmousedown="startAction('gripperClose')"
 	            >
 	            <title>close gripper</title>
 	          </path>
@@ -270,6 +288,7 @@
 	            stroke-opacity="1.0"
 	            id="hand_in_region"
 	            onclick="wristIn()"   
+	            onmousedown="startAction('wristIn')"
 	            >
 	            <title>gripper in</title>
 	          </path>
@@ -279,6 +298,7 @@
 	            stroke-opacity="1.0"
 	            id="hand_out_region"
 	            onclick="wristOut()"   
+	            onmousedown="startAction('wristOut')"
 	            >
 	            <title>gripper out</title>
 	          </path>
@@ -293,6 +313,7 @@
 	            stroke-opacity="1.0"
 	            id="look_up_region"
 	            onclick="lookUp()"   
+	            onmousedown="startAction('lookUp')"
 	            >
 	            <title>look up</title>
 	          </path>
@@ -302,6 +323,7 @@
 	            stroke-opacity="1.0"
 	            id="look_down_region"
 	            onclick="lookDown()"   
+	            onmousedown="startAction('lookDown')"
 	            >
 	            <title>look_down</title>
 	          </path>
@@ -311,6 +333,7 @@
 	            stroke-opacity="1.0"
 	            id="look_left_region"
 	            onclick="lookLeft()"   
+	            onmousedown="startAction('lookLeft')"
 	            >
 	            <title>look left</title>
 	          </path>
@@ -320,6 +343,7 @@
 	            stroke-opacity="1.0"
 	            id="look_right_region"
 	            onclick="lookRight()"   
+	            onmousedown="startAction('lookRight')"
 	            >
 	            <title>look right</title>
 	          </path>
