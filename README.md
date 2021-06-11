@@ -56,7 +56,7 @@ When running on a local network behind a firewall, you can use the following ins
 
 #### Calibrate the Robot
 
-First, make sure the robot is calibrated. For example you can fun the following command.
+First, make sure the robot is calibrated. For example you can run the following command.
 
 ```
 stretch_robot_home.py
