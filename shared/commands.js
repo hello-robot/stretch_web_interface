@@ -2,8 +2,6 @@
 var modifiers = {"verysmall":0, "small":1, "medium":2, "large":3, "verylarge":4};
 var currentV = "medium";
 
-var test;
-
 function setVelocity(newV) {
   if (Object.keys(modifiers).includes(newV)){
     currentV = newV;
