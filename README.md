@@ -128,7 +128,7 @@ The following steps describe how to manually start the web server and the robot'
 
 #### Calibrate the Robot
 
-First, make sure the robot is calibrated. For example you can fun the following command.
+First, make sure the robot is calibrated. For example you can run the following command.
 
 ```
 stretch_robot_home.py
