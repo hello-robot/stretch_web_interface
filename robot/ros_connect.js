@@ -57,6 +57,16 @@ imageTopic.subscribe(function(message) {
 });
 
 
+function getJointEffort(jointStateMessage, jointName) {
+    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    return jointStateMessage.effort[jointIndex]
+}
+
+function getJointValue(jointStateMessage, jointName) {
+    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    return jointStateMessage.position[jointIndex]
+}
+
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
     name : '/stretch/joint_states/',
@@ -71,6 +81,17 @@ jointStateTopic.subscribe(function(message) {
 	console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
 	rosJointStateReceived = true
     }
+
+    // send wrist joint effort
+    var yawJointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
+    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': yawJointEffort}
+    sendData(message)
+
+    // send gripper effort
+    var gripperJointEffort = getJointEffort(jointState, 'joint_gripper_finger_left')
+    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': gripperJointEffort}
+    sendData(message)
+    
     // Header header
     // string[] name
     // float64[] position
@@ -224,10 +245,6 @@ function baseTurn(ang_deg, vel) {
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
 }
 
-function getJointValue(jointStateMessage, jointName) {
-    var jointIndex = jointStateMessage.name.indexOf(jointName)
-    return jointStateMessage.position[jointIndex]
-}
 
 function sendIncrementalMove(jointName, jointValueInc) {
     console.log('sendIncrementalMove start: jointName =' + jointName)
