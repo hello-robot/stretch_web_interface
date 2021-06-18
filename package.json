@@ -6,22 +6,23 @@
         "start": "node ./bin/www"
     },
     "dependencies": {
-        "body-parser": "^1.18.2",
-        "connect-redis": "^3.3.2",
-        "cookie-parser": "^1.4.3",
-        "debug": "^3.1.0",
-        "express": "^4.16.2",
-        "express-session": "^1.15.6",
-        "helmet": "^3.9.0",
-        "mongoose": "^5.9.19",
-        "morgan": "^1.9.0",
-        "passport": "^0.4.0",
+        "body-parser": "^1.19.0",
+        "connect-redis": "^6.0.0",
+        "cookie-parser": "^1.4.5",
+        "debug": "^4.3.1",
+        "express": "^4.17.1",
+        "express-session": "^1.17.2",
+        "helmet": "^4.6.0",
+        "mongoose": "^5.12.14",
+        "morgan": "^1.10.0",
+        "passport": "^0.4.1",
         "passport-local": "^1.0.0",
-        "passport-local-mongoose": "^4.4.0",
+        "passport-local-mongoose": "^6.1.0",
         "passport.socketio": "^3.7.0",
-        "pug": "^3.0.1",
-        "puppeteer": "^1.18.1",
-        "serve-favicon": "^2.4.5",
-        "socket.io": "^2.4.0"
+        "pug": "^3.0.2",
+        "puppeteer": "^10.0.0",
+        "serve-favicon": "^2.5.0",
+        "socket.io": "^4.1.2",
+        "redis": "^3.1.2"
     }
 }
