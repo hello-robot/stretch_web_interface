@@ -39,11 +39,6 @@ function createSignalingSocket(io) {
             console.log('A ROBOT HAS CONNECTED');
             console.log('intended room name = ' + room);
 
-	    var temp_debug_output = io.of(namespace).in(room)
-	    console.log('START')
-	    console.log(temp_debug_output)
-	    console.log('END')
-
 	    // If the robot's room already exists, disconnect all
 	    // sockets in the room. For example, this will disconnect
 	    // operators that were connected to the robot in a
