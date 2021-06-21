@@ -214,6 +214,15 @@ If you've only used the default development credentials in this repository, you 
 
 <img src="./images/mongodb_development_credentials.png" width="640">
 
+## Creating a New Credential
+
+First, start the server. Next, go to the web page and click `register`. Now enter a username and a password. This process creates a new user entry in MongoDB. 
+
+You can now follow the instructions for viewing credentials above to view the new account you just created. In order for this account to function, you will need to edit the role to be `operator` or `robot` and edit approved to be `true`. You can do this by clicking on the elements with `mongodb-compass`.
+
+Prior to testing anything on the Internet, you should delete all of the default credentials. The default credentials are solely for development on a secure local network behind a firewall.
+
+
 # Licenses
 
 This software is intended for use with S T R E T C H (TM) RESEARCH EDITION, which is a robot produced and sold by Hello Robot Inc. For further information, including inquiries about dual licensing, please contact Hello Robot Inc.
