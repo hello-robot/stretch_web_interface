@@ -4,7 +4,7 @@
 
 This repository holds prototype code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
 
-**WARNING: This is prototype code that has not been well tested. We are making it available in its current state, since we believe it may have value to the community. There are security issues associated with the current code, especially if you use the default credentials. Use this code at your own risk.** 
+**WARNING: This is prototype code has been useful to the community, but it's not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
 
 ## History
 
@@ -190,6 +190,27 @@ You should now see video from the robot's camera in the browser window.
 #### Start the Operator's Browser
 
 Please see the instructions above.
+
+# Credentials for Robots and Operators
+
+Credentials for robots and operators are stored in [MongoDB](https://en.wikipedia.org/wiki/MongoDB). 
+
+## Viewing Credentials
+
+You can view and edit the credentials using `mongodb-compass`, which is installed by default. First, use the following command in a terminal to start the application.
+
+
+```
+mongodb-compass
+```
+
+Next, use "Connect to Host" by typing `localhost` in the Hostname area at the top of the window and then clicking the green "CONNECT" button at the bottom right of the window. This should show you various databases. The `node-auth` database holds the web interface credentials. 
+
+Clicking on `node-auth` will show a collection named `users`.
+
+Clicking on `users` will show the current credentials.
+
+If you've only used the default development credentials in this repository, you should see entries for the following: three robots with the usernames r1, r2, and r3; three operators with the usernames o1, o2, and o3; and an administrator with the username admin. Each entry consists of encrypted password information (i.e., salt and hash), a username, a name, a role, a date, and a Boolean indicating whether or not the user has been approved. Without approval, the user should be denied access. The role indicates whether the entry is for a robot or an operator.
 
 # Licenses
 
