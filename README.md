@@ -2,15 +2,21 @@
 
 # Overview
 
-The code in this repository enables a person to remotely teleoperate S T R E T C H (TM) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. 
-
-The *stretch_web_interface* repository holds prototype code for use with the Stretch RE1, a mobile manipulator from Hello Robot Inc.
+This repository holds prototype code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
 
 **WARNING: This is prototype code that has not been well tested. We are making it available in its current state, since we believe it may have value to the community. There are security issues associated with the current code, especially if you use the default credentials. Use this code at your own risk.** 
 
-## Structure
+## The Robot and the Operator both use Web Browsers
 
-The web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. Internally, we have used [puppeteer](https://github.com/puppeteer/puppeteer) to automate the robot's browser so that the robot can automatically launch and login on boot. 
+The web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video.
+
+The robot’s browser uses [rosbridge](http://wiki.ros.org/rosbridge_suite) to connect with ROS on the robot. Rosbridge translates [JSON](https://en.wikipedia.org/wiki/JSON) from the robot’s browser into ROS communications and vice versa. The JavaScript code used by the robot’s browser to connect with ROS can be found in [ros_connect.js](https://github.com/hello-robot/stretch_web_interface/blob/master/robot/ros_connect.js) under the [robot directory](https://github.com/hello-robot/stretch_web_interface/tree/master/robot), which holds files made available to the robot's browser. 
+
+With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browers.js](https://github.com/hello-robot/stretch_web_interface/blob/master/start_robot_browser.js) uses puppeteer to launch the robot's browser and login with default, plain text credentials to simplify development. 
+
+While the robot’s browser has access to most of the robot via ROS, the operator’s browser can only access the robot indirectly through the robot’s browser. The commands available to the operator’s browser can be found in [commands.js](https://github.com/hello-robot/stretch_web_interface/blob/master/shared/commands.js) under the [shared directory](https://github.com/hello-robot/stretch_web_interface/tree/master/shared), which holds files available to both the operator's browser and the robot's browser. The operator's browser also has access to files in the [operator directory](https://github.com/hello-robot/stretch_web_interface/tree/master/operator).
+
+One nice aspect of the robot and the operator both using web browsers is that you can use the same browser-based developer tools on both sides of the communication. In addition, web browsers provide well-tested high-performance implementations of WebRTC.
 
 ## Web Server Details
 
