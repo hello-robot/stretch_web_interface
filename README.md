@@ -234,7 +234,7 @@ Please see the instructions above.
 
 Credentials for robots and operators are stored on the server using [MongoDB](https://en.wikipedia.org/wiki/MongoDB). 
 
-### Viewing Credentials
+### Viewing and Editing Credentials
 
 On the server, you can view and edit the credentials using `mongodb-compass`, which is installed by default. First, use the following command in a terminal to start the application.
 
