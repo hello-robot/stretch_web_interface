@@ -20,7 +20,7 @@
 
 This repository holds prototype code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
 
-**WARNING: This is prototype code has been useful to the community, but it's not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
+**WARNING: This prototype code has been useful to the community, but is not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
 
 <a name="hist"/>
 
