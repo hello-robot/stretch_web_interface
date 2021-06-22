@@ -232,11 +232,11 @@ Please see the instructions above.
 
 ## Credentials for Robots and Operators
 
-Credentials for robots and operators are stored in [MongoDB](https://en.wikipedia.org/wiki/MongoDB). 
+Credentials for robots and operators are stored on the server using [MongoDB](https://en.wikipedia.org/wiki/MongoDB). 
 
 ### Viewing Credentials
 
-You can view and edit the credentials using `mongodb-compass`, which is installed by default. First, use the following command in a terminal to start the application.
+On the server, you can view and edit the credentials using `mongodb-compass`, which is installed by default. First, use the following command in a terminal to start the application.
 
 
 ```
@@ -253,13 +253,24 @@ If you've only used the default development credentials in this repository, you 
 
 <img src="./images/mongodb_development_credentials.png" width="640">
 
-### Creating a New Credential
+### Creating New Credentials
 
 First, start the server. Next, go to the web page and click `register`. Now enter a username and a password. This process creates a new user entry in MongoDB. 
 
 You can now follow the instructions for viewing credentials above to view the new account you just created. In order for this account to function, you will need to edit the role to be `operator` or `robot` and edit approved to be `true`. You can do this by clicking on the elements with `mongodb-compass`.
 
 Prior to testing anything on the Internet, you should delete all of the default credentials. The default credentials are solely for development on a secure local network behind a firewall.
+
+### Backing Up and Restoring Credentials
+
+On the server, you can backup credentials using a command like the following in a terminal. You should change `./` to match the directory into which you want to saved the backup directory. 
+
+```mongodump --db node-auth --out ./```
+
+You can restore backed up credentials using the following command in a terminal. You'll need to change `./` to match the directory that holds the backup directory.
+
+```mongorestore -d node-auth ./node-auth/user.bson```
+
 
 <a name="licensing"/>
 
