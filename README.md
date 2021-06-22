@@ -1,14 +1,34 @@
 ![](./images/banner.png)
 
+# Table of Contents
+
++ [Overview](#over)
+  + [History](#hist)
+  + [The Robot and the Operator both use Web Browsers](#browsers)
+  + [The Web Server](#server)
++ [Getting Started](#getting_started)
+  + [Installation](#install)
+  + [Quick Start](#quick)
+  + [Slower Start](#slower)
++ [Setting Up a Server](#server_setup)
+  + [Credentials for Robots and Operators](#credentials)
++ [Licenses](#licensing)
+
+<a name="over"/>
+
 # Overview
 
 This repository holds prototype code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
 
 **WARNING: This is prototype code has been useful to the community, but it's not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
 
+<a name="hist"/>
+
 ## History
 
 When we started [Hello Robot Inc.](https://hello-robot.com) back in 2017, part of our goal was to create a robot that could be intuitively teleoperated from afar. We took an iterative approach, building a series of 7 prototype robots before the Stretch RE1 that we sell today. In conjunction with these prototypes, we developed a series of web interfaces, so that we could control our robots via a web browser and test remote teleoperation. While we eventually deemphasized this aspect of the robot, we still think the code could be useful to the community. With this goal in mind, we ported parts of our old web interface code to the Stretch RE1 and made them available in this repository back in June of 2020.
+
+<a name="browsers"/>
 
 ## The Robot and the Operator both use Web Browsers
 
@@ -22,7 +42,9 @@ While the robot’s browser has access to most of the robot via ROS, the operato
 
 One nice aspect of the robot and the operator both using web browsers is that you can use the same browser-based developer tools on both sides of the communication. In addition, web browsers provide well-tested high-performance implementations of WebRTC.
 
-## Web Server Details
+<a name="server"/>
+
+## The Web Server
 
 In the example below, the server runs on the robot. In a production environment, you would use an external server, instead of the robot, to handle things like connecting robots and operators behind firewalls. At Hello Robot, we have used a virtual server with [Amazon Lightsail](https://aws.amazon.com/lightsail/). When used on a production server with proper certificates, this system supports HTTPS without scary messages. At Hello Robot, we used [Let's Encrypt](https://letsencrypt.org/) to help us achieve this. 
 
@@ -32,7 +54,13 @@ The web server uses the [Express](https://expressjs.com/) web framework with [Pu
 
 By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server provided by Google. At Hello Robot, we used our own [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/). There is code that we've commented out that we used to achieve this. We ran our own [coturn](https://github.com/coturn/coturn) STUN and TURN server on the same Amazon Lightsail virtual server that we used to run the web interface server. At the time, we used Ubuntu 16.04 and installed coturn using apt.  
 
-# Installation 
+<a name="getting_started"/>
+
+# Getting Started
+
+<a name="install"/>
+ 
+## Installation 
 
 The *stretch_web_interface* repository depends on [stretch_ros](http://github.com/hello-robot/stretch_ros).
 
@@ -60,7 +88,9 @@ sudo ./web_interface_installation.sh
 
 WARNING: The script uninstalls tornado using pip to avoid a rosbridge websocket immediate disconnection issue. This could break other software on your robot.
 
-# Quick Start
+<a name="quick"/>
+
+## Quick Start
 
 When running on a local network behind a firewall, you can use the following insecure method to more conveniently start the system.
 
@@ -132,7 +162,9 @@ You should now see video from the robot on your mobile phone or other device. Cl
 
 <img src="./images/operator_browser_8.png" width="200">
 
-# Slower Start
+<a name="slower"/>
+
+## Slower Start
 
 The following steps describe how to manually start the web server and the robot's browser on the robot, instead of using the convenience script described above. 
 
@@ -191,11 +223,18 @@ You should now see video from the robot's camera in the browser window.
 
 Please see the instructions above.
 
-# Credentials for Robots and Operators
+
+<a name="server_setup"/>
+
+# Setting Up a Server
+
+<a name="credentials"/>
+
+## Credentials for Robots and Operators
 
 Credentials for robots and operators are stored in [MongoDB](https://en.wikipedia.org/wiki/MongoDB). 
 
-## Viewing Credentials
+### Viewing Credentials
 
 You can view and edit the credentials using `mongodb-compass`, which is installed by default. First, use the following command in a terminal to start the application.
 
@@ -214,7 +253,7 @@ If you've only used the default development credentials in this repository, you 
 
 <img src="./images/mongodb_development_credentials.png" width="640">
 
-## Creating a New Credential
+### Creating a New Credential
 
 First, start the server. Next, go to the web page and click `register`. Now enter a username and a password. This process creates a new user entry in MongoDB. 
 
@@ -222,6 +261,7 @@ You can now follow the instructions for viewing credentials above to view the ne
 
 Prior to testing anything on the Internet, you should delete all of the default credentials. The default credentials are solely for development on a secure local network behind a firewall.
 
+<a name="licensing"/>
 
 # Licenses
 
