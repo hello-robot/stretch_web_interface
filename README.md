@@ -330,9 +330,7 @@ This section describes the steps we used to create an Amazon Lightsail instance 
   + Edit the [coturn](https://github.com/coturn/coturn) configuration file.
     + Find your instance's private IP address by running `ifconfig -a` and looking at the `inet` IP address. 
     + Confirm your instance's public IP address and your domain name by running `ping YOUR-DOMAIN-NAME` and looking at the IP address. 
-    + `cd /etc/`
-    + `sudo emacs -nw turnserver.conf`
-    + Add the following lines at appropriate locations in `turnserver.conf`
+    + Add the following lines at appropriate locations in `/etc/turnserver.conf`.
       + `listening-ip=PRIVATE-IP-ADDRESS`
       + `relay-ip=PRIVATE-IP-ADDRESS`
       + `external-ip=PUBLIC-IP-ADDRESS`
@@ -345,12 +343,14 @@ This section describes the steps we used to create an Amazon Lightsail instance 
       + `mobility`
       + `realm=YOUR-DOMAIN-NAME`
   + Create TURN server accounts and credentials.
-    + Create and administrator account.
+    + Create an administrator account.
       + `sudo turnadmin -A -u ADMIN-NAME -p ADMIN-PASSWORD`
-    + Create a long-term TURN user. These credentials will need to be added to `./stretch_web_interface/shared/send_recv_av.js`.
+    + Create a TURN user. In the next step, you will add these credentials to `./stretch_web_interface/shared/send_recv_av.js`.
       + `sudo turnadmin -a -u TURN-USER-NAME -r YOUR-DOMAIN-NAME -p TURN-USER-PASSWORD`
-    + Open `./stretch_web_interface/shared/send_recv_av.js` and comment out the free STUN server, uncomment the STUN and TURN servers, and fill in the values using your domain name and the credentials you just created (i.e., YOUR-DOMAIN-NAME, TURN-USER-NAME, and TURN-USER-PASSWORD). 
-      + The relevant code will look similar to `var pcConfig = { iceServers: [ {urls: "stun:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}, {urls: "turn:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}]};`
+    + Open `./stretch_web_interface/shared/send_recv_av.js` in an editor.
+      + Comment out the free STUN server.
+      + Uncomment the STUN and TURN servers and fill in the values using your domain name and the credentials you just created (i.e., YOUR-DOMAIN-NAME, TURN-USER-NAME, and TURN-USER-PASSWORD). 
+          + The relevant code will look similar to `var pcConfig = { iceServers: [ {urls: "stun:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}, {urls: "turn:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}]};`
 + [Open the following ports for your Amazon Lightsail instance.](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-editing-firewall-rules) These are standard ports for HTTPS, STUN, and TURN. 
   + `HTTPS TCP 443`
   + `Custom TCP 3478`
