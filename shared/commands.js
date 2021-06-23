@@ -15,6 +15,11 @@ function setVelocity(newV) {
 
 var activeAction = null;
 
+var cameraFollowGripper = false;
+function toggleCameraFollowGripper() {
+    cameraFollowGripper = !cameraFollowGripper;
+}
+
 function startAction(actionName) {
   console.log("Starting action: " + actionName);
   activeAction = actionName;
@@ -29,6 +34,9 @@ var updateFrequency = 200; //milliseconds
 function updateInterface() {
   if (activeAction != null) {
     window[activeAction]();
+  }
+  if (cameraFollowGripper) {
+    lookAtGripper();
   }
 }
 window.setInterval(updateInterface, updateFrequency);
@@ -69,6 +77,15 @@ function lookDown() {
                modifier:currentV};
     sendData(cmd);
     Database.logEvent("LookDown", currentV);
+}
+
+function lookAtGripper() {
+    var cmd = {type:"command",
+               subtype:"head",
+               name:"atGripper",
+               modifier:"none"};
+    sendData(cmd);
+    Database.logEvent("lookAtGripper", "none");
 }
 
 function moveForward() {
@@ -439,6 +456,11 @@ var headCommands = {
       let vel = -headV[modifiers[size]];
       headPan(vel);
       // headPan(-0.1)
+    },
+    "atGripper": function(size) {
+      console.log('head: atGripper command received...executing');
+      headPan(0);
+      headTilt(0);
     }
 }  
 

@@ -9,6 +9,8 @@ var img = document.createElement("IMG")
 img.style.visibility = 'hidden'
 var rosJointStateReceived = false
 var jointState = null
+var rosRobotStateReceived = false
+var robotState = null
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
@@ -100,7 +102,25 @@ jointStateTopic.subscribe(function(message) {
     //imageTopic.unsubscribe()
 });
 
+var robotStateTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/tf',
+    messageType : 'tf/tfMessage'
+});
 
+robotStateTopic.subscribe(function(message) {
+
+    if (message.length == 12) {
+        robotState = message
+    }
+    
+    if (rosRobotStateReceived === false) {
+	console.log('Received first robot state from ROS topic ' + robotStateTopic.name);
+	rosRobotStateReceived = true
+    }
+
+    console.log(robotState)
+});
 
 var trajectoryClient = new ROSLIB.ActionClient({
     ros : ros,
@@ -256,6 +276,37 @@ function sendIncrementalMove(jointName, jointValueInc) {
 	var poseGoal = generatePoseGoal(pose)
 	poseGoal.send()
 	return true
+    }
+    return false
+}
+
+// TODO: figure out actual position of the head
+var cameraPosition = {x: 0, y: 0, z:0}
+function headLookAtGripper() {
+    console.log('attempting to send headLookAtGripper command')
+    if (robotState !== null) {
+        // transforms[3] is "link_arm_l3"
+        var link_arm_l3_tf = robotState.transforms[3];
+
+        console.log(link_arm_l3_tf.child_frame_id, link_arm_l3_tf.transform.translation);
+
+        var posDifference = {x: link_arm_l3_tf.transform.translation.x - cameraPosition.x,
+                             y: link_arm_l3_tf.transform.translation.y - cameraPosition.y,
+                             z: link_arm_l3_tf.transform.translation.z - cameraPosition.z};
+        
+        // Normalize posDifference
+        var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
+        posDifference.x /= scalar;
+        posDifference.y /= scalar;
+        posDifference.z /= scalar;
+
+        var pan = Math.atan(posDifference.y/posDifference.x);
+        var tilt = Math.atan(posDifference.y/posDifference.z)
+
+        var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+        headFollowPoseGoal.send()
+        console.log('sending arm follow pose to head') 
+        return true
     }
     return false
 }
