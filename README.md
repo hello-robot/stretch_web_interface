@@ -11,9 +11,9 @@
   + [Quick Start](#quick)
   + [Slower Start](#slower)
 + [Setting Up a Server](#server_setup)
+  + [Credentials for Robots and Operators](#credentials)
   + [Running the Server on the Robot's Onboard Computer](#server_onboard)
   + [Running the Server on Amazon Lightsail](#server_lightsail)
-  + [Credentials for Robots and Operators](#credentials)
 + [Licenses](#licensing)
 
 <a name="over"/>
@@ -232,21 +232,6 @@ Please see the instructions above.
 
 The server for the web interface typically runs on the robot's onboard computer or on a remote machine connected to the Internet. 
 
-<a name="server_onboard"/>
-
-## Running the Server on the Robot's Onboard Computer
-
-Running the server on the robot is useful when the robot and the operator are both on the same local area network (LAN). For example, a person with disabilities might operate the robot in their home, or you might be developing new teleoperation code. In these situations, the robot, the operator's browser, and the server should all be behind a strong firewall, reducing security concerns. 
-
-<a name="server_lightsail"/>
-
-## Running the Server on Amazon Lightsail
-
-In this section, we'll provide an example of setting up the server to run on an Amazon Lightsail instance. **This is not a hardened server and is only intended to serve as a helpful example. It likely has significant security shortcomings and is very much a prototype. Use at your own risk.** 
-
-Running the server on a remote machine can be useful when the robot and the operator are on separate LANs connected by the Internet. This can enable a person to operate the robot from across the world. One of the challenges for this situation is that browsers on different LANs can have difficulty connecting with one another. Peer-to-peer communication may not be achievable due to firewalls and other methods used to help secure networks. For example, home networks, university networks, and corporate networks can all have complex configurations that interfere with peer-to-peer communication. 
-
-Running the server on a remote machine connected to the Internet helps the robot's browser and the operator's browser connect to one another using standard methods developed for [WebRTC](https://en.wikipedia.org/wiki/WebRTC) video conferencing over the Internet. The server performs a variety of roles, including the following: restricting access to authorized robots and operators; helping operators select from available robots; [WebRTC signaling](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/), [Session Traversal Utilities for Network Address Translation (STUN)](https://en.wikipedia.org/wiki/STUN), and [Traversal Using Relays around Network Address Translation (TURN)](https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT). Notably, when direct peer-to-peer connectivity fails, TURN relays video, audio, and data between the robot's browser and the operator's browser. **Relaying data is robust to networking challenges, but can incur charges due to data usage.**
 
 <a name="credentials"/>
 
@@ -291,6 +276,93 @@ You can restore backed up credentials using the following command in a terminal.
 
 ```mongorestore -d node-auth ./node-auth/user.bson```
 
+
+
+<a name="server_onboard"/>
+
+## Running the Server on the Robot's Onboard Computer
+
+Running the server on the robot is useful when the robot and the operator are both on the same local area network (LAN). For example, a person with disabilities might operate the robot in their home, or you might be developing new teleoperation code. In these situations, the robot, the operator's browser, and the server should all be behind a strong firewall, reducing security concerns. 
+
+<a name="server_lightsail"/>
+
+## Running the Server on Amazon Lightsail
+
+Running the server on a remote machine can be useful when the robot and the operator are on separate LANs connected by the Internet. This can enable a person to operate the robot from across the world. In this section, we'll provide an example of setting up the server to run on an Amazon Lightsail instance. **This is not a hardened server and is only intended to serve as a helpful example. It likely has significant security shortcomings and is very much a prototype. Use at your own risk.** 
+
+One of the challenges for remote teleoperation is that browsers on different LANs can have difficulty connecting with one another. Peer-to-peer communication may not be achievable due to firewalls and other methods used to help secure networks. For example, home networks, university networks, and corporate networks can all have complex configurations that interfere with peer-to-peer communication. Running the server on a remote machine connected to the Internet helps the robot's browser and the operator's browser connect to one another using standard methods developed for [WebRTC](https://en.wikipedia.org/wiki/WebRTC) video conferencing over the Internet. The server performs a variety of roles, including the following: restricting access to authorized robots and operators; helping operators select from available robots; [WebRTC signaling](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/), [Session Traversal Utilities for Network Address Translation (STUN)](https://en.wikipedia.org/wiki/STUN), and [Traversal Using Relays around Network Address Translation (TURN)](https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT). Notably, when direct peer-to-peer connectivity fails, TURN relays video, audio, and data between the robot's browser and the operator's browser. **Relaying data is robust to networking challenges, but can incur charges due to data usage.**
+
+### Amazon Lightsail Setup in Brief
+
+This section describes the steps we used to create an Amazon Lightsail instance that runs the server for the web interface.
+
++ Obtain a domain name to use for your server.
++ Create a new [Amazon Lightsail](https://aws.amazon.com/lightsail/) instance.
+  + We have most recently used an OS only instance with Ubuntu 20.04, 512 MB RAM, 1 vCPU, 20 GB SSD.
++ [Create a static IP address](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/lightsail-create-static-ip) and attach it to your instance.
++ [Connect your new instance to SSH](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-ssh-using-terminal), so that you can access it. 
+  + A command like the following can then be used to login to your instance: `ssh -i /path/to/private-key.pem username@public-ip-address`.
++ Run `sudo apt-get update` to avoid installation issues.
++ Install helpful packages.
+  + `sudo apt install emacs`
+  + `sudo apt install net-tools`
++ Configure Git.
+  + `git config --global user.name "FIRST_NAME LAST_NAME"`
+  + `git config --global user.email "MY_NAME@example.com"`
++ Clone this GitHub repository.
+  + `cd`
+  + `mkdir repos`
+  + `git clone https://github.com/hello-robot/stretch_web_interface.git`
++ Use [certbot](https://certbot.eff.org/) from [Let's Encrypt](https://letsencrypt.org/) to obtain certificates so that your server can use [Hypertext Transfer Protocol Secure (HTTPS)](https://en.wikipedia.org/wiki/HTTPS). HTTPS is required to fully utilize WebRTC. 
+  + You will need to first connect your domain name to the static IP address used by your instance. 
+  + Follow [certbot installation instructions for Ubuntu 20.04](https://certbot.eff.org/lets-encrypt/ubuntufocal-other).
++ Run the teleoperation server installation script
+  + `cd ~/repos/stretch_web_interface/bash_scripts/`
+  + `./web_server_installation.sh`
++ Initialize the database with secure credentials for at least one robot and one operator. For example, you can do the following. 
+  + Create and export credentials from MongoDB by running a server on your robot. 
+  + Use `scp` to copy the exported credentials database from your robot's computer to your Lightsail instance with a command like `scp -ri ./LightsailDefaultKey-us-east-2.pem ./mongodb_credentials ubuntu@public-ip-address:./`
+  + On your Lightsail instance, restore the credentials database with a command like `mongorestore -d node-auth ./mongodb_credentials/node-auth/users.bson`
++ Edit the [coturn](https://github.com/coturn/coturn) configuration file.
+  + Find your instance's private IP address by running `ifconfig -a` and looking at the `inet` IP address. 
+  + Confirm your instance's public IP address and your domain name by running `ping YOUR-DOMAIN-NAME` and looking at the IP address. 
+  + `cd /etc/`
+  + `sudo emacs -nw turnserver.conf`
+  + Add the following lines at appropriate locations in `turnserver.conf`
+    + `listening-ip=PRIVATE-IP-ADDRESS`
+    + `relay-ip=PRIVATE-IP-ADDRESS`
+    + `external-ip=PUBLIC-IP-ADDRESS`
+    + `Verbose`
+    + `lt-cred-mech`
+    + `pkey=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/privkey.pem`
+    + `cert=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/cert.pem`
+    + `no-multicast-peers`
+    + `secure-stun`
+    + `mobility`
+    + `realm=YOUR-DOMAIN-NAME`
++ Create TURN server accounts and credentials.
+  + Create and administrator account.
+    + `sudo turnadmin -A -u ADMIN-NAME -p ADMIN-PASSWORD`
+  + Create a long-term TURN user. These credentials will need to be added to `./stretch_web_interface/shared/send_recv_av.js`.
+    + `sudo turnadmin -a -u TURN-USER-NAME -r YOUR-DOMAIN-NAME -p TURN-USER-PASSWORD`
+  + Open `./stretch_web_interface/shared/send_recv_av.js` and comment out the free STUN server, uncomment the STUN and TURN servers, and fill in the values using your domain name and the credentials you just created (i.e., YOUR-DOMAIN-NAME, TURN-USER-NAME, and TURN-USER-PASSWORD). 
+    + The relevant code will look similar to `var pcConfig = { iceServers: [ {urls: "stun:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}, {urls: "turn:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}]};`
++ [Open the following ports for your Amazon Lightsail instance.](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-editing-firewall-rules) These are standard ports for HTTPS, STUN, and TURN. 
+  + `HTTPS TCP 443`
+  + `Custom TCP 3478`
+  + `Custom TCP 5349`
+  + `Custom UDP 3478`
+  + `Custom UDP 5349`
++ Reboot your instance.
++ Login to your instance and run the following commands to start the server.
+  + `cd ~/repos/stretch_web_interface/bash_scripts/`
+  + `./start_server_production_env.sh`
++ Your server should now be running and you can test it by taking the following steps.
+  + Turn on and calibrate your robot.
+  + Use your robot's Chromium browser to visit your server's domain and login with the robot's credentials that you created. 
+  + Open a Chrome or Chromium browser of your own on another computer or recent Android phone. Visit your server's domain and login with the operator credentials you created. If you want to test communication between distinct networks, you could turn off your phone's Wi-Fi and then either use your phone or tether to your phone to connect from the mobile phone network to your robot. Please note that this has only been tested with the Chrome browser on recent Android phones. 
+  + Once you've logged in as an operator, you should be able to select your robot from the drop down list and begin controlling it. 
++ **After trying it out, be sure to shutdown your server. It is not hardened and likely has significant security vulnerabilities. It would be risky to leave it on over a significant length of time.**
 
 <a name="licensing"/>
 
