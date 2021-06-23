@@ -11,6 +11,8 @@
   + [Quick Start](#quick)
   + [Slower Start](#slower)
 + [Setting Up a Server](#server_setup)
+  + [Running the Server on the Robot's Onboard Computer](#server_onboard)
+  + [Running the Server on Amazon Lightsail](#server_lightsail)
   + [Credentials for Robots and Operators](#credentials)
 + [Licenses](#licensing)
 
@@ -227,6 +229,24 @@ Please see the instructions above.
 <a name="server_setup"/>
 
 # Setting Up a Server
+
+The server for the web interface typically runs on the robot's onboard computer or on a remote machine connected to the Internet. 
+
+<a name="server_onboard"/>
+
+## Running the Server on the Robot's Onboard Computer
+
+Running the server on the robot is useful when the robot and the operator are both on the same local area network (LAN). For example, a person with disabilities might operate the robot in their home, or you might be developing new teleoperation code. In these situations, the robot, the operator's browser, and the server should all be behind a strong firewall, reducing security concerns. 
+
+<a name="server_lightsail"/>
+
+## Running the Server on Amazon Lightsail
+
+In this section, we'll provide an example of setting up the server to run on an Amazon Lightsail instance. **This is not a hardened server and is only intended to serve as a helpful example. It likely has significant security shortcomings and is very much a prototype. Use at your own risk.** 
+
+Running the server on a remote machine can be useful when the robot and the operator are on separate LANs connected by the Internet. This can enable a person to operate the robot from across the world. One of the challenges for this situation is that browsers on different LANs can have difficulty connecting with one another. Peer-to-peer communication may not be achievable due to firewalls and other methods used to help secure networks. For example, home networks, university networks, and corporate networks can all have complex configurations that interfere with peer-to-peer communication. 
+
+Running the server on a remote machine connected to the Internet helps the robot's browser and the operator's browser connect to one another using standard methods developed for [WebRTC](https://en.wikipedia.org/wiki/WebRTC) video conferencing over the Internet. The server performs a variety of roles, including the following: restricting access to authorized robots and operators; helping operators select from available robots; [WebRTC signaling](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/), [Session Traversal Utilities for Network Address Translation (STUN)](https://en.wikipedia.org/wiki/STUN), and [Traversal Using Relays around Network Address Translation (TURN)](https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT). Notably, when direct peer-to-peer connectivity fails, TURN relays video, audio, and data between the robot's browser and the operator's browser. **Relaying data is robust to networking challenges, but can incur charges due to data usage.**
 
 <a name="credentials"/>
 
