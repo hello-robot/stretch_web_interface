@@ -20,7 +20,7 @@
 
 # Overview
 
-This repository holds prototype code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
+This repository holds code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
 
 **WARNING: This prototype code has been useful to the community, but is not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
 
@@ -28,33 +28,33 @@ This repository holds prototype code that enables a person (the operator) to rem
 
 ## History
 
-When we started [Hello Robot Inc.](https://hello-robot.com) back in 2017, part of our goal was to create a robot that could be intuitively teleoperated from afar. We took an iterative approach, building a series of 7 prototype robots before the Stretch RE1 that we sell today. In conjunction with these prototypes, we developed a series of web interfaces, so that we could control our robots via a web browser and test remote teleoperation. While we eventually deemphasized this aspect of the robot, we still think the code could be useful to the community. With this goal in mind, we ported parts of our old web interface code to the Stretch RE1 and made them available in this repository back in June of 2020.
+When we started [Hello Robot Inc.](https://hello-robot.com) back in 2017, part of our goal was to create a robot that could be intuitively teleoperated from afar. We took an iterative approach, building a series of 7 prototype robots before the Stretch RE1 that we sell today. In conjunction with these prototypes, we developed a series of web interfaces, so that we could control our robots via a web browser and test remote teleoperation. While we eventually deemphasized this aspect of the robot, we thought it could be useful to the community. With this goal in mind, we ported parts of our old web interface code to the Stretch RE1 and made them available in this repository back in June of 2020.
+
+Since then, we've been gratified to learn of others working with this code. For example, [The Human Centered Robotics Lab](https://hcrlab.cs.washington.edu/) at the University Washington has made impressive improvements to the code, which can be found in [their repository](https://github.com/hcrlab/stretch_web_interface). We've also learned that the [The Human Factors and Aging Laboratory](https://hfaging.ahs.illinois.edu/) at the University of Illinois at Urbana-Champaign has worked with this interface.
 
 <a name="browsers"/>
 
 ## The Robot and the Operator both use Web Browsers
 
-This web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video.
+This web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. By using web browsers, the robot and the operator make use of well-tested high-performance implementations of WebRTC. This symmetry also simplifies development, since a developer can use the same browser-based developer tools on both sides of the communication. The robot's browser and the operator's browser first login to the server, which helps connect them and provides them with the interface code.
 
 The robot’s browser uses [rosbridge](http://wiki.ros.org/rosbridge_suite) to connect with ROS on the robot. Rosbridge translates [JSON](https://en.wikipedia.org/wiki/JSON) from the robot’s browser into ROS communications and vice versa. The JavaScript code used by the robot’s browser to connect with ROS can be found in [ros_connect.js](https://github.com/hello-robot/stretch_web_interface/blob/master/robot/ros_connect.js) under the [robot directory](https://github.com/hello-robot/stretch_web_interface/tree/master/robot), which holds files made available to the robot's browser. 
 
-With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browers.js](https://github.com/hello-robot/stretch_web_interface/blob/master/start_robot_browser.js) uses puppeteer to launch the robot's browser and login with default, plain text credentials to simplify development. 
+With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browers.js](https://github.com/hello-robot/stretch_web_interface/blob/master/start_robot_browser.js) uses puppeteer to launch the robot's browser and login.
 
-While the robot’s browser has access to most of the robot via ROS, the operator’s browser can only access the robot indirectly through the robot’s browser. The commands available to the operator’s browser can be found in [commands.js](https://github.com/hello-robot/stretch_web_interface/blob/master/shared/commands.js) under the [shared directory](https://github.com/hello-robot/stretch_web_interface/tree/master/shared), which holds files available to both the operator's browser and the robot's browser. The operator's browser also has access to files in the [operator directory](https://github.com/hello-robot/stretch_web_interface/tree/master/operator).
-
-One nice aspect of the robot and the operator both using web browsers is that you can use the same browser-based developer tools on both sides of the communication. In addition, web browsers provide well-tested high-performance implementations of WebRTC.
+While the robot’s browser has access to most of the robot via ROS, the operator’s browser can only access the robot indirectly through the robot’s browser. The robotic commands available to the operator’s browser can be found in [commands.js](https://github.com/hello-robot/stretch_web_interface/blob/master/shared/commands.js) under the [shared directory](https://github.com/hello-robot/stretch_web_interface/tree/master/shared), which holds files available to both the operator's browser and the robot's browser. The operator's browser also has access to files in the [operator directory](https://github.com/hello-robot/stretch_web_interface/tree/master/operator).
 
 <a name="server"/>
 
 ## The Web Server
 
-In the example below, the server runs on the robot. In a production environment, you would use an external server, instead of the robot, to handle things like connecting robots and operators behind firewalls. At Hello Robot, we have used a virtual server with [Amazon Lightsail](https://aws.amazon.com/lightsail/). When used on a production server with proper certificates, this system supports HTTPS without scary messages. At Hello Robot, we used [Let's Encrypt](https://letsencrypt.org/) to help us achieve this. 
+In the example below, the server runs on the robot. In a production environment, you would use an external server, instead of the robot, to handle things like connecting robots and operators behind firewalls. [In a later section](#server_lightsail), we provide an example of an external server that uses [Amazon Lightsail](https://aws.amazon.com/lightsail/). When used on a production server with proper certificates, this code uses HTTPS and avoids scary messages. 
 
 The web server uses the [Express](https://expressjs.com/) web framework with [Pug](https://pugjs.org/api/getting-started.html) templates. The server provides a WebRTC [signaling service](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/) using [socket.io](https://socket.io/). It uses [Redis](https://redis.io/) to store sessions. 
 
-[passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB contents found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
+[passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB content found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
 
-By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server provided by Google. At Hello Robot, we used our own [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/). There is code that we've commented out that we used to achieve this. We ran our own [coturn](https://github.com/coturn/coturn) STUN and TURN server on the same Amazon Lightsail virtual server that we used to run the web interface server. At the time, we used Ubuntu 16.04 and installed coturn using apt.  
+By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server provided by Google. [The Amazon Lightsail example below](#server_lightsail) uses [coturn](https://github.com/coturn/coturn) as a [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/).   
 
 <a name="getting_started"/>
 
@@ -64,7 +64,9 @@ By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server 
  
 ## Installation 
 
-The *stretch_web_interface* repository depends on [stretch_ros](http://github.com/hello-robot/stretch_ros).
+These installation instructions describe how to install both the server and relevant ROS code on the onboard computer of a Stretch RE1 robot. This is suitable for use on a trusted and secure local area network (LAN) behind a strong firewall. 
+
+The web interface depends on [stretch_ros](http://github.com/hello-robot/stretch_ros), which is used to control the robot. You should first make sure it is up-to-date and working properly on the robot.
 
 Clone the *stretch_web_interface* repository to ~/catkin_ws/src/ on the robot. 
 
@@ -94,7 +96,7 @@ WARNING: The script uninstalls tornado using pip to avoid a rosbridge websocket 
 
 ## Quick Start
 
-When running on a local network behind a firewall, you can use the following insecure method to more conveniently start the system.
+When running on a trusted and secure local area network (LAN) behind a strong firewall, you can use the following insecure method to more conveniently start the system.
 
 #### Calibrate the Robot
 
@@ -298,55 +300,57 @@ This section describes the steps we used to create an Amazon Lightsail instance 
 
 + Obtain a domain name to use for your server.
 + Create a new [Amazon Lightsail](https://aws.amazon.com/lightsail/) instance.
-  + We have most recently used an OS only instance with Ubuntu 20.04, 512 MB RAM, 1 vCPU, 20 GB SSD.
+  + We used an OS only instance with Ubuntu 20.04, 512 MB RAM, 1 vCPU, 20 GB SSD.
 + [Create a static IP address](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/lightsail-create-static-ip) and attach it to your instance.
 + [Connect your new instance to SSH](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-ssh-using-terminal), so that you can access it. 
   + A command like the following can then be used to login to your instance: `ssh -i /path/to/private-key.pem username@public-ip-address`.
-+ Run `sudo apt-get update` to avoid installation issues.
-+ Install helpful packages.
-  + `sudo apt install emacs`
-  + `sudo apt install net-tools`
-+ Configure Git.
-  + `git config --global user.name "FIRST_NAME LAST_NAME"`
-  + `git config --global user.email "MY_NAME@example.com"`
-+ Clone this GitHub repository.
-  + `cd`
-  + `mkdir repos`
-  + `git clone https://github.com/hello-robot/stretch_web_interface.git`
-+ Use [certbot](https://certbot.eff.org/) from [Let's Encrypt](https://letsencrypt.org/) to obtain certificates so that your server can use [Hypertext Transfer Protocol Secure (HTTPS)](https://en.wikipedia.org/wiki/HTTPS). HTTPS is required to fully utilize WebRTC. 
-  + You will need to first connect your domain name to the static IP address used by your instance. 
-  + Follow [certbot installation instructions for Ubuntu 20.04](https://certbot.eff.org/lets-encrypt/ubuntufocal-other).
-+ Run the teleoperation server installation script
-  + `cd ~/repos/stretch_web_interface/bash_scripts/`
-  + `./web_server_installation.sh`
++ While logged into your instance. 
+  + Run `sudo apt-get update` to avoid installation issues.
+  + Install helpful packages.
+    + `sudo apt install emacs`
+    + `sudo apt install net-tools`
+  + Configure Git.
+    + `git config --global user.name "FIRST_NAME LAST_NAME"`
+    + `git config --global user.email "MY_NAME@example.com"`
+  + Clone this GitHub repository.
+    + `cd`
+    + `mkdir repos`
+    + `git clone https://github.com/hello-robot/stretch_web_interface.git`
+  + Use [certbot](https://certbot.eff.org/) from [Let's Encrypt](https://letsencrypt.org/) to obtain certificates so that your server can use [Hypertext Transfer Protocol Secure (HTTPS)](https://en.wikipedia.org/wiki/HTTPS). HTTPS is required to fully utilize WebRTC. 
+    + You will need to first connect your domain name to the static IP address used by your instance. 
+    + Follow [certbot installation instructions for Ubuntu 20.04](https://certbot.eff.org/lets-encrypt/ubuntufocal-other).
+  + Run the teleoperation server installation script
+    + `cd ~/repos/stretch_web_interface/bash_scripts/`
+    + `./web_server_installation.sh`
 + Initialize the database with secure credentials for at least one robot and one operator. For example, you can do the following. 
   + Create and export credentials from MongoDB by running a server on your robot. 
-  + Use `scp` to copy the exported credentials database from your robot's computer to your Lightsail instance with a command like `scp -ri ./LightsailDefaultKey-us-east-2.pem ./mongodb_credentials ubuntu@public-ip-address:./`
+  + Use `scp` to copy the exported credentials database from your robot's computer to your Lightsail instance by running a command like `scp -ri ./LightsailDefaultKey-us-east-2.pem ./mongodb_credentials ubuntu@public-ip-address:./` on your robot's computer.
   + On your Lightsail instance, restore the credentials database with a command like `mongorestore -d node-auth ./mongodb_credentials/node-auth/users.bson`
-+ Edit the [coturn](https://github.com/coturn/coturn) configuration file.
-  + Find your instance's private IP address by running `ifconfig -a` and looking at the `inet` IP address. 
-  + Confirm your instance's public IP address and your domain name by running `ping YOUR-DOMAIN-NAME` and looking at the IP address. 
-  + `cd /etc/`
-  + `sudo emacs -nw turnserver.conf`
-  + Add the following lines at appropriate locations in `turnserver.conf`
-    + `listening-ip=PRIVATE-IP-ADDRESS`
-    + `relay-ip=PRIVATE-IP-ADDRESS`
-    + `external-ip=PUBLIC-IP-ADDRESS`
-    + `Verbose`
-    + `lt-cred-mech`
-    + `pkey=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/privkey.pem`
-    + `cert=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/cert.pem`
-    + `no-multicast-peers`
-    + `secure-stun`
-    + `mobility`
-    + `realm=YOUR-DOMAIN-NAME`
-+ Create TURN server accounts and credentials.
-  + Create and administrator account.
-    + `sudo turnadmin -A -u ADMIN-NAME -p ADMIN-PASSWORD`
-  + Create a long-term TURN user. These credentials will need to be added to `./stretch_web_interface/shared/send_recv_av.js`.
-    + `sudo turnadmin -a -u TURN-USER-NAME -r YOUR-DOMAIN-NAME -p TURN-USER-PASSWORD`
-  + Open `./stretch_web_interface/shared/send_recv_av.js` and comment out the free STUN server, uncomment the STUN and TURN servers, and fill in the values using your domain name and the credentials you just created (i.e., YOUR-DOMAIN-NAME, TURN-USER-NAME, and TURN-USER-PASSWORD). 
-    + The relevant code will look similar to `var pcConfig = { iceServers: [ {urls: "stun:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}, {urls: "turn:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}]};`
++ While logged into your instance.
+  + Edit the [coturn](https://github.com/coturn/coturn) configuration file.
+    + Find your instance's private IP address by running `ifconfig -a` and looking at the `inet` IP address. 
+    + Confirm your instance's public IP address and your domain name by running `ping YOUR-DOMAIN-NAME` and looking at the IP address. 
+    + `cd /etc/`
+    + `sudo emacs -nw turnserver.conf`
+    + Add the following lines at appropriate locations in `turnserver.conf`
+      + `listening-ip=PRIVATE-IP-ADDRESS`
+      + `relay-ip=PRIVATE-IP-ADDRESS`
+      + `external-ip=PUBLIC-IP-ADDRESS`
+      + `Verbose`
+      + `lt-cred-mech`
+      + `pkey=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/privkey.pem`
+      + `cert=/etc/letsencrypt/live/YOUR-DOMAIN-NAME/cert.pem`
+      + `no-multicast-peers`
+      + `secure-stun`
+      + `mobility`
+      + `realm=YOUR-DOMAIN-NAME`
+  + Create TURN server accounts and credentials.
+    + Create and administrator account.
+      + `sudo turnadmin -A -u ADMIN-NAME -p ADMIN-PASSWORD`
+    + Create a long-term TURN user. These credentials will need to be added to `./stretch_web_interface/shared/send_recv_av.js`.
+      + `sudo turnadmin -a -u TURN-USER-NAME -r YOUR-DOMAIN-NAME -p TURN-USER-PASSWORD`
+    + Open `./stretch_web_interface/shared/send_recv_av.js` and comment out the free STUN server, uncomment the STUN and TURN servers, and fill in the values using your domain name and the credentials you just created (i.e., YOUR-DOMAIN-NAME, TURN-USER-NAME, and TURN-USER-PASSWORD). 
+      + The relevant code will look similar to `var pcConfig = { iceServers: [ {urls: "stun:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}, {urls: "turn:YOUR-DOMAIN-NAME", username "TURN-USER-NAME", credentials: "TURN-USER-PASSWORD}]};`
 + [Open the following ports for your Amazon Lightsail instance.](https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-editing-firewall-rules) These are standard ports for HTTPS, STUN, and TURN. 
   + `HTTPS TCP 443`
   + `Custom TCP 3478`
