@@ -362,7 +362,7 @@ This section describes the steps we used to create an Amazon Lightsail instance 
   + Use your robot's Chromium browser to visit your server's domain and login with the robot's credentials that you created. 
   + Open a Chrome or Chromium browser of your own on another computer or recent Android phone. Visit your server's domain and login with the operator credentials you created. If you want to test communication between distinct networks, you could turn off your phone's Wi-Fi and then either use your phone or tether to your phone to connect from the mobile phone network to your robot. Please note that this has only been tested with the Chrome browser on recent Android phones. 
   + Once you've logged in as an operator, you should be able to select your robot from the drop down list and begin controlling it. 
-+ **After trying it out, be sure to shutdown your server. It is not hardened and likely has significant security vulnerabilities. It would be risky to leave it on over a significant length of time.**
++ **After trying it out, be sure to shutdown your Amazon Lightsail instance. It is not hardened and likely has significant security vulnerabilities. It would be risky to leave it on over a significant length of time.**
 
 <a name="licensing"/>
 
