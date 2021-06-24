@@ -4,7 +4,7 @@ var messages_received_body = [];
 var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
-var rosImageReceived = false
+var rosImageReceived = false;
 var img = document.createElement("IMG")
 img.style.visibility = 'hidden'
 var rosJointStateReceived = false
@@ -13,6 +13,8 @@ var jointState = null
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
+
+var inSim = localStorage.getItem('inSim') == "true" ? true : false;
 
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
@@ -33,7 +35,7 @@ ros.on('close', function() {
 
 var imageTopic = new ROSLIB.Topic({
     ros : ros,
-    name : '/camera/color/image_raw/compressed',
+    name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
     messageType : 'sensor_msgs/CompressedImage'
 });
 
@@ -59,7 +61,7 @@ imageTopic.subscribe(function(message) {
 
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
-    name : '/stretch/joint_states/',
+    name : inSim ? '/joint_states/' : '/stretch/joint_states/',
     messageType : 'sensor_msgs/JointState'
 });
 
@@ -80,13 +82,31 @@ jointStateTopic.subscribe(function(message) {
 });
 
 
-
-var trajectoryClient = new ROSLIB.ActionClient({
+var trajectoryClients = {}
+trajectoryClients.main = new ROSLIB.ActionClient({
     ros : ros,
-    serverName : '/stretch_controller/follow_joint_trajectory',
+    serverName : inSim ? '/stretch_joint_state_controller/follow_joint_trajectory' : '/stretch_controller/follow_joint_trajectory',
     actionName : 'control_msgs/FollowJointTrajectoryAction'
 });
+if (inSim) {
+    trajectoryClients.head = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_head_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
 
+    trajectoryClients.arm = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_arm_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
+
+    trajectoryClients.gripper = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_gripper_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
+}
 
 function generatePoseGoal(pose){
 
@@ -103,29 +123,48 @@ function generatePoseGoal(pose){
 	jointNames.push(key)
 	jointPositions.push(pose[key])
     }
+    if (!inSim) {
+        var t = trajectoryClients.main;
+    } else {
+        switch (jointNames[0]) {
+            case 'joint_head_tilt':
+            case 'joint_head_pan':
+                var t = trajectoryClients.head;
+                break;
+            case 'wrist_extension':
+            case 'joint_gripper_finger_left':
+                var t = trajectoryClients.gripper;
+                break;
+        }
+    }
+
     var newGoal = new ROSLIB.Goal({
-	actionClient : trajectoryClient,
-	goalMessage : {
-	    trajectory : {
-		joint_names : jointNames,
-		points : [
-		    {
-			positions : jointPositions
-		    }
-		]
-	    }
-	}
-    })
+        actionClient : t,
+        goalMessage : {
+            trajectory : {
+            joint_names : jointNames,
+            points : [
+                {
+                positions : jointPositions
+                }
+            ]
+            }
+        }
+    });
+
+    newGoal.goalMessage.goal_id.stamp.secs = 0;//(new Date().getTime() / 1000);
+    newGoal.goalMessage.goal_id.stamp.nsecs = 0;
+    //console.log(newGoal.goalMessage.goal_id.stamp);
 
     console.log('newGoal created =' + newGoal)
     
-    // newGoal.on('feedback', function(feedback) {
-    // 	console.log('Feedback: ' + feedback.sequence);
-    // });
+    newGoal.on('feedback', function(feedback) {
+    	console.log('Feedback: ' + feedback.sequence);
+    });
     
-    // newGoal.on('result', function(result) {
-    // 	console.log('Final Result: ' + result.sequence);
-    // });
+    newGoal.on('result', function(result) {
+    	console.log('Final Result: ' + result.sequence);
+    });
     
     return newGoal
 }

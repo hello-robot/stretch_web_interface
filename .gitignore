@@ -8,3 +8,4 @@
 *.so
 
 node_modules
+.vscode/
