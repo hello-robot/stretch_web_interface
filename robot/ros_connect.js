@@ -106,6 +106,12 @@ if (inSim) {
         serverName : '/stretch_gripper_controller/follow_joint_trajectory',
         actionName : 'control_msgs/FollowJointTrajectoryAction'
     });
+
+    trajectoryClients.base = new ROSLIB.Topic({
+        ros: ros,
+        name: '/stretch_diff_drive_controller/cmd_vel',
+        messageType: 'geometry_msgs/Twist'
+    })
 }
 
 function generatePoseGoal(pose){
@@ -131,10 +137,49 @@ function generatePoseGoal(pose){
             case 'joint_head_pan':
                 var t = trajectoryClients.head;
                 break;
-            case 'wrist_extension':
             case 'joint_gripper_finger_left':
                 var t = trajectoryClients.gripper;
+                jointNames.push('joint_gripper_finger_right')
+                jointPositions.push(jointPositions[0])
                 break;
+            case 'wrist_extension':
+                console.log(jointNames, jointPositions)
+                jointNames = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3']
+                jointPositions = [jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4]
+            case 'joint_lift':
+            case 'joint_wrist_yaw':
+                var t = trajectoryClients.arm;
+                break;
+            case 'translate_mobile_base':
+                var translate = new ROSLIB.Message({
+                    linear : {
+                      x : jointPositions[0]*10,
+                      y : 0.0,
+                      z : 0.0
+                    },
+                    angular : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : 0.0
+                    }
+                  });
+                  trajectoryClients.base.publish(translate)
+                  return {"send": function(){}};
+            case 'rotate_mobile_base':
+                var rotate = new ROSLIB.Message({
+                    linear : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : 0.0
+                    },
+                    angular : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : jointPositions[0]*10
+                    }
+                  });
+                  trajectoryClients.base.publish(rotate)
+                return {"send": function(){}};
         }
     }
 
@@ -265,6 +310,15 @@ function baseTurn(ang_deg, vel) {
 }
 
 function getJointValue(jointStateMessage, jointName) {
+    console.log(jointStateMessage, jointName);
+    if (inSim && jointName == 'wrist_extension') {
+        var value = 0;
+        for (var i = 0; i < 4; i++) {
+            var jName = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'][i]
+            value += jointStateMessage.position[jointStateMessage.name.indexOf(jName)];
+        }
+        return value
+    }
     var jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
 }
