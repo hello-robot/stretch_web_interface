@@ -14,8 +14,6 @@ var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version
 
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
-var inSim = localStorage.getItem('inSim') == "true" ? true : false;
-
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
     url : 'ws://localhost:9090'
