@@ -145,16 +145,17 @@ function generatePoseGoal(pose){
             joint_names : jointNames,
             points : [
                 {
-                positions : jointPositions
+                positions : jointPositions,
+                time_from_start: {
+                    secs: 0,
+                    nsecs: 1
+                }
                 }
             ]
             }
         }
     });
 
-    newGoal.goalMessage.goal_id.stamp.secs = 0;//(new Date().getTime() / 1000);
-    newGoal.goalMessage.goal_id.stamp.nsecs = 0;
-    //console.log(newGoal.goalMessage.goal_id.stamp);
 
     console.log('newGoal created =' + newGoal)
     
