@@ -8,6 +8,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var helmet = require('helmet')
 
+var redis = require('redis'); 
 var session = require('express-session');
 // https://github.com/tj/connect-redis
 var RedisStore = require('connect-redis')(session);
@@ -24,21 +25,26 @@ var passportSocketIo = require('passport.socketio');
 var cookieParser = require('cookie-parser');
 
 // https://www.npmjs.com/package/connect-redis
-// use redis for session store
-//var sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
-var sessionStore = new RedisStore(
-    {
-        host: "localhost",
-        port: 6379,
-    }
-);
+// start redis and create the redis store
+// https://github.com/tj/connect-redis/blob/master/migration-to-v4.md
+// No password, so removed this line for now.
+// password: 'my secret',
+let redisClient = redis.createClient({
+  host: 'localhost',
+  port: 6379,
+  db: 1,
+});
+redisClient.unref();
+redisClient.on('error', console.log);
+
+let sessionStore = new RedisStore({ client: redisClient });
 
 /////////////////
 
 mongoose.Promise = global.Promise;
 console.log('start mongoose');
 
-mongoose.connect('mongodb://localhost/node-auth', { useMongoClient: true})
+mongoose.connect('mongodb://localhost/node-auth', {useNewUrlParser: true, useUnifiedTopology: true})
     .then(() =>  console.log('connection successful'))
     .catch((err) => console.error(err));
 
@@ -50,6 +56,28 @@ var app = express();
 console.log('use helmet');
 app.use(helmet());
 
+var use_content_security_policy = true
+
+if (use_content_security_policy) {
+    console.log('using a content security policy');
+    app.use(helmet.contentSecurityPolicy({
+	directives:{
+	    defaultSrc:["'self'"],
+	    scriptSrc:["'self'", "'unsafe-inline'", 'static.robotwebtools.org', 'robotwebtools.org', 'webrtc.github.io'],
+	    connectSrc:["'self'", 'ws://localhost:9090'],
+	    imgSrc: ["'self'", 'data:'],
+	    styleSrc:["'self'"],
+	    fontSrc:["'self'"]}}));
+} else {
+    // Disable the content security policy. This is helpful during
+    // development, but risky when deployed.
+    console.log('WARNING: Not using a content security policy. This risky when deployed!');
+    app.use(
+	helmet({
+	    contentSecurityPolicy: false,
+	})
+    );
+}
 
 /////////////////////////
 //
@@ -67,7 +95,7 @@ function ensureSecure(req, res, next){
         return next();
     };
     // handle port numbers if you need non defaults
-    res.redirect('https://' + req.hostname + req.url); // express 4.x
+    res.redirect('https://' + req.hostname + req.url); 
 };
 /////////////////////////
 

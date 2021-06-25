@@ -73,6 +73,29 @@ jointStateTopic.subscribe(function(message) {
 	console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
 	rosJointStateReceived = true
     }
+
+
+    // send wrist joint effort
+    var JointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
+    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': JointEffort}
+    sendData(message)
+
+    // send gripper effort
+    JointEffort = getJointEffort(jointState, 'joint_gripper_finger_left')
+    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': JointEffort}
+    sendData(message)
+
+    // send lift effort
+    JointEffort = getJointEffort(jointState, 'joint_lift')
+    var message = {'type': 'sensor', 'subtype':'lift', 'name':'lift_effort', 'value': JointEffort}
+    sendData(message)
+
+    // send telescoping arm effort
+    JointEffort = getJointEffort(jointState, 'joint_arm_l0')
+    var message = {'type': 'sensor', 'subtype':'arm', 'name':'arm_effort', 'value': JointEffort}
+    sendData(message)
+
+    
     // Header header
     // string[] name
     // float64[] position
