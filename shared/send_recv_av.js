@@ -89,20 +89,11 @@ socket.on('joined', function(room) {
     isChannelReady = true;
 });
 
-// socket.on('log', function(array) {
-//   console.log.apply(console, array);
-// });
-
 ////////////////////////////////////////////////
-
-
-// https://www.w3schools.com/js/js_timing.asp
-// var pollAvailableRobotsPeriod = 5000; // ask about available robots every 5 seconds
 
 if (peer_name === 'OPERATOR') {
     var robotToControlSelect = document.querySelector('select#robotToControl');
     robotToControlSelect.onchange = connectToRobot;
-    //var pollAvailableRobots = setInterval(availableRobots, pollAvailableRobotsPeriod);
 }
 
 function availableRobots() {
@@ -146,7 +137,6 @@ socket.on('available robots', function(available_robots) {
         option.text = r;
         robotToControlSelect.appendChild(option);
     }
-    // var robots = Array.from(available_robots.values());
 });
 
 ///////////////////////////////////////////////////
@@ -397,7 +387,7 @@ function onDataChannelStateChange() {
     var readyState = dataChannel.readyState;
     console.log('Data channel state is: ' + readyState);
     if (readyState === 'open') {
-	runOnOpenDataChannel()
+	runOnOpenDataChannel();
     } else {
     }
 }
