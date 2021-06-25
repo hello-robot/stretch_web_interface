@@ -75,59 +75,81 @@
 	      	<svg id="video_ui_overlay">
 		
 	    	<svg id="nav_ui_overlay" preserveAspectRatio="none">
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="nav_do_nothing_region"
-	            >
-	            <title>do nothing</title>
-	          </path>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_do_nothing_region"
+					>
+					<title>do nothing</title>
+				</path>
 
 	<!-- 
 	<svg id="right_arrow" version="1.1" viewBox="0.0 0.0 37.79527559055118 37.79527559055118" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><clipPath id="p.0"><path d="m0 0l37.795277 0l0 37.795277l-37.795277 0l0 -37.795277z" clip-rule="nonzero"></path></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l37.795277 0l0 37.795277l-37.795277 0z" fill-rule="evenodd"></path><path fill="#ffffff" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path><path stroke="#000000" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path></g></svg>
 
 	-->
 		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="nav_forward_region"
-	            onclick="moveForward()"
-	            onmousedown="startAction('moveForward')"
-	            >
-	            <title>move forward</title>
-	          </path>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_forward_region"
+					onclick="moveForward()"
+					onmousedown="startAction('moveForward')"
+					>
+					<title>move forward</title>
+				</path>
 
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="nav_backward_region"
-	            onclick="moveBackward()"
-	            onmousedown="startAction('moveBackward')"
-	            >
-	            <title>move backward</title>
-	          </path>
+		  		<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_backward_region"
+					onclick="moveBackward()"
+					onmousedown="startAction('moveBackward')"
+					>
+					<title>move backward</title>
+	          	</path>
 
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="nav_turn_left_region"
-	            onclick="turnLeft()"   
-	            onmousedown="startAction('turnLeft')"
-	            >
-	            <title>turn left</title>
-	          </path>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_turn_left_region"
+					onclick="turnLeft()"   
+					onmousedown="startAction('turnLeft')"
+					>
+					<title>turn left</title>
+				</path>
 		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="nav_turn_right_region"
-	            onclick="turnRight()"   
-	            onmousedown="startAction('turnRight')"
-	            >
-		    <title>turn right</title>
-		  </path>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_turn_right_region"
+					onclick="turnRight()"   
+					onmousedown="startAction('turnRight')"
+					>
+					<title>turn right</title>
+				</path>
 
+				<g
+					id="ccw_cw_text_region"
+					>
+				</g>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_ccw_region"
+					onclick="turnCCW()"   
+					onmousedown="startAction('turnCCW')"
+					>
+					<title>turn ccw 90</title>
+				</path>
+				<path
+					fill-opacity="0.0"
+					stroke-opacity="1.0"
+					id="nav_cw_region"
+					onclick="turnCW()"   
+					onmousedown="startAction('turnCW')"
+					>
+					<title>turn cw 90</title>
+				</path>
 		</svg>
 
 		

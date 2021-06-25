@@ -124,6 +124,24 @@ function turnRight() {
     Database.logEvent("TurnRight", currentV);
 }
 
+function turnCCW() {
+    var cmd = {type:"command",
+               subtype:"drive",
+               name:"turn_ccw",
+               modifier:"none"};
+    sendData(cmd);
+    Database.logEvent("TurnCCW", currentV);
+}
+
+function turnCW() {
+    var cmd = {type:"command",
+               subtype:"drive",
+               name:"turn_cw",
+               modifier:"none"};
+    sendData(cmd);
+    Database.logEvent("TurnCW", currentV);
+}
+
 function liftUp() {
     var cmd = {type:"command",
                subtype:"lift",
@@ -494,6 +512,24 @@ var driveCommands = {
     },
     "turn_left": function(size) {
         console.log('drive: turn_left command received...executing');
+
+      let vel = -driveRotV[modifiers[size]];
+      baseTurn(driveRotMedDist, vel);
+      	// executeCommandBySize(size, baseTurn,
+       //                       [-1.0, 300.0], // angle (deg), angular speed (deg/s)
+       //                       [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
+    },
+    "turn_ccw": function(size) {
+        console.log('drive: turn_ccw command received...executing');
+
+      let vel = -driveRotV[modifiers[size]];
+      baseTurn(driveRotMedDist, vel);
+      	// executeCommandBySize(size, baseTurn,
+       //                       [-1.0, 300.0], // angle (deg), angular speed (deg/s)
+       //                       [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
+    },
+    "turn_cw": function(size) {
+        console.log('drive: turn_cw command received...executing');
 
       let vel = -driveRotV[modifiers[size]];
       baseTurn(driveRotMedDist, vel);

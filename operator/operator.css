@@ -43,6 +43,7 @@
     height: 620px;
     width: 350px;
     z-index:0;
+    background-color: gray;
 }
 
 #video_ui_overlay {
@@ -75,6 +76,13 @@
     cursor: url('right_turn_medium.png'), auto;
 }
 
+#nav_ccw_region {
+    cursor: url('left_turn_medium.png'), auto;
+}
+
+#nav_cw_region {
+    cursor: url('right_turn_medium.png'), auto;
+}
 
 #low_arm_down_region {
     cursor: url('down_arrow_medium.png'), auto;
