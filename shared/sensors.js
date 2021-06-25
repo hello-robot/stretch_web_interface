@@ -162,13 +162,7 @@ var gripperSensors = {
 	redRegion.setAttribute('fill', 'red');
 	// make the torque positive and multiply it by a factor to
 	// make sure the video will always be visible even with
-<<<<<<< HEAD
-	// maximum torque var redOpacity = (value*value) * 0.75;
 	var redOpacity = Math.abs(value) * 0.015;
-	//console.log('redOpacity = ', redOpacity);
-=======
-	var redOpacity = Math.abs(value) * 0.005;
->>>>>>> fe369fa87a2d5394fa7fdad6c1eb5e9ee22d1011
 	redRegion.setAttribute('fill-opacity', redOpacity);
 	nothingRegion.setAttribute('fill-opacity', 0.0);
     }
