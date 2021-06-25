@@ -90,12 +90,17 @@ console.log('require https');
 app.all('*', ensureSecure); // at top of routing calls
 
 function ensureSecure(req, res, next){
-    if(req.secure){
-        // OK, continue
-        return next();
-    };
-    // handle port numbers if you need non defaults
-    res.redirect('https://' + req.hostname + req.url); 
+    if(!req.secure){
+        // handle port numbers if you need non defaults
+        res.redirect('https://' + req.hostname + req.url); 
+    }
+
+    res.setHeader(
+        'Content-Security-Policy-Report-Only',
+        "default-src 'self'; script-src 'self' https://www.gstatic.com;"
+    );
+
+    return next();
 };
 /////////////////////////
 
