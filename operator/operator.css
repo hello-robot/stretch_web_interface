@@ -4,11 +4,7 @@
     /* --mode-button-width: 15%; */
 }
 
-/* #video_div { */
-/*     height:90%; */
-/* } */
-
-#video_div {
+.video_div {
 /*    height:90%;
     top: 70px;
     left: 0px; */
@@ -17,37 +13,47 @@
     low-latency responsiveness on a mobile device. Panning and pinch
     zoom gestures are still allowed. This made a big difference with
     tests from a Pixel 2XL phone (Android).*/
-    touch-action: manipulation; 
+  touch-action: manipulation; 
+  display: grid;
+  /*grid-template-columns: 1fr;*/
 }
 
-.video-container{
+/*.video-container{
   border: 3px green dashed;
+}
+*/
+
+.video_div div {
+ background-color: rgba(0,0,0,0.0);
+ grid-row-start: 1;
+ grid-column-start: 1;
+}
+
+.background {
+    z-index:1;
+}
+
+.foreground {
+    z-index:2;
 }
 
 #remoteVideo {
     border: 0px orange dashed;
-    position:absolute;
-    top: 122px;
-    left: 10px;
     /*height:80%; */
     height: 620px;
-    z-index:1;
+    width: 350px;
+    z-index:0;
 }
 
 #video_ui_overlay {
-    position:relative;
     border: 1px solid gray;
     /*top: 144px;*/
-    top: 0px;
-    left: 0px;
     /*top: calc(0.23 * var(--video-height));*/ /*144px;*/
     /*left: calc(0.16 * var(--video-height));*/ /*10px;*/
     /*height:80%; */
     height: 620px;
-    z-index:2;
-    margin: 0px 0px;
+    z-index:10;
 }
-
 
 #nav_do_nothing_region {
     cursor: not-allowed; 
@@ -174,10 +180,10 @@
  */
 
 .switch {
-    display: inline-block;
+  display: inline-block;
   position: relative;
-  /*margin: 20px auto;*/
   height: 52px; /*26px;*/
+  /*margin: 20px auto;*/
   /* width:  calc(var(--mode-button-width) * 6); */
   width:  calc(var(--mode-button-width) * 5);
   background: rgba(0, 0, 0, 0.25);
@@ -348,12 +354,10 @@
 
 
 .onoffswitch {
-    display: inline-block;
-    left: 10px;
-    position: relative;
-    /*width: 97px;*/
-    /*width: 90px;*/
-    width: 50px;
+  display: inline-block;
+  left: 10px;
+  position: relative;
+  width: 50px;
 }
 
 .onoffswitch-checkbox {
@@ -403,22 +407,6 @@
     padding-left: 10px;
     background-color: #EEEEEE; color: #999999;
     /*text-align: right;*/
-}
-.onoffswitch-switch {
-    /*
-    display: block; 
-    width: 18px; 
-    margin: 8.5px;
-    background: #FFFFFF;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    */
-    /*right: 58px;*/
-    /*right: 42px;*/
-    /*right: 42px;*/
-    /*border: 2px solid #999999; border-radius: 20px;*/
-    /*transition: all 0.3s ease-in 0s; */
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
