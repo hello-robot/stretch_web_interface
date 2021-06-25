@@ -1,0 +1,15 @@
+[Unit]
+Description=Coturn STUN and TURN server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/turnserver.pid
+ExecStart=/usr/bin/turnserver -c /etc/turnserver.conf -o -v
+Restart=on-failure
+IgnoreSIGPIPE=yes
+
+[Install]
+WantedBy=multi-user.target
+
+

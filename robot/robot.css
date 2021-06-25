@@ -4,7 +4,7 @@
 }
 
 #video-display {
-    position:absolute;
+    /*position:absolute;*/
     height:90%;
     z-index:1;
 }
