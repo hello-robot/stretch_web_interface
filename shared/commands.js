@@ -522,20 +522,12 @@ var driveCommands = {
     "turn_ccw": function(size) {
         console.log('drive: turn_ccw command received...executing');
 
-      let vel = -driveRotV[modifiers[size]];
-      baseTurn(driveRotMedDist, vel);
-      	// executeCommandBySize(size, baseTurn,
-       //                       [-1.0, 300.0], // angle (deg), angular speed (deg/s)
-       //                       [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
+        turnAngleOffset(Math.PI/2); // 90 deg
     },
     "turn_cw": function(size) {
         console.log('drive: turn_cw command received...executing');
 
-      let vel = -driveRotV[modifiers[size]];
-      baseTurn(driveRotMedDist, vel);
-      	// executeCommandBySize(size, baseTurn,
-       //                       [-1.0, 300.0], // angle (deg), angular speed (deg/s)
-       //                       [-10.0, 300.0]); // angle (deg), angular speed (deg/s)
+        turnAngleOffset(-Math.PI/2); // -90 deg
     }
 }  
 
