@@ -4,11 +4,13 @@ var messages_received_body = [];
 var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
-var rosImageReceived = false
-var img = document.createElement("IMG")
-img.style.visibility = 'hidden'
-var rosJointStateReceived = false
-var jointState = null
+var rosImageReceived = false;
+var img = document.createElement("IMG");
+img.style.visibility = 'hidden';
+var rosJointStateReceived = false;
+var jointState = null;
+var rosRobotStateReceived = false;
+var robotState = null;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
@@ -33,7 +35,7 @@ ros.on('close', function() {
 
 var imageTopic = new ROSLIB.Topic({
     ros : ros,
-    name : '/camera/color/image_raw/compressed',
+    name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
     messageType : 'sensor_msgs/CompressedImage'
 });
 
@@ -57,19 +59,9 @@ imageTopic.subscribe(function(message) {
 });
 
 
-function getJointEffort(jointStateMessage, jointName) {
-    var jointIndex = jointStateMessage.name.indexOf(jointName)
-    return jointStateMessage.effort[jointIndex]
-}
-
-function getJointValue(jointStateMessage, jointName) {
-    var jointIndex = jointStateMessage.name.indexOf(jointName)
-    return jointStateMessage.position[jointIndex]
-}
-
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
-    name : '/stretch/joint_states/',
+    name : inSim ? '/joint_states/' : '/stretch/joint_states/',
     messageType : 'sensor_msgs/JointState'
 });
 
@@ -81,17 +73,6 @@ jointStateTopic.subscribe(function(message) {
 	console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
 	rosJointStateReceived = true
     }
-
-    // send wrist joint effort
-    var yawJointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
-    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': yawJointEffort}
-    sendData(message)
-
-    // send gripper effort
-    var gripperJointEffort = getJointEffort(jointState, 'joint_gripper_finger_left')
-    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': gripperJointEffort}
-    sendData(message)
-    
     // Header header
     // string[] name
     // float64[] position
@@ -100,14 +81,54 @@ jointStateTopic.subscribe(function(message) {
     //imageTopic.unsubscribe()
 });
 
-
-
-var trajectoryClient = new ROSLIB.ActionClient({
+var tfClient = new ROSLIB.TFClient({
     ros : ros,
-    serverName : '/stretch_controller/follow_joint_trajectory',
-    actionName : 'control_msgs/FollowJointTrajectoryAction'
+    fixedFrame : 'base_link',
+    angularThres : 0.01,
+    transThres : 0.01
 });
 
+var link_gripper_finger_left_tf;
+tfClient.subscribe('link_gripper_finger_left', function(tf) {
+    link_gripper_finger_left_tf = tf;
+});
+
+var link_head_tilt_tf;
+tfClient.subscribe('link_head_tilt', function(tf) {
+    link_head_tilt_tf = tf;
+});
+
+var trajectoryClients = {}
+trajectoryClients.main = new ROSLIB.ActionClient({
+    ros : ros,
+    serverName : inSim ? '/stretch_joint_state_controller/follow_joint_trajectory' : '/stretch_controller/follow_joint_trajectory',
+    actionName : 'control_msgs/FollowJointTrajectoryAction'
+});
+if (inSim) {
+    trajectoryClients.head = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_head_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
+
+    trajectoryClients.arm = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_arm_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
+
+    trajectoryClients.gripper = new ROSLIB.ActionClient({
+        ros : ros,
+        serverName : '/stretch_gripper_controller/follow_joint_trajectory',
+        actionName : 'control_msgs/FollowJointTrajectoryAction'
+    });
+
+    trajectoryClients.base = new ROSLIB.Topic({
+        ros: ros,
+        name: '/stretch_diff_drive_controller/cmd_vel',
+        messageType: 'geometry_msgs/Twist'
+    })
+}
 
 function generatePoseGoal(pose){
 
@@ -124,29 +145,88 @@ function generatePoseGoal(pose){
 	jointNames.push(key)
 	jointPositions.push(pose[key])
     }
+    if (!inSim) {
+        var t = trajectoryClients.main;
+    } else {
+        switch (jointNames[0]) {
+            case 'joint_head_tilt':
+            case 'joint_head_pan':
+                var t = trajectoryClients.head;
+                break;
+            case 'joint_gripper_finger_left':
+                var t = trajectoryClients.gripper;
+                jointNames.push('joint_gripper_finger_right')
+                jointPositions.push(jointPositions[0])
+                break;
+            case 'wrist_extension':
+                console.log(jointNames, jointPositions)
+                jointNames = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3']
+                jointPositions = [jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4]
+            case 'joint_lift':
+            case 'joint_wrist_yaw':
+                var t = trajectoryClients.arm;
+                break;
+            case 'translate_mobile_base':
+                var translate = new ROSLIB.Message({
+                    linear : {
+                      x : jointPositions[0]*10,
+                      y : 0.0,
+                      z : 0.0
+                    },
+                    angular : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : 0.0
+                    }
+                  });
+                  trajectoryClients.base.publish(translate)
+                  return {"send": function(){}};
+            case 'rotate_mobile_base':
+                var rotate = new ROSLIB.Message({
+                    linear : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : 0.0
+                    },
+                    angular : {
+                      x : 0.0,
+                      y : 0.0,
+                      z : jointPositions[0]*10
+                    }
+                  });
+                  trajectoryClients.base.publish(rotate)
+                return {"send": function(){}};
+        }
+    }
+
     var newGoal = new ROSLIB.Goal({
-	actionClient : trajectoryClient,
-	goalMessage : {
-	    trajectory : {
-		joint_names : jointNames,
-		points : [
-		    {
-			positions : jointPositions
-		    }
-		]
-	    }
-	}
-    })
+        actionClient : t,
+        goalMessage : {
+            trajectory : {
+            joint_names : jointNames,
+            points : [
+                {
+                positions : jointPositions,
+                time_from_start: {
+                    secs: 0,
+                    nsecs: 1
+                }
+                }
+            ]
+            }
+        }
+    });
+
 
     console.log('newGoal created =' + newGoal)
     
-    // newGoal.on('feedback', function(feedback) {
-    // 	console.log('Feedback: ' + feedback.sequence);
-    // });
+    newGoal.on('feedback', function(feedback) {
+    	console.log('Feedback: ' + feedback.sequence);
+    });
     
-    // newGoal.on('result', function(result) {
-    // 	console.log('Final Result: ' + result.sequence);
-    // });
+    newGoal.on('result', function(result) {
+    	console.log('Final Result: ' + result.sequence);
+    });
     
     return newGoal
 }
@@ -245,6 +325,18 @@ function baseTurn(ang_deg, vel) {
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
 }
 
+function getJointValue(jointStateMessage, jointName) {
+    if (inSim && jointName == 'wrist_extension') {
+        var value = 0;
+        for (var i = 0; i < 4; i++) {
+            var jName = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'][i]
+            value += jointStateMessage.position[jointStateMessage.name.indexOf(jName)];
+        }
+        return value
+    }
+    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    return jointStateMessage.position[jointIndex]
+}
 
 function sendIncrementalMove(jointName, jointValueInc) {
     console.log('sendIncrementalMove start: jointName =' + jointName)
@@ -256,6 +348,33 @@ function sendIncrementalMove(jointName, jointValueInc) {
 	var poseGoal = generatePoseGoal(pose)
 	poseGoal.send()
 	return true
+    }
+    return false
+}
+
+function headLookAtGripper() {
+    console.log('attempting to send headLookAtGripper command')
+    if (link_gripper_finger_left_tf && link_head_tilt_tf) {
+
+        var posDifference = {
+            x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
+            y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
+            z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
+        };
+        
+        // Normalize posDifference
+        var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
+        posDifference.x /= scalar;
+        posDifference.y /= scalar;
+        posDifference.z /= scalar;
+
+        var pan = Math.atan2(posDifference.y, posDifference.x);
+        var tilt = Math.atan2(posDifference.z, -posDifference.y);
+
+        var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+        headFollowPoseGoal.send()
+        console.log('sending arm follow pose to head') 
+        return true
     }
     return false
 }

@@ -8,3 +8,6 @@
 *.so
 
 node_modules
+
+# VS Code related
+.vscode/
