@@ -5,10 +5,12 @@ var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
 var rosImageReceived = false;
-var img = document.createElement("IMG")
-img.style.visibility = 'hidden'
-var rosJointStateReceived = false
-var jointState = null
+var img = document.createElement("IMG");
+img.style.visibility = 'hidden';
+var rosJointStateReceived = false;
+var jointState = null;
+var rosRobotStateReceived = false;
+var robotState = null;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
@@ -79,6 +81,22 @@ jointStateTopic.subscribe(function(message) {
     //imageTopic.unsubscribe()
 });
 
+var tfClient = new ROSLIB.TFClient({
+    ros : ros,
+    fixedFrame : 'base_link',
+    angularThres : 0.01,
+    transThres : 0.01
+});
+
+var link_gripper_finger_left_tf;
+tfClient.subscribe('link_gripper_finger_left', function(tf) {
+    link_gripper_finger_left_tf = tf;
+});
+
+var link_head_tilt_tf;
+tfClient.subscribe('link_head_tilt', function(tf) {
+    link_head_tilt_tf = tf;
+});
 
 var trajectoryClients = {}
 trajectoryClients.main = new ROSLIB.ActionClient({
@@ -308,7 +326,6 @@ function baseTurn(ang_deg, vel) {
 }
 
 function getJointValue(jointStateMessage, jointName) {
-    console.log(jointStateMessage, jointName);
     if (inSim && jointName == 'wrist_extension') {
         var value = 0;
         for (var i = 0; i < 4; i++) {
@@ -331,6 +348,33 @@ function sendIncrementalMove(jointName, jointValueInc) {
 	var poseGoal = generatePoseGoal(pose)
 	poseGoal.send()
 	return true
+    }
+    return false
+}
+
+function headLookAtGripper() {
+    console.log('attempting to send headLookAtGripper command')
+    if (link_gripper_finger_left_tf && link_head_tilt_tf) {
+
+        var posDifference = {
+            x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
+            y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
+            z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
+        };
+        
+        // Normalize posDifference
+        var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
+        posDifference.x /= scalar;
+        posDifference.y /= scalar;
+        posDifference.z /= scalar;
+
+        var pan = Math.atan2(posDifference.y, posDifference.x);
+        var tilt = Math.atan2(posDifference.z, -posDifference.y);
+
+        var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+        headFollowPoseGoal.send()
+        console.log('sending arm follow pose to head') 
+        return true
     }
     return false
 }

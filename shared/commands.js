@@ -459,8 +459,7 @@ var headCommands = {
     },
     "atGripper": function(size) {
       console.log('head: atGripper command received...executing');
-      headPan(0);
-      headTilt(0);
+      headLookAtGripper();
     }
 }  
 
