@@ -73,7 +73,8 @@ if (use_content_security_policy) {
             'stackpath.bootstrapcdn.com'],
 	    connectSrc:["'self'", 'ws://localhost:9090'],
 	    imgSrc: ["'self'", 'data:'],
-	    styleSrc:["'self'"],
+	    styleSrc:["'self'", 
+            'stackpath.bootstrapcdn.com'],
 	    fontSrc:["'self'"]}}));
 } else {
     // Disable the content security policy. This is helpful during
