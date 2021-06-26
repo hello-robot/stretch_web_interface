@@ -121,6 +121,11 @@ tfClient.subscribe('link_head_tilt', function(tf) {
     link_head_tilt_tf = tf;
 });
 
+var base_tf;
+tfClient.subscribe('odom', function(tf) {
+    base_tf = tf;
+});
+
 var trajectoryClients = {}
 trajectoryClients.main = new ROSLIB.ActionClient({
     ros : ros,
@@ -168,6 +173,7 @@ function generatePoseGoal(pose){
 	jointNames.push(key)
 	jointPositions.push(pose[key])
     }
+
     if (!inSim) {
         var t = trajectoryClients.main;
     } else {
@@ -323,6 +329,9 @@ function baseTranslate(dist, vel) {
     // velocity in centimeters / second
     console.log('sending baseTranslate command')
 
+    // stop trying to turn to a target if the user attempts to to move the robot base
+    interruptTurn = true;
+
     if (dist > 0.0){
 	var baseForwardPoseGoal = generatePoseGoal({'translate_mobile_base': -vel})
 	baseForwardPoseGoal.send()
@@ -331,12 +340,16 @@ function baseTranslate(dist, vel) {
 	baseBackwardPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"translate", dist:dist, vel:vel});
+
 }
 
 function baseTurn(ang_deg, vel) {
     // angle in degrees
     // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
     console.log('sending baseTurn command')
+    
+    // stop trying to turn to a target if the user attempts to to move the robot base
+    interruptTurn = true;
     
     if (ang_deg > 0.0){
 	var baseTurnLeftPoseGoal = generatePoseGoal({'rotate_mobile_base': -vel})
@@ -346,6 +359,41 @@ function baseTurn(ang_deg, vel) {
 	baseTurnRightPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
+}
+
+var targetAngle;
+var interruptTurn = false;
+var turnLoop;
+function turnAngleOffset(offset) {
+    console.log(offset)
+    targetAngle = quaternionToEuler(base_tf.rotation).z + offset; // this needs to be limited from 180 to -180
+    targetAngle = limitAngle(targetAngle)
+
+    interruptTurn = false;
+
+    turnLoop = setInterval(function() {
+        var error = targetAngle-quaternionToEuler(base_tf.rotation).z;
+
+        if (!interruptTurn && Math.abs(error) > 0.05) {
+            //console.log(targetAngle, quaternionToEuler(base_tf.rotation).z, error);
+            generatePoseGoal({'rotate_mobile_base': error/10}) // super simple proportional control
+        } else {
+            clearInterval(turnLoop);
+
+        }
+
+    }, 200);
+}
+
+function limitAngle(rad) {
+    while (rad > Math.PI/2) {
+        rad -= Math.PI;
+    }
+    while (rad < -Math.PI/2) {
+        rad += Math.PI;
+    }
+
+    return rad;
 }
 
 function getJointValue(jointStateMessage, jointName) {
@@ -535,4 +583,46 @@ function gripperHalfOpen() {
 function gripperFullyOpen() {
     console.log('sending fully open gripper command');
     sendCommandWrist({type:'gripper', action:'fully_open'});
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+// Modified from https://schteppe.github.io/cannon.js/docs/files/src_math_Quaternion.js.html
+function quaternionToEuler(q, order){
+    order = order || "YZX";
+ 
+    var heading, attitude, bank;
+    var x = q.x, y = q.y, z = q.z, w = q.w;
+ 
+    switch(order){
+    case "YZX":
+        var test = x*y + z*w;
+        if (test > 0.499) { // singularity at north pole
+            heading = 2 * Math.atan2(x,w);
+            attitude = Math.PI/2;
+            bank = 0;
+        }
+        if (test < -0.499) { // singularity at south pole
+            heading = -2 * Math.atan2(x,w);
+            attitude = - Math.PI/2;
+            bank = 0;
+        }
+        if(isNaN(heading)){
+            var sqx = x*x;
+            var sqy = y*y;
+            var sqz = z*z;
+            heading = Math.atan2(2*y*w - 2*x*z , 1 - 2*sqy - 2*sqz); // Heading
+            attitude = Math.asin(2*test); // attitude
+            bank = Math.atan2(2*x*w - 2*y*z , 1 - 2*sqx - 2*sqz); // bank
+        }
+        break;
+    default:
+        throw new Error("Euler order "+order+" not supported yet.");
+    }
+    
+    return {
+        y: heading,
+        z: attitude,
+        x: bank
+    }
 }

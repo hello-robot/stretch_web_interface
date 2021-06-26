@@ -26,6 +26,24 @@ function rectToPoly(rect) {
     return [rect.ul, rect.ur, rect.lr, rect.ll];
 }
 
+function drawText(elementID, text, x, y, font_size=100, center=false, color='white') {
+    var txt = document.createElementNS("http://www.w3.org/2000/svg", 'text');
+    txt.setAttributeNS(null, 'x', x);
+    txt.setAttributeNS(null, 'y', y);
+    txt.setAttributeNS(null, 'font-size', String(font_size));
+    txt.setAttributeNS(null, 'fill', color);
+    txt.setAttributeNS(null, 'stroke', 'black');
+    txt.setAttributeNS(null, 'stroke-width', '5');
+    txt.setAttributeNS(null, 'paint-order', 'stroke')
+    if (center) {
+        txt.setAttributeNS(null, 'text-anchor', 'middle')
+        txt.setAttributeNS(null, 'alignment-baseline', 'middle')
+    }
+
+    txt.innerHTML = text;
+    document.getElementById(elementID).appendChild(txt);
+}
+
 function hideSvg(elementId) {
     document.getElementById(elementId).style.display = 'none';
 }
@@ -75,12 +93,12 @@ function createUiRegions(debug) {
 	strokeOpacity = 0.0;
     }
 
-    function setRegionPoly(elementId, poly, color) {
+    function setRegionPoly(elementId, poly, color, stroke_width = 2, stroke_opacity = false) {
 	var region = document.getElementById(elementId);
 	region.setAttribute('stroke', color);
-	region.setAttribute('stroke-opacity', String(strokeOpacity));
+	region.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
 	region.setAttribute('stroke-linejoin', "round");
-	region.setAttribute('stroke-width', "2");
+	region.setAttribute('stroke-width', String(stroke_width));
 	
 	region.setAttribute('d', svgPolyString(poly));
     }
@@ -125,6 +143,7 @@ function createUiRegions(debug) {
     regionPoly = [bgRect.ul, smRect.ul, smRect.ll, bgRect.ll];
     setRegionPoly('nav_turn_left_region', regionPoly, color);
 
+
     //var region = document.getElementById('right_arrow')
     //region.setAttribute('stroke-opacity', "0.1");
     //region.setAttribute('fill-opacity', "0.1");
@@ -137,7 +156,13 @@ function createUiRegions(debug) {
     regionPoly = [bgRect.ur, smRect.ur, smRect.lr, bgRect.lr];
     setRegionPoly('nav_turn_right_region', regionPoly, color);
 
-    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region']
+    var size = 80;
+    setRegionPoly('nav_ccw_region', rectToPoly(makeSquare(0, h-size, size)), color, 2, 0.5);
+    drawText('ccw_cw_text_region','⤹ 90°', size/2, h-size+size/1.5, 25, true)
+    setRegionPoly('nav_cw_region', rectToPoly(makeSquare(w-size, h-size, size)), color, 2, 0.5);
+    drawText('ccw_cw_text_region','90° ⤸', w-size+size/2, h-size+size/1.5, 25, true)
+
+    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 'nav_ccw_region', 'nav_cw_region']
 
     
     ///////////////////////
