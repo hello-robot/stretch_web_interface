@@ -15,6 +15,12 @@ echo "Installing rosbridge"
 sudo apt-get --yes install ros-melodic-rosbridge-server
 echo "Done."
 
+# TF2
+echo ""
+echo "Installing tf2-web-republisher"
+sudo apt-get --yes install ros-melodic-tf2-web-republisher
+echo "Done."
+
 # NODE 14
 echo ""
 echo "Installing Node.js 14"

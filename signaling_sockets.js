@@ -44,7 +44,7 @@ function createSignalingSocket(io) {
 	    // operators that were connected to the robot in a
 	    // previous session.
 
-	    io.of(namespace).in(room).disconnectSockets(true)
+	    io.of(namespace).in(room).disconnectSockets(true);
 	    
 	    // Add this robot's socket to the following two rooms:
 	    //   1) a new room named after the robot used to pair with an operator

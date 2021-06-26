@@ -63,10 +63,18 @@ if (use_content_security_policy) {
     app.use(helmet.contentSecurityPolicy({
 	directives:{
 	    defaultSrc:["'self'"],
-	    scriptSrc:["'self'", "'unsafe-inline'", 'static.robotwebtools.org', 'robotwebtools.org', 'webrtc.github.io'],
+	    scriptSrc:["'self'", "'unsafe-inline'", 
+            'static.robotwebtools.org', 
+            'robotwebtools.org', 
+            'webrtc.github.io',
+            'www.gstatic.com',
+            'code.jquery.com',
+            'cdnjs.cloudflare.com',
+            'stackpath.bootstrapcdn.com'],
 	    connectSrc:["'self'", 'ws://localhost:9090'],
 	    imgSrc: ["'self'", 'data:'],
-	    styleSrc:["'self'"],
+	    styleSrc:["'self'", 
+            'stackpath.bootstrapcdn.com'],
 	    fontSrc:["'self'"]}}));
 } else {
     // Disable the content security policy. This is helpful during
@@ -90,12 +98,12 @@ console.log('require https');
 app.all('*', ensureSecure); // at top of routing calls
 
 function ensureSecure(req, res, next){
-    if(req.secure){
-        // OK, continue
-        return next();
-    };
-    // handle port numbers if you need non defaults
-    res.redirect('https://' + req.hostname + req.url); 
+    if(!req.secure){
+        // handle port numbers if you need non defaults
+        res.redirect('https://' + req.hostname + req.url); 
+    }
+
+    return next();
 };
 /////////////////////////
 

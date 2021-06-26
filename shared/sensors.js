@@ -102,7 +102,7 @@ var wristSensors = {
 	redRegion.setAttribute('fill', 'red');
 	// make the torque positive and multiply it by a factor to
 	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(value) * 0.005;
+	var redOpacity = Math.abs(value) * 0.015;
 	redRegion.setAttribute('fill-opacity', redOpacity);
 	nothingRegion.setAttribute('fill-opacity', 0.0);
     },
@@ -162,7 +162,7 @@ var gripperSensors = {
 	redRegion.setAttribute('fill', 'red');
 	// make the torque positive and multiply it by a factor to
 	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(value) * 0.005;
+	var redOpacity = Math.abs(value) * 0.015;
 	redRegion.setAttribute('fill-opacity', redOpacity);
 	nothingRegion.setAttribute('fill-opacity', 0.0);
     }
