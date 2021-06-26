@@ -57,30 +57,30 @@ function Database(config, readyCallback) {
   * initializing the database.
   */
   
-  // Database.nLibrariesLoaded = 0;
-  // Database.libraryLoadCallback = function(){
-  //   Database.nLibrariesLoaded++;
-  //   console.log("Loaded " + Database.nLibrariesLoaded);
-  //   if (Database.nLibrariesLoaded == 3) {
-  //     Database.initialize();
-  //   }
-  // }
+  Database.nLibrariesLoaded = 0;
+  Database.libraryLoadCallback = function(){
+    Database.nLibrariesLoaded++;
+    console.log("Loaded " + Database.nLibrariesLoaded);
+    if (Database.nLibrariesLoaded == 3) {
+      Database.initialize();
+    }
+  }
   
-  // Database.loadJSLibrary = function(path) {
-  //     var js = document.createElement("script");
-  //     js.type = "text/javascript";
-  //     //js.onreadystatechange = Database.libraryLoadCallback;
-  //     js.onload = Database.libraryLoadCallback;
-  //     js.src = path;
-  //     document.head.appendChild(js);
-  //     console.log("Loaded: " + path);
-  // }
+  Database.loadJSLibrary = function(path) {
+      var js = document.createElement("script");
+      js.type = "text/javascript";
+      //js.onreadystatechange = Database.libraryLoadCallback;
+      js.onload = Database.libraryLoadCallback;
+      js.src = path;
+      document.head.appendChild(js);
+      console.log("Will load: " + path);
+  }
 
-  // Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js");
-  // Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js");
-  // Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js");
+  Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js");
+  Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js");
+  Database.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js");
 
-  Database.initialize();
+  // Database.initialize();
 
   Database.signInAnonymously = function() {
     if (Database.uid == null && Database.userEmail == null) {

@@ -4,8 +4,9 @@
     <!-- META tags go here -->
     <!-- This can improve the appearance of web pages on mobile devices. -->
     
-		<meta http-equiv="content-type" content="text/html; charset=utf-8 ;">
-		<meta http-equiv="Content-Security-Policy" content="script-src 'self' www.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://stackpath.bootstrapcdn.com"> 
+    <!-- CSP exceptions -->
+	<meta http-equiv="content-type" content="text/html; charset=utf-8 ;">
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https://webrtc.github.io/adapter/; style-src 'self' https://stackpath.bootstrapcdn.com">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<meta name="viewport" content="height=device-height, initial-scale=1.0">-->
@@ -394,10 +395,10 @@
 
 <link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
 
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<!-- <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-
+ -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -417,13 +418,8 @@
     import {createUiRegions} from '/operator/operator_ui_regions.js';
     createUiRegions();
     </script>-->
-<script src="/socket.io/socket.io.js"></script>
-<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
-<script src="operator_acquire_av.js"></script>
-<script src="operator_recorder.js"></script>
-<script src="../shared/send_recv_av.js"></script>
 <script src="../shared/database.js"></script>
 <script type='text/javascript' >
   function runOnOpenDataChannel() {
@@ -433,5 +429,10 @@
   }
   var db = new Database(config, runOnOpenDataChannel);
 </script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="operator_acquire_av.js"></script>
+<script src="operator_recorder.js"></script>
+<script src="../shared/send_recv_av.js"></script>
 </body>
 </html>
