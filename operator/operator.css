@@ -77,11 +77,11 @@
 }
 
 #nav_ccw_region {
-    cursor: url('left_turn_medium.png'), auto;
+    cursor: url('rotate_ccw.png'), auto;
 }
 
 #nav_cw_region {
-    cursor: url('right_turn_medium.png'), auto;
+    cursor: url('rotate_cw.png'), auto;
 }
 
 #low_arm_down_region {

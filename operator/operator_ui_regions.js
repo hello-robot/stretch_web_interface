@@ -124,12 +124,15 @@ function createUiRegions(debug) {
     
     /////////////////////////
     color = 'white'
+    var cornerRectSize = 40;
 
     // big rectangle at the borders of the video
     var bgRect = makeRectangle(0, 0, w, h);
     // small rectangle around the mobile base
     //var smRect = makeSquare(w*(7.0/16.0), h*(7.0/16.0), w/8.0, h/8.0);
     var smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
+    var leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
+    var rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
 
     regionPoly = rectToPoly(smRect);
     setRegionPoly('nav_do_nothing_region', regionPoly, color);
@@ -137,32 +140,24 @@ function createUiRegions(debug) {
     regionPoly = [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul];
     setRegionPoly('nav_forward_region', regionPoly, color);
 
-    regionPoly = [bgRect.ll, bgRect.lr, smRect.lr, smRect.ll];
+    regionPoly = [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll];
     setRegionPoly('nav_backward_region', regionPoly, color);
 
-    regionPoly = [bgRect.ul, smRect.ul, smRect.ll, bgRect.ll];
+    regionPoly = [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul];
     setRegionPoly('nav_turn_left_region', regionPoly, color);
 
-
-    //var region = document.getElementById('right_arrow')
-    //region.setAttribute('stroke-opacity', "0.1");
-    //region.setAttribute('fill-opacity', "0.1");
-    //region.setAttribute('viewBox', "-20.0 -20.0, 200.0, 200.0")
-    
-    //region.setAttribute('transform', "scale(0.1)");
-    //region.setAttribute('transform', "scale(0.1)");
-    //region.move(100,100)
-
-    regionPoly = [bgRect.ur, smRect.ur, smRect.lr, bgRect.lr];
+    regionPoly = [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur];
     setRegionPoly('nav_turn_right_region', regionPoly, color);
 
-    var size = 80;
-    setRegionPoly('nav_ccw_region', rectToPoly(makeSquare(0, h-size, size)), color, 2, 0.5);
-    drawText('ccw_cw_text_region','⤹ 90°', size/2, h-size+size/1.5, 25, true)
-    setRegionPoly('nav_cw_region', rectToPoly(makeSquare(w-size, h-size, size)), color, 2, 0.5);
-    drawText('ccw_cw_text_region','90° ⤸', w-size+size/2, h-size+size/1.5, 25, true)
+    setRegionPoly('nav_cw_region', rectToPoly(leftRect), color, 1, 0.5);
+    // drawText('ccw_cw_text_region','⤹ 90°', cornerRectSize/2, h-cornerRectSize+cornerRectSize/1.5, 16, true)
+    
+    setRegionPoly('nav_ccw_region', rectToPoly(rightRect), color, 1, 0.5);
+    // drawText('ccw_cw_text_region','90° ⤸', w-cornerRectSize+cornerRectSize/2, h-cornerRectSize+cornerRectSize/1.5, 16, true);
 
-    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 'nav_ccw_region', 'nav_cw_region']
+    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 
+        'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 
+        'nav_ccw_region', 'nav_cw_region']
 
     
     ///////////////////////
