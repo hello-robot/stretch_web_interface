@@ -178,7 +178,6 @@ var sensors = {
 
 function receiveSensorReading(obj) {
     if ("type" in obj) {
-    	console.log("Received sensor value: " + obj.type);
         if (obj.type === "sensor") {
             sensors[obj.subtype][obj.name](obj.value);
             return;
