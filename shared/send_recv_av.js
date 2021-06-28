@@ -370,26 +370,26 @@ function dataChannelCallback(event) {
 function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
-    case 'command':
-	objects_received.push(obj);
-	console.log('Received Data: ' + event.data);
-	//console.log('Received Object: ' + obj);
-	executeCommand(obj);
-        break;
-    case 'sensor':
-	// unless being recorded, don't store or write information to the console due to high
-	// frequency and large amount of data (analogous to audio and video).
-	if (recordOn && addToSensorLog) {
-	    addToSensorLog(obj);
-	}
-	receiveSensorReading(obj);
-        break;
-    default:
-	console.log('*******************************************************');
-	console.log('UNRECOGNIZED MESSAGE TYPE RECEIVED, SO DOING NOTHING...');
-	console.log('Received Data: ' + event.data);
-	console.log('Received Object: ' + obj);
-	console.log('*******************************************************');
+        case 'command':
+            objects_received.push(obj);
+            console.log('Received Data: ' + event.data);
+            //console.log('Received Object: ' + obj);
+            executeCommand(obj);
+            break;
+        case 'sensor':
+            // unless being recorded, don't store or write information to the console due to high
+            // frequency and large amount of data (analogous to audio and video).
+            if (recordOn && addToSensorLog) {
+                addToSensorLog(obj);
+            }
+            receiveSensorReading(obj);
+            break;
+        default:
+            console.log('*******************************************************');
+            console.log('UNRECOGNIZED MESSAGE TYPE RECEIVED, SO DOING NOTHING...');
+            console.log('Received Data: ' + event.data);
+            console.log('Received Object: ' + obj);
+            console.log('*******************************************************');
     }
 }
 

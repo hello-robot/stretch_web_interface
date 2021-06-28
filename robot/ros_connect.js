@@ -91,17 +91,49 @@ var tfClient = new ROSLIB.TFClient({
 var link_gripper_finger_left_tf;
 tfClient.subscribe('link_gripper_finger_left', function(tf) {
     link_gripper_finger_left_tf = tf;
+    sendData({
+        type: 'sensor',
+        subtype: 'gripper',
+        name: 'transform',
+        value: tf
+    });
 });
 
 var link_head_tilt_tf;
 tfClient.subscribe('link_head_tilt', function(tf) {
     link_head_tilt_tf = tf;
+    sendData({
+        type: 'sensor',
+        subtype: 'head',
+        name: 'transform',
+        value: tf
+    });
 });
 
 var base_tf;
 tfClient.subscribe('odom', function(tf) {
     base_tf = tf;
 });
+
+function sendTfs() {
+    if (link_gripper_finger_left_tf) {
+        sendData({
+            type: 'sensor',
+            subtype: 'gripper',
+            name: 'transform',
+            value: link_gripper_finger_left_tf
+        });
+    }
+
+    if (link_head_tilt_tf) {
+        sendData({
+            type: 'sensor',
+            subtype: 'head',
+            name: 'transform',
+            value: link_head_tilt_tf
+        });
+    }
+}
 
 var trajectoryClients = {}
 trajectoryClients.main = new ROSLIB.ActionClient({
@@ -360,17 +392,6 @@ function turnAngleOffset(offset) {
         }
 
     }, 200);
-}
-
-function limitAngle(rad) {
-    while (rad > Math.PI/2) {
-        rad -= Math.PI;
-    }
-    while (rad < -Math.PI/2) {
-        rad += Math.PI;
-    }
-
-    return rad;
 }
 
 function getJointValue(jointStateMessage, jointName) {

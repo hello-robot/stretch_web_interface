@@ -31,6 +31,7 @@
 
 .background {
     z-index:1;
+    position: relative;
 }
 
 .foreground {
@@ -44,6 +45,12 @@
     width: 350px;
     z-index:0;
     background-color: gray;
+}
+
+#remoteVideo + canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #video_ui_overlay {

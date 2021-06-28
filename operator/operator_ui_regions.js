@@ -77,12 +77,23 @@ function setCameraViewPreset() {
         setCameraView(currentMode);
 }
 
-var navModeRegionIds
-var lowArmModeRegionIds
-var highArmModeRegionIds
-var handModeRegionIds
-var lookModeRegionIds
-var modeRegions
+var navModeRegionIds;
+var lowArmModeRegionIds;
+var highArmModeRegionIds;
+var handModeRegionIds;
+var lookModeRegionIds;
+var modeRegions;
+
+var THREEcamera;
+var THREErenderer;
+var THREEcomposer;
+var THREEscene;
+
+var navModeObjects;
+var lowArmModeObjects;
+var highArmModeObjects;
+var handModeObjects;
+var lookModeObjects;
 
 function createUiRegions(debug) {
 
@@ -162,7 +173,7 @@ function createUiRegions(debug) {
     setRegionPoly('nav_cw_region', rectToPoly(makeSquare(w-size, h-size, size)), color, 2, 0.5);
     drawText('ccw_cw_text_region','90° ⤸', w-size+size/2, h-size+size/1.5, 25, true)
 
-    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 'nav_ccw_region', 'nav_cw_region']
+    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 'nav_ccw_region', 'nav_cw_region', 'ccw_cw_text_region']
 
     
     ///////////////////////
@@ -282,8 +293,6 @@ function createUiRegions(debug) {
 		    'look' : lookModeRegionIds}
 }
 
-
-
 function arrangeOverlays(key) {
     ///////////////////////
     var nx, ny, nw, nh;
@@ -306,7 +315,65 @@ function arrangeOverlays(key) {
     
 }
 
+///////////////////////////////////////////////////////
 
+function THREEinit() {
+    // General THREE.js setup
+    THREEscene = new THREE.Scene();
+    THREEcamera = new THREE.PerspectiveCamera( 69, 350/620, 0.1, 1000 );
+
+    THREErenderer = new THREE.WebGLRenderer({ alpha: true });
+    THREErenderer.setSize(350, 620); // matches #remoteVideo dimensions from operator.css
+    $("#videoContainer").append(THREErenderer.domElement);
+
+    THREEcomposer = new POSTPROCESSING.EffectComposer(THREErenderer);
+    THREEcomposer.addPass(new POSTPROCESSING.RenderPass(THREEscene, THREEcamera));
+
+    var outlineEffect = new POSTPROCESSING.OutlineEffect(THREEscene, THREEcamera, {visibleEdgeColor: 0xff9900});
+    const effectPass = new POSTPROCESSING.EffectPass(
+        THREEcamera,
+        outlineEffect
+    );
+    effectPass.renderToScreen = true;
+    THREEcomposer.addPass(effectPass);
+
+
+    // navMode
+    navModeObjects = {};
+
+    var geo = new THREE.CircleGeometry(0.52, 32) // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
+    var mat = new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25});
+    const circle = new THREE.Mesh(geo, mat);
+    THREEscene.add(circle);
+    navModeObjects.circle = circle;
+    outlineEffect.selectObject(circle);
+
+    geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    mat = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    const cube = new THREE.Mesh(geo, mat);
+    THREEscene.add(cube);
+    navModeObjects.cube = cube;
+
+
+    // lowArmMode
+    lowArmModeObjects = [];
+    
+    // highArmMode
+    highArmModeObjects = [];
+    
+    // handMode
+    handModeObjects = [];
+    
+    // lookMode
+    lookModeObjects = [];
+    
+    THREEanimate();
+}
+
+function THREEanimate() {
+	requestAnimationFrame(THREEanimate);
+	THREEcomposer.render()
+}
 
 
 function VelocityUi(elementId, commands, cursor) {
@@ -794,6 +861,5 @@ function createVelocityControl() {
 }
 
 
+THREEinit();
 createUiRegions(true); // debug = true or false
-
-
