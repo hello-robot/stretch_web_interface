@@ -14,10 +14,12 @@ function setVelocity(newV) {
 // Continuous actions
 
 var activeAction = null;
-
 var cameraFollowGripper = false;
+
 function toggleCameraFollowGripper() {
     cameraFollowGripper = !cameraFollowGripper;
+    Database.logEvent("lookAtGripper", cameraFollowGripper);
+    changeGripperFollow(cameraFollowGripper);
 }
 
 function startAction(actionName) {
@@ -33,11 +35,12 @@ function stopAction() {
 var updateFrequency = 200; //milliseconds
 function updateInterface() {
   if (activeAction != null) {
+    console.log("activeAction: " + activeAction);
     window[activeAction]();
   }
-  if (cameraFollowGripper) {
-    lookAtGripper();
-  }
+  // if (cameraFollowGripper) {
+  //   lookAtGripper();
+  // }
 }
 window.setInterval(updateInterface, updateFrequency);
 
@@ -79,13 +82,12 @@ function lookDown() {
     Database.logEvent("LookDown", currentV);
 }
 
-function lookAtGripper() {
+function changeGripperFollow(isStart) {
     var cmd = {type:"command",
                subtype:"head",
-               name:"atGripper",
-               modifier:"none"};
+               name:"gripper_follow",
+               modifier:isStart};
     sendData(cmd);
-    Database.logEvent("lookAtGripper", "none");
 }
 
 function moveForward() {
@@ -475,10 +477,10 @@ var headCommands = {
       headPan(vel);
       // headPan(-0.1)
     },
-    "atGripper": function(size) {
-      console.log('head: atGripper command received...executing');
-      headLookAtGripper();
-    }
+    "gripper_follow": function(isStart) {
+      console.log('head: starting gripper following');
+      headLookAtGripper(isStart);
+    },
 }  
 
 var driveCommands = {

@@ -11,6 +11,7 @@ var rosJointStateReceived = false;
 var jointState = null;
 var rosRobotStateReceived = false;
 var robotState = null;
+var isWristFollowingActive = false;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
@@ -65,43 +66,36 @@ var jointStateTopic = new ROSLIB.Topic({
     messageType : 'sensor_msgs/JointState'
 });
 
+
 jointStateTopic.subscribe(function(message) {
 
-    jointState = message
+    jointState = message;
     
     if (rosJointStateReceived === false) {
-	console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
-	rosJointStateReceived = true
+	   console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
+	   rosJointStateReceived = true;
     }
 
-
     // send wrist joint effort
-    var JointEffort = getJointEffort(jointState, 'joint_wrist_yaw')
-    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': JointEffort}
-    sendData(message)
+    var JointEffort = getJointEffort(jointState, 'joint_wrist_yaw');
+    var message = {'type': 'sensor', 'subtype':'wrist', 'name':'yaw_torque', 'value': JointEffort};
+    sendData(message);
 
     // send gripper effort
-    JointEffort = getJointEffort(jointState, 'joint_gripper_finger_left')
-    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': JointEffort}
-    sendData(message)
+    JointEffort = getJointEffort(jointState, 'joint_gripper_finger_left');
+    var message = {'type': 'sensor', 'subtype':'gripper', 'name':'gripper_torque', 'value': JointEffort};
+    sendData(message);
 
     // send lift effort
-    JointEffort = getJointEffort(jointState, 'joint_lift')
-    var message = {'type': 'sensor', 'subtype':'lift', 'name':'lift_effort', 'value': JointEffort}
-    sendData(message)
+    JointEffort = getJointEffort(jointState, 'joint_lift');
+    var message = {'type': 'sensor', 'subtype':'lift', 'name':'lift_effort', 'value': JointEffort};
+    sendData(message);
 
     // send telescoping arm effort
-    JointEffort = getJointEffort(jointState, 'joint_arm_l0')
-    var message = {'type': 'sensor', 'subtype':'arm', 'name':'arm_effort', 'value': JointEffort}
-    sendData(message)
+    JointEffort = getJointEffort(jointState, 'joint_arm_l0');
+    var message = {'type': 'sensor', 'subtype':'arm', 'name':'arm_effort', 'value': JointEffort};
+    sendData(message);
 
-    
-    // Header header
-    // string[] name
-    // float64[] position
-    // float64[] velocity
-    // float64[] effort
-    //imageTopic.unsubscribe()
 });
 
 var tfClient = new ROSLIB.TFClient({
@@ -394,6 +388,11 @@ function limitAngle(rad) {
     }
 
     return rad;
+
+function getJointEffort(jointStateMessage, jointName) {
+    // TODO: Make this work in simulation also
+    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    return jointStateMessage.effort[jointIndex]
 }
 
 function getJointValue(jointStateMessage, jointName) {
@@ -423,32 +422,43 @@ function sendIncrementalMove(jointName, jointValueInc) {
     return false
 }
 
-function headLookAtGripper() {
-    console.log('attempting to send headLookAtGripper command')
-    if (link_gripper_finger_left_tf && link_head_tilt_tf) {
-
-        var posDifference = {
-            x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
-            y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
-            z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
-        };
-        
-        // Normalize posDifference
-        var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
-        posDifference.x /= scalar;
-        posDifference.y /= scalar;
-        posDifference.z /= scalar;
-
-        var pan = Math.atan2(posDifference.y, posDifference.x);
-        var tilt = Math.atan2(posDifference.z, -posDifference.y);
-
-        var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
-        headFollowPoseGoal.send()
-        console.log('sending arm follow pose to head') 
-        return true
-    }
-    return false
+function headLookAtGripper(isStarting) {
+    isWristFollowingActive = isStarting;
+    return true;
 }
+
+function updateHead() {
+    if (isWristFollowingActive) {
+        if (link_gripper_finger_left_tf && link_head_tilt_tf) {
+
+            var posDifference = {
+                x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
+                y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
+                z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
+            };
+            
+            // Normalize posDifference
+            var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
+            posDifference.x /= scalar;
+            posDifference.y /= scalar;
+            posDifference.z /= scalar;
+
+            var pan = Math.atan2(posDifference.y, posDifference.x);
+            var tilt = Math.atan2(posDifference.z, -posDifference.y);
+
+            var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+            headFollowPoseGoal.send()
+            console.log('sending arm follow pose to head') 
+        }
+    }
+}
+
+var backendUpdateFrequency = 200; //milliseconds
+function updateBackend() {
+    updateHead();
+}
+window.setInterval(updateBackend, backendUpdateFrequency);
+
 
 function armMove(dist, timeout, vel) {
     console.log('attempting to sendarmMove command')
