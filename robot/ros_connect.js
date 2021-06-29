@@ -365,11 +365,14 @@ function turnAngleOffset(offset) {
     interruptTurn = false;
 
     turnLoop = setInterval(function() {
-        var error = targetAngle-quaternionToEuler(base_tf.rotation).z;
+        let error = targetAngle-quaternionToEuler(base_tf.rotation).z;
+        let nextStep = error/10;
+        if (Math.abs(nextStep) < 0.05)
+            nextStep = (nextStep > 0) ? 0.05 : -0.05;
 
-        if (!interruptTurn && Math.abs(error) > 0.05) {
+        if (!interruptTurn && Math.abs(nextStep) >= 0.05) {
             //console.log(targetAngle, quaternionToEuler(base_tf.rotation).z, error);
-            let baseGoal = generatePoseGoal({'rotate_mobile_base': error/10}) // super simple proportional control
+            let baseGoal = generatePoseGoal({'rotate_mobile_base': nextStep}) // super simple proportional control
             baseGoal.send();
         } else {
             clearInterval(turnLoop);
