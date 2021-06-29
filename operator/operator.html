@@ -420,32 +420,17 @@
 
 <script src="../shared/video_dimensions.js"></script>
 <script src="operator.js"></script>
-<script type='text/javascript' >
-  /*Interesting.. There is a variable here for velocity 
-  control, but not referenced anywhere else. */
-  var velocityControlOn = false;
-  var noWristOn = true;
-</script>
 <script src="operator_ui_regions.js"></script>
-<!--<script type="module">
-    import {createUiRegions} from '/operator/operator_ui_regions.js';
-    createUiRegions();
-    </script>-->
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
 <script src="../shared/database.js"></script>
-<script type='text/javascript' >
-  function runOnOpenDataChannel() {
-  // When the robot and the operator are first connected, switch to navigation mode.
-  	console.log('starting in navigation mode')
-  	turnModeOn('nav')
-  }
-  var db = new Database(config, runOnOpenDataChannel);
-</script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="operator_acquire_av.js"></script>
 <script src="operator_recorder.js"></script>
 <script src="../shared/send_recv_av.js"></script>
+<script type='text/javascript' >
+	initializeOperatorInterface();
+</script>
 </body>
 </html>
