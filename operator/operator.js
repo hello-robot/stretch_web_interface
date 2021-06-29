@@ -1,22 +1,15 @@
 var peer_name = "OPERATOR";
 
-var currentTask = 1;
-var isStart = true;
+var velocityControlOn = false;
+var noWristOn = true;
 
-function updateTask() {
-	let taskButton = document.getElementById("taskButton");
-	let eventName = "Task" + currentTask + (isStart?"Started":"Ended")
-	Database.logEvent(eventName);
+function initializeOperatorInterface() {
+  var db = new Database(config, runOnOpenDataChannel);
+}
 
-	if (isStart) {
-		isStart = false;
-	} 
-	else {
-		isStart = true;
-		currentTask++;
-	}
-
-	let buttonText = (isStart?"Start":"End") + " Task" + currentTask;
-	taskButton.innerHTML = buttonText;
+function runOnOpenDataChannel() {
+	// When the robot and the operator are first connected, switch to navigation mode.
+	console.log('Starting in navigation mode')
+	turnModeOn('nav')
 }
 
