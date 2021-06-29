@@ -359,7 +359,6 @@ var targetAngle;
 var interruptTurn = false;
 var turnLoop;
 function turnAngleOffset(offset) {
-    console.log(offset)
     targetAngle = quaternionToEuler(base_tf.rotation).z + offset; // this needs to be limited from 180 to -180
     targetAngle = limitAngle(targetAngle)
 
@@ -370,24 +369,25 @@ function turnAngleOffset(offset) {
 
         if (!interruptTurn && Math.abs(error) > 0.05) {
             //console.log(targetAngle, quaternionToEuler(base_tf.rotation).z, error);
-            generatePoseGoal({'rotate_mobile_base': error/10}) // super simple proportional control
+            let baseGoal = generatePoseGoal({'rotate_mobile_base': error/10}) // super simple proportional control
+            baseGoal.send();
         } else {
             clearInterval(turnLoop);
-
         }
 
     }, 200);
 }
 
 function limitAngle(rad) {
-    while (rad > Math.PI/2) {
+    while (rad > Math.PI) {
         rad -= Math.PI;
     }
-    while (rad < -Math.PI/2) {
+    while (rad < -Math.PI) {
         rad += Math.PI;
     }
 
     return rad;
+}
 
 function getJointEffort(jointStateMessage, jointName) {
     // TODO: Make this work in simulation also
