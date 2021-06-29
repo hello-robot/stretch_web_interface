@@ -216,7 +216,7 @@ function createUiRegions(debug) {
 
     let handOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     handOverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    handOverlaySVG.setAttribute('id', 'look_ui_overlay');
+    handOverlaySVG.setAttribute('id', 'hand_ui_overlay');
     createPath(handOverlaySVG, 'hand_close_region', 'lookUp' , 'look up');
     createPath(handOverlaySVG, 'hand_out_region', 'lookDown' , 'look down');
     createPath(handOverlaySVG, 'hand_in_region', 'lookLeft' , 'look left');
