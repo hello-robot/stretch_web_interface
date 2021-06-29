@@ -1,4 +1,3 @@
-
 'use strict';
 
 function svgPolyString(points) {
@@ -84,24 +83,14 @@ var handModeRegionIds
 var lookModeRegionIds
 var modeRegions
 
+var strokeOpacity = 0.0;
 function createUiRegions(debug) {
 
-    var strokeOpacity;
     if(debug) {
-	strokeOpacity = 0.1; //1.0;
-    } else {
-	strokeOpacity = 0.0;
+	   strokeOpacity = 0.1; //1.0;
     }
 
-    function setRegionPoly(elementId, poly, color, stroke_width = 2, stroke_opacity = false) {
-	var region = document.getElementById(elementId);
-	region.setAttribute('stroke', color);
-	region.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
-	region.setAttribute('stroke-linejoin', "round");
-	region.setAttribute('stroke-width', String(stroke_width));
-	
-	region.setAttribute('d', svgPolyString(poly));
-    }
+    let combinedSVG = document.getElementById('video_ui_overlay');
 
     //////////////////////////////
     // set size of video region
@@ -225,6 +214,15 @@ function createUiRegions(debug) {
     ///////////////////////
     color = 'white'
 
+    let handOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    handOverlaySVG.setAttribute('preserveAspectRatio', 'none');
+    handOverlaySVG.setAttribute('id', 'look_ui_overlay');
+    createPath(handOverlaySVG, 'hand_close_region', 'lookUp' , 'look up');
+    createPath(handOverlaySVG, 'hand_out_region', 'lookDown' , 'look down');
+    createPath(handOverlaySVG, 'hand_in_region', 'lookLeft' , 'look left');
+    createPath(handOverlaySVG, 'hand_open_region', 'lookRight' , 'look right');
+    combinedSVG.appendChild(handOverlaySVG);
+
     bgRect = makeRectangle(0, 0, w, h);
     tpRect = makeRectangle(0, 0, w, h/4.0);
     btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
@@ -249,11 +247,19 @@ function createUiRegions(debug) {
     ///////////////////////
     color = 'white'
 
+    let lookOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    lookOverlaySVG.setAttribute('preserveAspectRatio', 'none');
+    lookOverlaySVG.setAttribute('id', 'look_ui_overlay');
+    createPath(lookOverlaySVG, 'look_up_region', 'lookUp' , 'look up');
+    createPath(lookOverlaySVG, 'look_down_region', 'lookDown' , 'look down');
+    createPath(lookOverlaySVG, 'look_left_region', 'lookLeft' , 'look left');
+    createPath(lookOverlaySVG, 'look_right_region', 'lookRight' , 'look right');
+    combinedSVG.appendChild(lookOverlaySVG);
+
     tpRect = makeRectangle(0, 0, w, h/4.0);
     btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
-    var ltRect = makeRectangle(0, h/4.0, w/2.0, h/2.0);
-    var rtRect = makeRectangle(w/2.0, h/4.0, w/2.0, h/2.0);
-
+    let ltRect = makeRectangle(0, h/4.0, w/2.0, h/2.0);
+    let rtRect = makeRectangle(w/2.0, h/4.0, w/2.0, h/2.0);
     
     regionPoly = rectToPoly(tpRect);
     setRegionPoly('look_up_region', regionPoly, color);
@@ -277,6 +283,26 @@ function createUiRegions(debug) {
 		    'look' : lookModeRegionIds}
 }
 
+function createPath(svg, id, fname, title){
+    let path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('fill-opacity', '0.0');
+    path.setAttribute('stroke-opacity', '1.0');
+    path.setAttribute('id', id);
+    path.setAttribute('onclick', ''+ fname + '()');
+    path.setAttribute('onmousedown', "startAction('" + fname + "')");
+    path.setAttribute('title', title);    
+    svg.appendChild(path);
+}
+
+function setRegionPoly(elementId, poly, color, stroke_width = 2, stroke_opacity = false) {
+    var region = document.getElementById(elementId);
+    region.setAttribute('stroke', color);
+    region.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
+    region.setAttribute('stroke-linejoin', "round");
+    region.setAttribute('stroke-width', String(stroke_width));
+    
+    region.setAttribute('d', svgPolyString(poly));
+}
 
 
 function arrangeOverlays(key) {
