@@ -341,7 +341,7 @@ function turnModeOn(modeKey) {
   }
 
   // Update the front-end for the new mode
-  turnModeUiOn(modeKey)
+  panTiltCameraVideoControl.setMode(modeKey)
   Database.logEvent("ModeChange", modeKey);
 }
 

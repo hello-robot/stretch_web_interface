@@ -13,21 +13,6 @@ var w = videoDimensions.h;
 var h = videoDimensions.w;
 
 
-function turnModeUiOn(modeKey) {
-    currentMode = modeKey;
-    var buttonName = modeKey + '_mode_button'
-    console.log('setting to checked: buttonName = ' + buttonName)
-    document.getElementById(buttonName).checked = true
-    arrangeOverlays(modeKey)
-    // TODO update to operate on class objects, not svg names
-    for (var key in modeRegions) {
-    	if (key !== modeKey) {
-    	    modeRegions[key].map(hideSvg)
-    	}
-    }
-    modeRegions[modeKey].map(showSvg)
-}
-
 function setCameraViewPreset() {
     if (currentMode != null)
         setCameraView(currentMode);
@@ -35,7 +20,7 @@ function setCameraViewPreset() {
 
 
 var panTiltCameraModes = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
-var panTiltCameraVideoControl = new VideoControl(panTiltCameraVideo, panTiltCameraModes);
+var panTiltCameraVideoControl = new VideoControl('panTiltCameraVideo');
 
 /*
 * Class for a video stream visualization with an overlay
@@ -48,10 +33,32 @@ function VideoControl(videoId) {
     this.combinedSVG = document.getElementById('video_ui_overlay'); //TODO unique name per video stream
     this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     this.overlays = {}; // key is mode id, value is the Overlay object
+    this.currentMode = null;
 
     this.addOverlay = function(overlay) {
         this.overlays[overlay.modeId] = overlay;
         this.combinedSVG.appendChild(overlay.svg);
+    }
+
+    this.setMode = function(modeId) {
+        this.currentMode = modeId;
+        var buttonName = modeId + '_mode_button';
+        console.log('Setting to checked: buttonName = ' + buttonName);
+        document.getElementById(buttonName).checked = true;
+        
+        arrangeOverlays(modeId);
+
+        const modeNames = this.getModeNames();
+        for (let i in modeNames) {
+            if (modeNames[i] !== modeId) {
+                this.overlays[modeNames[i]].hide();
+            }
+        }
+        this.overlays[modeId].show();
+    }
+
+    this.getModeNames = function() {
+        return Object.keys(this.overlays);
     }
 }
 
@@ -59,7 +66,7 @@ function VideoControl(videoId) {
 * Class for a video overlay
 */
 function Overlay(modeId) {
-    this.videoId = videoId;
+    this.modeId = modeId;
     this.regions = [];
 
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -68,6 +75,18 @@ function Overlay(modeId) {
 
     this.addRegion = function(region) {
         this.regions.push(region);
+    }
+
+    this.hide = function() {
+        for (let i in this.regions) {
+            this.regions[i].hide();
+        }
+    }
+
+    this.show = function() {
+        for (let i in this.regions) {
+            this.regions[i].show();
+        }
     }
 }
 
@@ -81,8 +100,16 @@ function Region(regionId, fname, label, poly, color, parentSVG) {
     this.poly = poly;
     this.parentSVG = parentSVG;
 
-    createPath(this.parentSVG, this.regionId, this.fname, this.label);
-    setRegionPoly(this.regionId, this.poly, this.color);
+    createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
+        this.poly, color)
+
+    this.hide = function() {
+        document.getElementById(this.regionId).style.display = 'none';
+    }
+
+    this.show = function() {
+        document.getElementById(this.regionId).style.display = 'block';
+    }
 }
 
 
@@ -106,9 +133,9 @@ function createUiRegions(debug) {
     let leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
     let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
 
-    navOverlay.addRegion(new Region('nav_forward_region', null, 'do nothing',
+    navOverlay.addRegion(new Region('nav_do_nothing_region', null, 'do nothing',
         rectToPoly(smRect), color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_do_nothing_region', 'moveForward', 'move forward',
+    navOverlay.addRegion(new Region('nav_forward_region', 'moveForward', 'move forward',
         [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul], color, navOverlay.svg));
     navOverlay.addRegion(new Region('nav_backward_region', 'moveBackward' , 'move backward',
         [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll], color, navOverlay.svg));
@@ -120,7 +147,7 @@ function createUiRegions(debug) {
         rectToPoly(leftRect), color, navOverlay.svg));
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
         rectToPoly(rightRect), color, navOverlay.svg));
-    panTiltCameraVideoControl.combinedSVG.appendChild(navOverlay.svg);
+    panTiltCameraVideoControl.addOverlay(navOverlay);
 
     
     /////////////////////////
@@ -145,8 +172,8 @@ function createUiRegions(debug) {
         [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, lowArmOverlay.svg));
     lowArmOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
         [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, lowArmOverlay.svg));
-    panTiltCameraVideoControl.combinedSVG.appendChild(lowArmOverlay.svg);
-    
+    panTiltCameraVideoControl.addOverlay(lowArmOverlay);
+
 
     /////////////////////////
     // high_arm
@@ -166,7 +193,7 @@ function createUiRegions(debug) {
         [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, highArmOverlay.svg));
     highArmOverlay.addRegion(new Region('high_arm_base_backward_region', 'moveBackward' , 'move backward',
         [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, highArmOverlay.svg));
-    panTiltCameraVideoControl.combinedSVG.appendChild(highArmOverlay.svg);
+    panTiltCameraVideoControl.addOverlay(highArmOverlay);
 
     
     /////////////////////////
@@ -185,10 +212,10 @@ function createUiRegions(debug) {
         rectToPoly(tpRect), color, handOverlay.svg));
     handOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
         rectToPoly(btRect), color, handOverlay.svg));
-    handOverlay.addRegion(new Region('hand_open_region', 'wristOut' , 'turn hand out'),
+    handOverlay.addRegion(new Region('hand_open_region', 'wristOut' , 'turn hand out',
         [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll, smRect.ul, 
         smRect.ll, smRect.lr, smRect.ur, smRect.ul], color, handOverlay.svg));
-    panTiltCameraVideoControl.combinedSVG.appendChild(handOverlay.svg);
+    panTiltCameraVideoControl.addOverlay(handOverlay);
 
     /////////////////////////
     // look
@@ -207,7 +234,7 @@ function createUiRegions(debug) {
         rectToPoly(btRect), color, lookOverlay.svg));
     lookOverlay.addRegion(new Region('look_left_region', 'lookLeft' , 'look left',
         rectToPoly(ltRect), color, lookOverlay.svg));
-    lookOverlay.addRegion(new Region('look_right_region', 'lookRight' , 'look right'),
+    lookOverlay.addRegion(new Region('look_right_region', 'lookRight' , 'look right',
         rectToPoly(rtRect), color, lookOverlay.svg));
     
     panTiltCameraVideoControl.addOverlay(lookOverlay);
@@ -216,8 +243,7 @@ function createUiRegions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-
-function createPath(svg, id, fname, title){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, stroke_width = 2, stroke_opacity = false){
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
@@ -226,17 +252,13 @@ function createPath(svg, id, fname, title){
         path.setAttribute('onclick', ''+ fname + '()');
         path.setAttribute('onmousedown', "startAction('" + fname + "')");
     }
-    path.setAttribute('title', title);    
-    svg.appendChild(path);
-}
-
-function setRegionPoly(elementId, poly, color, stroke_width = 2, stroke_opacity = false) {
-    var region = document.getElementById(elementId);
-    region.setAttribute('stroke', color);
-    region.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
-    region.setAttribute('stroke-linejoin', "round");
-    region.setAttribute('stroke-width', String(stroke_width));
-    region.setAttribute('d', svgPolyString(poly));
+    path.setAttribute('title', title);
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
+    path.setAttribute('stroke-linejoin', "round");
+    path.setAttribute('stroke-width', String(stroke_width));
+    path.setAttribute('d', svgPolyString(poly));
+    parentSVG.appendChild(path);
 }
 
 function arrangeOverlays(key) {
@@ -296,15 +318,6 @@ function drawText(elementID, text, x, y, font_size=100, center=false, color='whi
     txt.innerHTML = text;
     document.getElementById(elementID).appendChild(txt);
 }
-
-function hideSvg(elementId) {
-    document.getElementById(elementId).style.display = 'none';
-}
-
-function showSvg(elementId) {
-    document.getElementById(elementId).style.display = 'block';
-}
-
 
 createUiRegions(true); // debug = true or false
 
