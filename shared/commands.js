@@ -524,12 +524,12 @@ var driveCommands = {
     "turn_ccw": function(size) {
         console.log('drive: turn_ccw command received...executing');
 
-        turnAngleOffset(Math.PI/2); // 90 deg
+        baseTurn(driveRotMedDist, Math.PI/2);
     },
     "turn_cw": function(size) {
         console.log('drive: turn_cw command received...executing');
 
-        turnAngleOffset(-Math.PI/2); // -90 deg
+        baseTurn(driveRotMedDist, -Math.PI/2);
     }
 }  
 

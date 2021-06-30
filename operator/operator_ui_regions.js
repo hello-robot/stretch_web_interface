@@ -93,15 +93,16 @@ function Overlay(modeId) {
 /*
 * Class for a video overlay
 */
-function Region(regionId, fname, label, poly, color, parentSVG) {
+function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=true) {
     this.regionId = regionId;
     this.fname = fname;
     this.label = label;
     this.poly = poly;
+    this.isContinuous = isContinuous;
     this.parentSVG = parentSVG;
 
     createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
-        this.poly, color)
+        this.poly, color, this.isContinuous)
 
     this.hide = function() {
         document.getElementById(this.regionId).style.display = 'none';
@@ -144,9 +145,9 @@ function createUiRegions(debug) {
     navOverlay.addRegion(new Region('nav_turn_right_region', 'turnRight' , 'turn right',
         [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur], color, navOverlay.svg));
     navOverlay.addRegion(new Region('nav_cw_region', 'turnCW' , 'turn 90 degrees CW',
-        rectToPoly(leftRect), color, navOverlay.svg));
+        rectToPoly(leftRect), color, navOverlay.svg, false));
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
-        rectToPoly(rightRect), color, navOverlay.svg));
+        rectToPoly(rightRect), color, navOverlay.svg, false));
     panTiltCameraVideoControl.addOverlay(navOverlay);
 
     
@@ -243,14 +244,15 @@ function createUiRegions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-function createRegionSVG(parentSVG, id, fname, title, poly, color, stroke_width = 2, stroke_opacity = false){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, stroke_width = 2, stroke_opacity = false){
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
     path.setAttribute('id', id);
     if (fname) {
         path.setAttribute('onclick', ''+ fname + '()');
-        path.setAttribute('onmousedown', "startAction('" + fname + "')");
+        if (isContinuous) // Don't allow start and stop of action if it is not continuous
+            path.setAttribute('onmousedown', "startAction('" + fname + "')");
     }
     path.setAttribute('title', title);
     path.setAttribute('stroke', color);
