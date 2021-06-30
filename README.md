@@ -87,7 +87,7 @@ Run the installation script.
 
 ```
 cd ~/catkin_ws/src/stretch_web_interface/bash_scripts/
-sudo ./web_interface_installation.sh
+./web_interface_installation.sh
 ```
 
 WARNING: The script uninstalls tornado using pip to avoid a rosbridge websocket immediate disconnection issue. This could break other software on your robot.
@@ -306,8 +306,7 @@ This section describes the steps we used to create an Amazon Lightsail instance 
   + A command like the following can then be used to login to your instance: `ssh -i /path/to/private-key.pem username@public-ip-address`.
 + While logged into your instance. 
   + Run `sudo apt-get update` to avoid installation issues.
-  + Install helpful packages.
-    + `sudo apt install emacs`
+  + Install the `net-tools` package, which will be used later. You might also want to install your preferred text editor, such as `emacs`. 
     + `sudo apt install net-tools`
   + Configure Git.
     + `git config --global user.name "FIRST_NAME LAST_NAME"`
