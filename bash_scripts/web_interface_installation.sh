@@ -29,7 +29,7 @@ echo ""
 echo "Installing web-interface Node packages using npm."
 cd ~/catkin_ws/src/stretch_web_interface/
 echo "Update to latest version of npm."
-npm install -g npm
+sudo npm install -g npm
 echo "Install packages with npm."
 npm install
 echo "Done."
