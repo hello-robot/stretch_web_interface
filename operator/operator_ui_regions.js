@@ -2,6 +2,16 @@
 
 // TODO: This might be redundant with 'interfaceMode' remove after checking
 var currentMode = null;
+var navModeRegionIds
+var lowArmModeRegionIds
+var highArmModeRegionIds
+var handModeRegionIds
+var lookModeRegionIds
+var modeRegions
+var strokeOpacity = 0.0;
+var w = videoDimensions.h;
+var h = videoDimensions.w;
+
 
 function turnModeUiOn(modeKey) {
     currentMode = modeKey;
@@ -9,6 +19,7 @@ function turnModeUiOn(modeKey) {
     console.log('setting to checked: buttonName = ' + buttonName)
     document.getElementById(buttonName).checked = true
     arrangeOverlays(modeKey)
+    // TODO update to operate on class objects, not svg names
     for (var key in modeRegions) {
     	if (key !== modeKey) {
     	    modeRegions[key].map(hideSvg)
@@ -22,15 +33,57 @@ function setCameraViewPreset() {
         setCameraView(currentMode);
 }
 
-var navModeRegionIds
-var lowArmModeRegionIds
-var highArmModeRegionIds
-var handModeRegionIds
-var lookModeRegionIds
-var modeRegions
-var strokeOpacity = 0.0;
-var w = videoDimensions.h;
-var h = videoDimensions.w;
+
+var panTiltCameraModes = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
+var panTiltCameraVideoControl = new VideoControl(panTiltCameraVideo, panTiltCameraModes);
+
+/*
+* Class for a video stream visualization with an overlay
+* This is redundant at the moment but will be necessary
+* soon, when we want to have more than one video stream
+* visualization.
+*/
+function VideoControl(videoId) {
+    this.videoId = videoId;
+    this.combinedSVG = document.getElementById('video_ui_overlay'); //TODO unique name per video stream
+    this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    this.overlays = {}; // key is mode id, value is the Overlay object
+
+    this.addOverlay = function(overlay) {
+        this.overlays[overlay.modeId] = overlay;
+        this.combinedSVG.appendChild(overlay.svg);
+    }
+}
+
+/*
+* Class for a video overlay
+*/
+function Overlay(modeId) {
+    this.videoId = videoId;
+    this.regions = [];
+
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.setAttribute('preserveAspectRatio', 'none');
+    this.svg.setAttribute('id', modeId + '_ui_overlay');
+
+    this.addRegion = function(region) {
+        this.regions.push(region);
+    }
+}
+
+/*
+* Class for a video overlay
+*/
+function Region(regionId, fname, label, poly, color, parentSVG) {
+    this.regionId = regionId;
+    this.fname = fname;
+    this.label = label;
+    this.poly = poly;
+    this.parentSVG = parentSVG;
+
+    createPath(this.parentSVG, this.regionId, this.fname, this.label);
+    setRegionPoly(this.regionId, this.poly, this.color);
+}
 
 
 function createUiRegions(debug) {
@@ -38,234 +91,131 @@ function createUiRegions(debug) {
     if(debug) {
 	   strokeOpacity = 0.1; //1.0;
     }
-
-    let combinedSVG = document.getElementById('video_ui_overlay');
-
-    //////////////////////////////
-    // set size of video region
-
-    // D435i has a -90 rotation
-    
-    var video_region = document.getElementById('video_ui_overlay');
-    video_region.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    //////////////////////////////
-            
-    //////////////////////////////
-    
-    var sqrW, bgSqr, mdSqr, smSqr, regionPoly;
-    var mdBar, smBar, mHoriz, lHoriz, rHoriz, mVert; 
-    var color;
+    var regionPoly;
+    var color = 'white';
+    var cornerRectSize = 40;
     
     /////////////////////////
-    color = 'white'
-    var cornerRectSize = 40;
+    // nav
+    /////////////////////////
 
-    let navOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    navOverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    navOverlaySVG.setAttribute('id', 'nav_ui_overlay');
-    createPath(navOverlaySVG, 'nav_do_nothing_region', null, 'do nothing');
-    createPath(navOverlaySVG, 'nav_forward_region', 'moveForward' , 'move forward');
-    createPath(navOverlaySVG, 'nav_backward_region', 'moveBackward' , 'move backward');
-    createPath(navOverlaySVG, 'nav_turn_left_region', 'turnLeft' , 'turn left');
-    createPath(navOverlaySVG, 'nav_turn_right_region', 'turnRight' , 'turn right');
-    createPath(navOverlaySVG, 'nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW');
-    createPath(navOverlaySVG, 'nav_cw_region', 'turnCW' , 'turn 90 degrees CW');
-    combinedSVG.appendChild(navOverlaySVG);
+    let navOverlay = new Overlay('nav');
+    // Big rectangle at the borders of the video
+    let bgRect = makeRectangle(0, 0, w, h);
+    let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
+    let leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
+    let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
 
-    // big rectangle at the borders of the video
-    var bgRect = makeRectangle(0, 0, w, h);
-    // small rectangle around the mobile base
-    //var smRect = makeSquare(w*(7.0/16.0), h*(7.0/16.0), w/8.0, h/8.0);
-    var smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
-    var leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
-    var rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
-
-    regionPoly = rectToPoly(smRect);
-    setRegionPoly('nav_do_nothing_region', regionPoly, color);
-
-    regionPoly = [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul];
-    setRegionPoly('nav_forward_region', regionPoly, color);
-
-    regionPoly = [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll];
-    setRegionPoly('nav_backward_region', regionPoly, color);
-
-    regionPoly = [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul];
-    setRegionPoly('nav_turn_left_region', regionPoly, color);
-
-    regionPoly = [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur];
-    setRegionPoly('nav_turn_right_region', regionPoly, color);
-
-    setRegionPoly('nav_cw_region', rectToPoly(leftRect), color, 1, 0.5);
-    // drawText('ccw_cw_text_region','⤹ 90°', cornerRectSize/2, h-cornerRectSize+cornerRectSize/1.5, 16, true)
-    
-    setRegionPoly('nav_ccw_region', rectToPoly(rightRect), color, 1, 0.5);
-    // drawText('ccw_cw_text_region','90° ⤸', w-cornerRectSize+cornerRectSize/2, h-cornerRectSize+cornerRectSize/1.5, 16, true);
-
-    navModeRegionIds = ['nav_do_nothing_region', 'nav_forward_region', 
-        'nav_backward_region', 'nav_turn_left_region', 'nav_turn_right_region', 
-        'nav_ccw_region', 'nav_cw_region']
+    navOverlay.addRegion(new Region('nav_forward_region', null, 'do nothing',
+        rectToPoly(smRect), color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_do_nothing_region', 'moveForward', 'move forward',
+        [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul], color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_backward_region', 'moveBackward' , 'move backward',
+        [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll], color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_turn_left_region', 'turnLeft' , 'turn left',
+        [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul], color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_turn_right_region', 'turnRight' , 'turn right',
+        [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur], color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_cw_region', 'turnCW' , 'turn 90 degrees CW',
+        rectToPoly(leftRect), color, navOverlay.svg));
+    navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
+        rectToPoly(rightRect), color, navOverlay.svg));
+    panTiltCameraVideoControl.combinedSVG.appendChild(navOverlay.svg);
 
     
-    ///////////////////////
-    color = 'white'
+    /////////////////////////
+    // low_arm
+    /////////////////////////
 
-    let arm1OverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    arm1OverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    arm1OverlaySVG.setAttribute('id', 'low_arm_ui_overlay');
-    createPath(arm1OverlaySVG, 'low_arm_up_region', 'liftUp' , 'lift arm');
-    createPath(arm1OverlaySVG, 'low_arm_down_region', 'liftDown' , 'lower arm');
-    createPath(arm1OverlaySVG, 'low_arm_extend_region', 'armExtend' , 'extend arm');
-    createPath(arm1OverlaySVG, 'low_arm_retract_region', 'armRetract' , 'retract arm');
-    createPath(arm1OverlaySVG, 'low_arm_base_forward_region', 'moveForward' , 'move forward');
-    createPath(arm1OverlaySVG, 'low_arm_base_backward_region', 'moveBackward' , 'move backward');
-    combinedSVG.appendChild(arm1OverlaySVG);
-
-    // big rectangle at the borders of the video
-    bgRect = makeRectangle(0, 0, w, h);
-    // small rectangle at the top of the middle of the video
-    var tpRect = makeRectangle(w*(3.0/10.0), h/4.0, w*(4.0/10.0), h/4.0);
+    let lowArmOverlay = new Overlay('low_arm');
+    // Small rectangle at the top of the middle of the video
+    let tpRect = makeRectangle(w*(3.0/10.0), h/4.0, w*(4.0/10.0), h/4.0);
     // small rectangle at the bottom of the middle of the video
-    var btRect = makeRectangle(w*(3.0/10.0), h/2.0, w*(4.0/10.0), h/4.0);
-    
-    regionPoly = rectToPoly(tpRect);
-    setRegionPoly('low_arm_up_region', regionPoly, color);
+    let btRect = makeRectangle(w*(3.0/10.0), h/2.0, w*(4.0/10.0), h/4.0);
 
-    regionPoly = rectToPoly(btRect);
-    setRegionPoly('low_arm_down_region', regionPoly, color);
-    
-    regionPoly = [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul];
-    setRegionPoly('low_arm_extend_region', regionPoly, color);
-
-    regionPoly = [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll];
-    setRegionPoly('low_arm_retract_region', regionPoly, color);
-
-    regionPoly = [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll];
-    setRegionPoly('low_arm_base_forward_region', regionPoly, color);
-
-    regionPoly = [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr];
-    setRegionPoly('low_arm_base_backward_region', regionPoly, color);
-    
-    lowArmModeRegionIds = ['low_arm_down_region', 'low_arm_up_region', 
-        'low_arm_extend_region', 'low_arm_retract_region',
-        'low_arm_base_forward_region','low_arm_base_backward_region']
+    lowArmOverlay.addRegion(new Region('low_arm_up_region', 'liftUp' , 'lift arm',
+        rectToPoly(tpRect), color, lowArmOverlay.svg));
+    lowArmOverlay.addRegion(new Region('low_arm_down_region', 'liftDown' , 'lower arm',
+        rectToPoly(btRect), color, lowArmOverlay.svg));
+    lowArmOverlay.addRegion(new Region('low_arm_extend_region', 'armExtend' , 'extend arm',
+        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, lowArmOverlay.svg));
+    lowArmOverlay.addRegion(new Region('low_arm_retract_region', 'armRetract' , 'retract arm',
+        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, lowArmOverlay.svg));
+    lowArmOverlay.addRegion(new Region('low_arm_base_forward_region', 'moveForward' , 'move forward',
+        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, lowArmOverlay.svg));
+    lowArmOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
+        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, lowArmOverlay.svg));
+    panTiltCameraVideoControl.combinedSVG.appendChild(lowArmOverlay.svg);
     
 
-    ///////////////////////
-    color = 'white'
+    /////////////////////////
+    // high_arm
+    /////////////////////////
 
-    let arm2OverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    arm2OverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    arm2OverlaySVG.setAttribute('id', 'high_arm_ui_overlay');
-    createPath(arm2OverlaySVG, 'high_arm_up_region', 'liftUp' , 'lift arm');
-    createPath(arm2OverlaySVG, 'high_arm_down_region', 'liftDown' , 'lower arm');
-    createPath(arm2OverlaySVG, 'high_arm_extend_region', 'armExtend' , 'extend arm');
-    createPath(arm2OverlaySVG, 'high_arm_retract_region', 'armRetract' , 'retract arm');
-    createPath(arm2OverlaySVG, 'high_arm_base_forward_region', 'moveForward' , 'move forward');
-    createPath(arm2OverlaySVG, 'high_arm_base_backward_region', 'moveBackward' , 'move backward');
-    combinedSVG.appendChild(arm2OverlaySVG);
+    let highArmOverlay = new Overlay('high_arm');
 
+    highArmOverlay.addRegion(new Region('high_arm_up_region', 'liftUp' , 'lift arm',
+        rectToPoly(tpRect), color, highArmOverlay.svg));
+    highArmOverlay.addRegion(new Region('high_arm_down_region', 'liftDown' , 'lower arm',
+        rectToPoly(btRect), color, highArmOverlay.svg));
+    highArmOverlay.addRegion(new Region('high_arm_extend_region', 'armExtend' , 'extend arm',
+        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, highArmOverlay.svg));
+    highArmOverlay.addRegion(new Region('high_arm_retract_region', 'armRetract' , 'retract arm',
+        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, highArmOverlay.svg));
+    highArmOverlay.addRegion(new Region('high_arm_base_forward_region', 'moveForward' , 'move forward',
+        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, highArmOverlay.svg));
+    highArmOverlay.addRegion(new Region('high_arm_base_backward_region', 'moveBackward' , 'move backward',
+        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, highArmOverlay.svg));
+    panTiltCameraVideoControl.combinedSVG.appendChild(highArmOverlay.svg);
 
-    // big rectangle at the borders of the video
-    bgRect = makeRectangle(0, 0, w, h);
-    // small rectangle at the top of the middle of the video
-    tpRect = makeRectangle(w*(3.0/10.0), h/4.0, w*(4.0/10.0), h/4.0);
-    // small rectangle at the bottom of the middle of the video
-    btRect = makeRectangle(w*(3.0/10.0), h/2.0, w*(4.0/10.0), h/4.0);
     
-    regionPoly = rectToPoly(tpRect);
-    setRegionPoly('high_arm_up_region', regionPoly, color);
+    /////////////////////////
+    // hand
+    /////////////////////////
 
-    regionPoly = rectToPoly(btRect);
-    setRegionPoly('high_arm_down_region', regionPoly, color);
-    
-    regionPoly = [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul];
-    setRegionPoly('high_arm_extend_region', regionPoly, color);
+    let handOverlay = new Overlay('hand');
 
-    regionPoly = [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll];
-    setRegionPoly('high_arm_retract_region', regionPoly, color);
-
-    regionPoly = [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll];
-    setRegionPoly('high_arm_base_forward_region', regionPoly, color);
-
-    regionPoly = [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr];
-    setRegionPoly('high_arm_base_backward_region', regionPoly, color);
-    
-    highArmModeRegionIds = ['high_arm_down_region', 'high_arm_up_region',
-        'high_arm_extend_region', 'high_arm_retract_region',
-        'high_arm_base_forward_region','high_arm_base_backward_region']
-    
-
-    ///////////////////////
-    color = 'white'
-
-    let handOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    handOverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    handOverlaySVG.setAttribute('id', 'hand_ui_overlay');
-    createPath(handOverlaySVG, 'hand_close_region', 'lookUp' , 'look up');
-    createPath(handOverlaySVG, 'hand_out_region', 'lookDown' , 'look down');
-    createPath(handOverlaySVG, 'hand_in_region', 'lookLeft' , 'look left');
-    createPath(handOverlaySVG, 'hand_open_region', 'lookRight' , 'look right');
-    combinedSVG.appendChild(handOverlaySVG);
-
-    bgRect = makeRectangle(0, 0, w, h);
     tpRect = makeRectangle(0, 0, w, h/4.0);
     btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
     smRect = makeRectangle(w/3.0, 2.0*(h/5.0), w/3.0, h/5.0);
-        
-    regionPoly = rectToPoly(smRect);
-    setRegionPoly('hand_close_region', regionPoly, color);
 
-    regionPoly = rectToPoly(tpRect);
-    setRegionPoly('hand_out_region', regionPoly, color);
+    handOverlay.addRegion(new Region('hand_close_region', 'gripperClose' , 'close hand',
+        rectToPoly(smRect), color, handOverlay.svg));
+    handOverlay.addRegion(new Region('hand_out_region', 'gripperOpen' , 'open hand',
+        rectToPoly(tpRect), color, handOverlay.svg));
+    handOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
+        rectToPoly(btRect), color, handOverlay.svg));
+    handOverlay.addRegion(new Region('hand_open_region', 'wristOut' , 'turn hand out'),
+        [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll, smRect.ul, 
+        smRect.ll, smRect.lr, smRect.ur, smRect.ul], color, handOverlay.svg));
+    panTiltCameraVideoControl.combinedSVG.appendChild(handOverlay.svg);
 
-    regionPoly = rectToPoly(btRect);
-    setRegionPoly('hand_in_region', regionPoly, color);
+    /////////////////////////
+    // look
+    /////////////////////////
 
-    regionPoly = [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll,
-		  smRect.ul, smRect.ll, smRect.lr, smRect.ur, smRect.ul];
-    setRegionPoly('hand_open_region', regionPoly, color);
-    
-    handModeRegionIds = ['hand_close_region', 'hand_out_region', 'hand_in_region', 'hand_open_region']
-    
-
-    ///////////////////////
-    color = 'white'
-
-    let lookOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    lookOverlaySVG.setAttribute('preserveAspectRatio', 'none');
-    lookOverlaySVG.setAttribute('id', 'look_ui_overlay');
-    createPath(lookOverlaySVG, 'look_up_region', 'lookUp' , 'look up');
-    createPath(lookOverlaySVG, 'look_down_region', 'lookDown' , 'look down');
-    createPath(lookOverlaySVG, 'look_left_region', 'lookLeft' , 'look left');
-    createPath(lookOverlaySVG, 'look_right_region', 'lookRight' , 'look right');
-    combinedSVG.appendChild(lookOverlaySVG);
+    let lookOverlay = new Overlay('look');
 
     tpRect = makeRectangle(0, 0, w, h/4.0);
     btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
     let ltRect = makeRectangle(0, h/4.0, w/2.0, h/2.0);
     let rtRect = makeRectangle(w/2.0, h/4.0, w/2.0, h/2.0);
+
+    lookOverlay.addRegion(new Region('look_up_region', 'lookUp' , 'look up',
+        rectToPoly(tpRect), color, lookOverlay.svg));
+    lookOverlay.addRegion(new Region('look_down_region', 'lookDown' , 'look down',
+        rectToPoly(btRect), color, lookOverlay.svg));
+    lookOverlay.addRegion(new Region('look_left_region', 'lookLeft' , 'look left',
+        rectToPoly(ltRect), color, lookOverlay.svg));
+    lookOverlay.addRegion(new Region('look_right_region', 'lookRight' , 'look right'),
+        rectToPoly(rtRect), color, lookOverlay.svg));
     
-    regionPoly = rectToPoly(tpRect);
-    setRegionPoly('look_up_region', regionPoly, color);
+    panTiltCameraVideoControl.addOverlay(lookOverlay);
 
-    regionPoly = rectToPoly(btRect);
-    setRegionPoly('look_down_region', regionPoly, color);
-
-    regionPoly = rectToPoly(ltRect);
-    setRegionPoly('look_left_region', regionPoly, color);
-
-    regionPoly = rectToPoly(rtRect);
-    setRegionPoly('look_right_region', regionPoly, color);
-    
-    lookModeRegionIds = ['look_up_region', 'look_down_region', 'look_left_region', 'look_right_region']
-
-
-    modeRegions = { 'nav' : navModeRegionIds,
-		    'low_arm' : lowArmModeRegionIds,
-		    'high_arm' : highArmModeRegionIds,
-		    'hand' : handModeRegionIds,
-		    'look' : lookModeRegionIds}
 }
+
+/////// UTILITY FUNCTIONS //////////
+
 
 function createPath(svg, id, fname, title){
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -289,7 +239,6 @@ function setRegionPoly(elementId, poly, color, stroke_width = 2, stroke_opacity 
     region.setAttribute('d', svgPolyString(poly));
 }
 
-
 function arrangeOverlays(key) {
     ///////////////////////
     let nx, ny, nw, nh;
@@ -304,8 +253,6 @@ function arrangeOverlays(key) {
     let overlay = document.getElementById(overlayName);
     overlay.setAttribute('viewBox', bigViewBox);
 }
-
-/////// UTILITY FUNCTIONS //////////
 
 function svgPolyString(points) {
     var str = 'M ';

@@ -63,7 +63,7 @@ if (use_canvas_drawing_hack) {
 }
     
 function drawVideoToRecord() {
-    recordContext.drawImage(remoteVideo,
+    recordContext.drawImage(panTiltCameraVideo,
 			    0, 0, rDim.w, rDim.h,
 			    0, 0, rDim.w, rDim.h);
     if (recordOn) {

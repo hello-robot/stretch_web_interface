@@ -37,9 +37,8 @@
     z-index:2;
 }
 
-#remoteVideo {
+#panTiltCameraVideo {
     border: 0px orange dashed;
-    /*height:80%; */
     height: 620px;
     width: 350px;
     z-index:0;
