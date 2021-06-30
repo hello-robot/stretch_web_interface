@@ -1,21 +1,14 @@
 'use strict';
 
 // TODO: This might be redundant with 'interfaceMode' remove after checking
-var currentMode = null;
-var navModeRegionIds
-var lowArmModeRegionIds
-var highArmModeRegionIds
-var handModeRegionIds
-var lookModeRegionIds
-var modeRegions
 var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
 
 function setCameraViewPreset() {
-    if (currentMode != null)
-        setCameraView(currentMode);
+    if (panTiltCameraVideoControl.currentMode != null)
+        setCameraView(panTiltCameraVideoControl.currentMode);
 }
 
 
