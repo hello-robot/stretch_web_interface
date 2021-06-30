@@ -115,6 +115,18 @@ function createUiRegions(debug) {
     color = 'white'
     var cornerRectSize = 40;
 
+    let navOverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    navOverlaySVG.setAttribute('preserveAspectRatio', 'none');
+    navOverlaySVG.setAttribute('id', 'nav_ui_overlay');
+    createPath(navOverlaySVG, 'nav_do_nothing_region', null, 'do nothing');
+    createPath(navOverlaySVG, 'nav_forward_region', 'moveForward' , 'move forward');
+    createPath(navOverlaySVG, 'nav_backward_region', 'moveBackward' , 'move backward');
+    createPath(navOverlaySVG, 'nav_turn_left_region', 'turnLeft' , 'turn left');
+    createPath(navOverlaySVG, 'nav_turn_right_region', 'turnRight' , 'turn right');
+    createPath(navOverlaySVG, 'nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW');
+    createPath(navOverlaySVG, 'nav_cw_region', 'turnCW' , 'turn 90 degrees CW');
+    combinedSVG.appendChild(navOverlaySVG);
+
     // big rectangle at the borders of the video
     var bgRect = makeRectangle(0, 0, w, h);
     // small rectangle around the mobile base
@@ -152,6 +164,17 @@ function createUiRegions(debug) {
     ///////////////////////
     color = 'white'
 
+    let arm1OverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arm1OverlaySVG.setAttribute('preserveAspectRatio', 'none');
+    arm1OverlaySVG.setAttribute('id', 'low_arm_ui_overlay');
+    createPath(arm1OverlaySVG, 'low_arm_up_region', 'liftUp' , 'lift arm');
+    createPath(arm1OverlaySVG, 'low_arm_down_region', 'liftDown' , 'lower arm');
+    createPath(arm1OverlaySVG, 'low_arm_extend_region', 'armExtend' , 'extend arm');
+    createPath(arm1OverlaySVG, 'low_arm_retract_region', 'armRetract' , 'retract arm');
+    createPath(arm1OverlaySVG, 'low_arm_base_forward_region', 'moveForward' , 'move forward');
+    createPath(arm1OverlaySVG, 'low_arm_base_backward_region', 'moveBackward' , 'move backward');
+    combinedSVG.appendChild(arm1OverlaySVG);
+
     // big rectangle at the borders of the video
     bgRect = makeRectangle(0, 0, w, h);
     // small rectangle at the top of the middle of the video
@@ -177,11 +200,25 @@ function createUiRegions(debug) {
     regionPoly = [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr];
     setRegionPoly('low_arm_base_backward_region', regionPoly, color);
     
-    lowArmModeRegionIds = ['low_arm_down_region', 'low_arm_up_region', 'low_arm_extend_region', 'low_arm_retract_region','low_arm_base_forward_region','low_arm_base_backward_region']
+    lowArmModeRegionIds = ['low_arm_down_region', 'low_arm_up_region', 
+        'low_arm_extend_region', 'low_arm_retract_region',
+        'low_arm_base_forward_region','low_arm_base_backward_region']
     
 
     ///////////////////////
     color = 'white'
+
+    let arm2OverlaySVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arm2OverlaySVG.setAttribute('preserveAspectRatio', 'none');
+    arm2OverlaySVG.setAttribute('id', 'high_arm_ui_overlay');
+    createPath(arm2OverlaySVG, 'high_arm_up_region', 'liftUp' , 'lift arm');
+    createPath(arm2OverlaySVG, 'high_arm_down_region', 'liftDown' , 'lower arm');
+    createPath(arm2OverlaySVG, 'high_arm_extend_region', 'armExtend' , 'extend arm');
+    createPath(arm2OverlaySVG, 'high_arm_retract_region', 'armRetract' , 'retract arm');
+    createPath(arm2OverlaySVG, 'high_arm_base_forward_region', 'moveForward' , 'move forward');
+    createPath(arm2OverlaySVG, 'high_arm_base_backward_region', 'moveBackward' , 'move backward');
+    combinedSVG.appendChild(arm2OverlaySVG);
+
 
     // big rectangle at the borders of the video
     bgRect = makeRectangle(0, 0, w, h);
@@ -208,7 +245,9 @@ function createUiRegions(debug) {
     regionPoly = [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr];
     setRegionPoly('high_arm_base_backward_region', regionPoly, color);
     
-    highArmModeRegionIds = ['high_arm_down_region', 'high_arm_up_region', 'high_arm_extend_region', 'high_arm_retract_region','high_arm_base_forward_region','high_arm_base_backward_region']
+    highArmModeRegionIds = ['high_arm_down_region', 'high_arm_up_region',
+        'high_arm_extend_region', 'high_arm_retract_region',
+        'high_arm_base_forward_region','high_arm_base_backward_region']
     
 
     ///////////////////////
@@ -288,8 +327,10 @@ function createPath(svg, id, fname, title){
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
     path.setAttribute('id', id);
-    path.setAttribute('onclick', ''+ fname + '()');
-    path.setAttribute('onmousedown', "startAction('" + fname + "')");
+    if (fname) {
+        path.setAttribute('onclick', ''+ fname + '()');
+        path.setAttribute('onmousedown', "startAction('" + fname + "')");
+    }
     path.setAttribute('title', title);    
     svg.appendChild(path);
 }
@@ -509,7 +550,8 @@ function createVelocityControl() {
     function drawArrowCursor(cursorElement, svgCoord, scale, angleDeg) {
 	var region = cursorElement;
 	region.setAttribute('transform',
-			    'translate(' + svgCoord.x + ', ' + svgCoord.y + ') scale(' + scale + ') rotate(' + angleDeg + ')');
+			    'translate(' + svgCoord.x + ', ' + svgCoord.y + 
+                    ') scale(' + scale + ') rotate(' + angleDeg + ')');
     }
 
     var arrowCursor = new Cursor('down_arrow', 'video_ui_overlay',
