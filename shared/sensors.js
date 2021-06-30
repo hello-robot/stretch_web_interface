@@ -130,8 +130,8 @@ var headSensors = {
 
 function rosEulerToTHREE(e) {
 	return new THREE.Euler(
-		limitAngle(e.z-(Math.PI/2), 0, Math.PI),
 		0, //limitAngle(e.x-(Math.PI/2), 0, Math.PI),
+		limitAngle(e.z-(Math.PI/2), 0, Math.PI),
 		limitAngle(e.y-(Math.PI/2), 0, Math.PI)
 	)
 }

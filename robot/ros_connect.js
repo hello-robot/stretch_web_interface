@@ -9,8 +9,6 @@ var img = document.createElement("IMG");
 img.style.visibility = 'hidden';
 var rosJointStateReceived = false;
 var jointState = null;
-var rosRobotStateReceived = false;
-var robotState = null;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
