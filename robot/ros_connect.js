@@ -323,9 +323,6 @@ function baseTranslate(dist, vel) {
     // velocity in centimeters / second
     console.log('sending baseTranslate command')
 
-    // stop trying to turn to a target if the user attempts to to move the robot base
-    interruptTurn = true;
-
     if (dist > 0.0){
 	var baseForwardPoseGoal = generatePoseGoal({'translate_mobile_base': -vel})
 	baseForwardPoseGoal.send()
@@ -342,9 +339,6 @@ function baseTurn(ang_deg, vel) {
     // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
     console.log('sending baseTurn command')
     
-    // stop trying to turn to a target if the user attempts to to move the robot base
-    interruptTurn = true;
-    
     if (ang_deg > 0.0){
 	var baseTurnLeftPoseGoal = generatePoseGoal({'rotate_mobile_base': -vel})
 	baseTurnLeftPoseGoal.send()
@@ -353,32 +347,6 @@ function baseTurn(ang_deg, vel) {
 	baseTurnRightPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
-}
-
-var targetAngle;
-var interruptTurn = false;
-var turnLoop;
-function turnAngleOffset(offset) {
-    targetAngle = quaternionToEuler(base_tf.rotation).z + offset; // this needs to be limited from 180 to -180
-    targetAngle = limitAngle(targetAngle)
-
-    interruptTurn = false;
-
-    turnLoop = setInterval(function() {
-        let error = targetAngle-quaternionToEuler(base_tf.rotation).z;
-        let nextStep = error/10;
-        if (Math.abs(nextStep) < 0.05)
-            nextStep = (nextStep > 0) ? 0.05 : -0.05;
-
-        if (!interruptTurn && Math.abs(nextStep) >= 0.05) {
-            //console.log(targetAngle, quaternionToEuler(base_tf.rotation).z, error);
-            let baseGoal = generatePoseGoal({'rotate_mobile_base': nextStep}) // super simple proportional control
-            baseGoal.send();
-        } else {
-            clearInterval(turnLoop);
-        }
-
-    }, 200);
 }
 
 function limitAngle(rad) {
