@@ -35,9 +35,10 @@ function VideoControl(videoId) {
 
     this.setMode = function(modeId) {
         this.currentMode = modeId;
-        var buttonName = modeId + '_mode_button';
-        console.log('Setting to checked: buttonName = ' + buttonName);
-        document.getElementById(buttonName).checked = true;
+        let buttonName = modeId + '_mode_button';
+        let button = document.getElementById(buttonName);
+        if (button)
+            button.checked = true;
         
         arrangeOverlays(modeId);
 

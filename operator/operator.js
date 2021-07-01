@@ -18,6 +18,7 @@ function runOnOpenDataChannel() {
 function createModeSwitch() {
 
 	let switchDiv = document.getElementById("modeSwitch");
+	switchDiv.setAttribute("class", "switch");
 	createAndAddSwitchButton(switchDiv, "nav", "Drive", true);
 	createAndAddSwitchButton(switchDiv, "low_arm", "Arm &dArr;");
 	createAndAddSwitchButton(switchDiv, "high_arm", "Arm &uArr;");
