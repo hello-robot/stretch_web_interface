@@ -128,11 +128,11 @@
 }
 
 #low_arm_extend_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('out_arrow.png'), auto;
 }
 
 #low_arm_retract_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('in_arrow.png'), auto;
 }
 
 #low_arm_base_forward_region {
@@ -153,11 +153,11 @@
 }
 
 #high_arm_extend_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('out_arrow.png'), auto;
 }
 
 #high_arm_retract_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('in_arrow.png'), auto;
 }
 
 #high_arm_base_forward_region {
