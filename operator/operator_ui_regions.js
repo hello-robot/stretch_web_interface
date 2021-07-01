@@ -150,26 +150,35 @@ function createUiRegions(debug) {
     // manipulation
     /////////////////////////
 
-    let lowArmOverlay = new Overlay('low_arm');
+    let armOverlay = new Overlay('low_arm');
+
+    bgRect = makeRectangle(0, h/5.0, w, h-h/5.0);
     // Small rectangle at the top of the middle of the video
-    let tpRect = makeRectangle(w*(3.0/10.0), h/4.0, w*(4.0/10.0), h/4.0);
+    let tpRect = makeRectangle(w*(3.0/10.0), 2.0*h/5.0, w*(4.0/10.0), h/5.0);
     // small rectangle at the bottom of the middle of the video
-    let btRect = makeRectangle(w*(3.0/10.0), h/2.0, w*(4.0/10.0), h/4.0);
+    let btRect = makeRectangle(w*(3.0/10.0), 3.0*h/5.0, w*(4.0/10.0), h/5.0);
+    leftRect = makeRectangle(0, 0, w/2.0, h/5.0);
+    rightRect = makeRectangle(w/2.0, 0, w/2.0, h/5.0);
 
-    lowArmOverlay.addRegion(new Region('low_arm_up_region', 'liftUp' , 'lift arm',
-        rectToPoly(tpRect), color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_down_region', 'liftDown' , 'lower arm',
-        rectToPoly(btRect), color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_extend_region', 'armExtend' , 'extend arm',
-        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_retract_region', 'armRetract' , 'retract arm',
-        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_base_forward_region', 'moveForward' , 'move forward',
-        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
-        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, lowArmOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_up_region', 'liftUp' , 'lift arm',
+        rectToPoly(tpRect), color, armOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_down_region', 'liftDown' , 'lower arm',
+        rectToPoly(btRect), color, armOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_extend_region', 'armExtend' , 'extend arm',
+        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, armOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_retract_region', 'armRetract' , 'retract arm',
+        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, armOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_base_forward_region', 'moveForward' , 'move forward',
+        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, armOverlay.svg));
+    armOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
+        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, armOverlay.svg));
+    
+    armOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
+        rectToPoly(leftRect), color, armOverlay.svg));
+    armOverlay.addRegion(new Region('hand_out_region', 'wristOut' , 'turn hand out',
+        rectToPoly(rightRect), color, armOverlay.svg));
 
-    manipulationVideoControl.addOverlay(lowArmOverlay);
+    manipulationVideoControl.addOverlay(armOverlay);
 
     
     /////////////////////////
@@ -184,11 +193,11 @@ function createUiRegions(debug) {
 
     // handOverlay.addRegion(new Region('hand_close_region', 'gripperClose' , 'close hand',
     //     rectToPoly(smRect), color, handOverlay.svg));
-    // handOverlay.addRegion(new Region('hand_out_region', 'gripperOpen' , 'open hand',
+    // handOverlay.addRegion(new Region('hand_out_region', 'wristOut' , 'turn hand out',
     //     rectToPoly(tpRect), color, handOverlay.svg));
     // handOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
     //     rectToPoly(btRect), color, handOverlay.svg));
-    // handOverlay.addRegion(new Region('hand_open_region', 'wristOut' , 'turn hand out',
+    // handOverlay.addRegion(new Region('hand_open_region', 'gripperOpen' , 'open hand',
     //     [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll, smRect.ul, 
     //     smRect.ll, smRect.lr, smRect.ur, smRect.ul], color, handOverlay.svg));
 
