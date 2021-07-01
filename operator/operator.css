@@ -45,7 +45,7 @@
     background-color: gray;
 }
 
-#video_ui_overlay {
+.video_ui_overlay {
     border: 1px solid gray;
     /*top: 144px;*/
     /*top: calc(0.23 * var(--video-height));*/ /*144px;*/

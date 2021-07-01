@@ -28,18 +28,30 @@
 
 	    </div>
 
-	    <div class="presetView mb-2">
+<!-- 	    <div class="presetView mb-2">
 	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
 	    </div>
+ -->
+ 		<div class="d-flex flex-row">
+		    <div class="video_div">
+		      <div class="background">
+		      	<video id="navigationVideo" autoplay></video>
+		      </div>
+		      <div class="foreground">
+		      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
+		  	  </div>
+		    </div>
 
-	    <div class="video_div">
-	      <div class="background">
-	      	<video id="panTiltCameraVideo" autoplay></video>
-	      </div>
-	      <div class="foreground">
-	      	<svg id="video_ui_overlay"></svg>
-	  	  </div>
-	    </div>
+		    <div class="video_div">
+		      <div class="background">
+		      	<video id="manipulationVideo" autoplay></video>
+		      </div>
+		      <div class="foreground">
+		      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
+		  	  </div>
+		    </div>
+		</div>
+
 	</div>
 	</div>
 
