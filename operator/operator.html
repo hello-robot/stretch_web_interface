@@ -23,42 +23,9 @@
 
 	    <div class="d-flex align-items-center">
 
-	      <div class="switch">
-			<input type="radio" class="switch-input" name="mode-switch" value="nav" id="nav_mode_button" checked>
-			<label for="nav_mode_button" class="switch-label switch-label-0" onclick="turnModeOn('nav')">Drive</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="low_arm" id="low_arm_mode_button">
-			<label for="low_arm_mode_button" class="switch-label switch-label-1" onclick="turnModeOn('low_arm')">Arm &dArr;</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="high_arm" id="high_arm_mode_button">
-			<label for="high_arm_mode_button" class="switch-label switch-label-2" onclick="turnModeOn('high_arm')">Arm &uArr;</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="hand" id="hand_mode_button">
-			<label for="hand_mode_button" class="switch-label switch-label-3" onclick="turnModeOn('hand')">Hand</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="look" id="look_mode_button">
-			<label for="look_mode_button" class="switch-label switch-label-4" onclick="turnModeOn('look')">Look</label>
-			<span class="switch-selection"></span>	
+	      <div id="modeSwitch" class="switch">	
 	      </div>
 
-	    </div>
-
-	    <div class="switch-2">
-	        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
-	        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-	        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
-	        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-	        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-	        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-	        <span class="switch-selection switch-selection-sm"></span>
 	    </div>
 
 	    <div class="presetView mb-2">
@@ -114,6 +81,25 @@
 	  		<label for="audioSource">Audio in: </label><select id="audioSource"></select>
 	  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
 	      </div>
+
+		    <div class="switch-2">
+		        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
+		        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
+		        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
+		        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
+		        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
+		        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
+		        <span class="switch-selection switch-selection-sm"></span>
+		    </div>
+
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 	      </div>

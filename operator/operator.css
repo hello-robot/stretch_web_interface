@@ -256,23 +256,23 @@
   transition: 0.1s ease-out;
 }
 
-.switch-input:checked + .switch-label-0 ~ .switch-selection {
+.switch-input:checked + .switch-label-nav ~ .switch-selection {
     left: calc(var(--mode-button-width) * 0);
 }
 
-.switch-input:checked + .switch-label-1 ~ .switch-selection {
+.switch-input:checked + .switch-label-low_arm ~ .switch-selection {
     left: calc(var(--mode-button-width) * 1);
 }
 
-.switch-input:checked + .switch-label-2 ~ .switch-selection {
+.switch-input:checked + .switch-label-high_arm ~ .switch-selection {
     left: calc(var(--mode-button-width) * 2); 
 }
 
-.switch-input:checked + .switch-label-3 ~ .switch-selection {
+.switch-input:checked + .switch-label-hand ~ .switch-selection {
     left: calc(var(--mode-button-width) * 3);
 }
 
-.switch-input:checked + .switch-label-4 ~ .switch-selection {
+.switch-input:checked + .switch-label-look ~ .switch-selection {
     left: calc(var(--mode-button-width) * 4);
 }
 
