@@ -176,6 +176,8 @@ socket.on('webrtc message', function(message) {
 
 
 var panTiltCameraVideo = document.querySelector('#panTiltCameraVideo');
+var navigationVideo = document.querySelector('#navigationVideo');
+var manipulationVideo = document.querySelector('#manipulationVideo');
 
 function maybeStart() {
     console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
@@ -242,7 +244,12 @@ function handleRemoteStreamAdded(event) {
     console.log('Remote stream added.');
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: starting to display remote stream');
-        panTiltCameraVideo.srcObject = event.stream;
+        if (panTiltCameraVideo)
+            panTiltCameraVideo.srcObject = event.stream;
+        if (navigationVideo)
+            navigationVideo.srcObject = event.stream;
+        if (manipulationVideo)
+            manipulationVideo.srcObject = event.stream;
     } else if (peer_name === 'ROBOT') {
         console.log('ROBOT: adding remote audio to display');
         // remove audio tracks from displayStream
