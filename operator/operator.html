@@ -41,15 +41,6 @@
 			<span class="switch-selection"></span>	
 	      </div>
 
-
-	      <div class="onoffswitch">
-			<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
-			<label class="onoffswitch-label" for="myonoffswitch">
-			  <span class="onoffswitch-inner"></span>
-			  <span class="onoffswitch-switch"></span>
-			</label>
-	      </div>
-
 	    </div>
 
 	    <div class="switch-2">
@@ -86,29 +77,65 @@
 	</div>
 
     <hr>
+
+    <!-- Button to open the settings -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#settings">
+	  Settings
+	</button>
+
+
+	<!-- SETTINGS -->
+	<div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle" aria-hidden="true">
+	  <div class="modal-dialog modal-lg" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="settingsTitle">Settings</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+
+		      <div class="onoffswitch">
+				<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+				<label class="onoffswitch-label" for="myonoffswitch">
+				  <span class="onoffswitch-inner"></span>
+				  <span class="onoffswitch-switch"></span>
+				</label>
+		      </div>
+
+		      <div>
+      	        <label> Automatically change view? </label>
+		        <input id="autoViewOn" type="checkbox" onchange="toggleAutoView()">
+		      </div>
+
+	      </div>
+	      <div>
+	  		<label for="audioSource">Audio in: </label><select id="audioSource"></select>
+	  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
  
     <div>
       <div class="recordswitch">
-  <button id="taskButton" onclick="updateTask()">Start Task 1</button>
-  <button id="record">Start Recording</button>
-  <button id="download" disabled>Download Recording</button>
+  		<button id="record" type="button" class="btn btn-secondary">Start Recording</button>
+  		<button id="download" type="button" class="btn btn-secondary" disabled>Download Recording</button>
       </div>
 
       <div class="select-robot">
-  <label for="robotToControl">Robot: </label><select id="robotToControl"></select>
-  
-  <input id="hangup" type="button" value="hang up" onclick="hangup();" />
-  <label for="audioSource">Audio in: </label><select id="audioSource"></select>
-  <label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+  		<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
+  		<input id="hangup" type="button" value="hang up" onclick="hangup();" />
       </div>
       <br/>
     </div>
 
     <div id="interface-config">
-        <label> Automatically change view? </label>
-        <input id="autoViewOn" type="checkbox" onchange="toggleAutoView()">
-
-		<br>
 
         <label> Camera automatically follow gripper </label>
         <input id="cameraFollowGripperOn" type="checkbox" onchange="toggleCameraFollowGripper()">

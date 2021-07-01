@@ -8,7 +8,8 @@ function initializeOperatorInterface() {
 }
 
 function runOnOpenDataChannel() {
-	// When the robot and the operator are first connected, switch to navigation mode.
+	// When the robot and the operator are first connected, 
+	// switch to navigation mode.
 	console.log('Starting in navigation mode')
 	turnModeOn('nav')
 }
