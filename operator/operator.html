@@ -29,15 +29,17 @@
 	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
 	    </div>
  -->
+
+ 		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
-		    <div class="nav_mode_div border border-primary">
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button">^</button>
+		    <div class="nav_mode_div">
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
 		    	</div>
-		    	<div class="border border-danger"></div>
-		    	<div class="d-flex border border-success justify-content-end">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button"><</button>
+		    	<div class=""></div>
+		    	<div class="d-flex justify-content-end">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
 			    <div class="video_div">
 			      <div class="background">
@@ -47,26 +49,26 @@
 			      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
 			  	  </div>
 			    </div>
-		    	<div class="d-flex border border-success justify-content-start">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button">></button>
+		    	<div class="d-flex justify-content-start">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button">v</button>		    		
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
 		    	</div>
-		    	<div class="border border-danger"></div>
+		    	<div class=""></div>
 		    </div>
 
-		    <div class="manip_mode_div border border-primary">
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button">^</button>
+		    <div class="manip_mode_div">
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
 		    	</div>
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger"></div>
+		    	<div class=""></div>
+		    	<div class=""></div>
 
-		    	<div class="d-flex border border-success justify-content-end">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button"><</button>
+		    	<div class="d-flex justify-content-end">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
 			    <div class="video_div">
 			      <div class="background">
@@ -76,26 +78,40 @@
 			      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
 			  	  </div>
 			    </div>
-		    	<div class="d-flex border border-success justify-content-start">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button">></button>
+		    	<div class="d-flex justify-content-start">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
-		    	<div class="d-flex flex-column justify-content-sm-center border border-danger">
-					<button type="button" class="btn btn-secondary my-2" title="Open gripper">
-					  <img src="gripper_open_medium.png" width="30" />
+		    	<div class="d-flex flex-column justify-content-sm-center">
+					<button type="button" class="btn btn-secondary my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
+					  <img src="gripper_open_medium.png" width="30"/>
 					</button>
-					<button type="button" class="btn btn-secondary my-2" title="Close gripper">
-					  <img src="gripper_close_medium.png" width="30" />
+					<button type="button" class="btn btn-secondary my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
+					  <img src="gripper_close_medium.png" width="30"/>
 					</button>
 		    	</div>
 
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button">v</button>		    		
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
 		    	</div>
-		    	<div class="border border-danger"></div>
-		    	<div class="border border-danger"></div>
+		    	<div class=""></div>
+		    	<div class=""></div>
+
+		    	<div class=""></div>
+		    	<div class="d-flex justify-content-center">
+					<div class="form-check">
+					  <input class="form-check-input" type="checkbox" value="" onchange="toggleCameraFollowGripper()" id="cameraFollowGripperOn">
+					  <label class="form-check-label" for="cameraFollowGripperOn">
+					    Follow gripper
+					  </label>
+					</div>
+<!-- 					<input id="" type="checkbox" ">
+			        <label>  </label>
+-->		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
+
 		    </div>
-
 		</div>
 	</div>
 
@@ -175,12 +191,6 @@
   		<input id="hangup" type="button" value="hang up" onclick="hangup();" />
       </div>
       <br/>
-    </div>
-
-    <div id="interface-config">
-
-        <label> Camera automatically follow gripper </label>
-        <input id="cameraFollowGripperOn" type="checkbox" onchange="toggleCameraFollowGripper()">
     </div>
     
 </div>
