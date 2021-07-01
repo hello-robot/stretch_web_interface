@@ -46,9 +46,14 @@
 
 }
 
-.mode_div {
+.nav_mode_div {
   display: grid;
   grid-template-columns: 1fr 6fr 1fr;
+}
+
+.manip_mode_div {
+  display: grid;
+  grid-template-columns: 1fr 6fr 1fr 2fr;
 }
 
 .video_div div {
