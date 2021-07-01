@@ -30,7 +30,7 @@ video {
 }
 
 .video_div div {
- background-color: rgba(0,0,0,0.3);
+ background-color: rgba(0,0,0,0.1);
  grid-row-start: 1;
  grid-column-start: 1;
  border: 0px solid white;
@@ -46,7 +46,6 @@ video {
 #navigationVideo, #manipulationVideo {
     border: 0px pink dashed;
     z-index:0;
-    background-color: light-gray;
 }
 
 #panTiltCameraVideo {
@@ -62,7 +61,8 @@ video {
 }
 
 .foreground {
-    z-index:2;
+  z-index:2;
+  cursor: pointer;
 }
 
 

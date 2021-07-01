@@ -5,9 +5,6 @@ var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
-    console.log("w:" + w);
-    console.log("h:" + h);
-
 
 function setCameraViewPreset() {
     if (panTiltCameraVideoControl.currentMode != null)
@@ -15,8 +12,8 @@ function setCameraViewPreset() {
 }
 
 
-var navigationVideoControl = new VideoControl('navigationVideo');
-var manipulationVideoControl = new VideoControl('manipulationVideo');
+var navigationVideoControl = new VideoControl('navigationVideo', 'nav');
+var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
 
 /*
 * Class for a video stream visualization with an overlay
@@ -24,15 +21,17 @@ var manipulationVideoControl = new VideoControl('manipulationVideo');
 * soon, when we want to have more than one video stream
 * visualization.
 */
-function VideoControl(videoId) {
+function VideoControl(videoId, currentMode=null) {
     this.videoId = videoId;
     this.combinedSVG = document.getElementById(videoId + "Overlay");
     this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     this.overlays = {}; // key is mode id, value is the Overlay object
-    this.currentMode = null;
+    this.currentMode = currentMode;
+    this.videoDiv = document.getElementById(videoId + "Div");
     this.video = document.getElementById(videoId);
     this.video.setAttribute("height", h);
     this.video.setAttribute("width", w);
+    this.isActive = false;
 
     this.addOverlay = function(overlay) {
         this.overlays[overlay.modeId] = overlay;
@@ -59,6 +58,18 @@ function VideoControl(videoId) {
 
     this.getModeNames = function() {
         return Object.keys(this.overlays);
+    }
+
+    this.setActive = function(isActive) {
+        this.isActive = isActive;
+        if (this.isActive){
+            this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.1)";
+            this.overlays[this.currentMode].show();
+        }
+        else{
+            this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.5)";
+            this.overlays[this.currentMode].hide();
+        }
     }
 }
 
@@ -113,6 +124,24 @@ function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=tru
     }
 }
 
+function setMode(modeId) {
+    if (modeId == 'nav') {
+        if (!navigationVideoControl.isActive) {
+            navigationVideoControl.setActive(true);
+            manipulationVideoControl.setActive(false);            
+        }
+    }
+    else if (modeId == 'manip') {
+        if (!manipulationVideoControl.isActive) {
+            navigationVideoControl.setActive(false);
+            manipulationVideoControl.setActive(true);
+        }
+    }
+    else {
+        console.log('Invalid mode: ' + modeId);
+    }
+}
+
 
 function createUiRegions(debug) {
 
@@ -130,9 +159,6 @@ function createUiRegions(debug) {
     let navOverlay = new Overlay('nav');
     // Big rectangle at the borders of the video
     let bgRect = makeRectangle(0, 0, w, h);
-    console.log("---w:" + w);
-    console.log("---h:" + h);
-
     let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
     let leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
     let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
@@ -153,13 +179,14 @@ function createUiRegions(debug) {
         rectToPoly(rightRect), color, navOverlay.svg, false));
     navigationVideoControl.addOverlay(navOverlay);
     navigationVideoControl.setMode("nav");
+    navigationVideoControl.setActive(true);
 
     
     /////////////////////////
     // manipulation
     /////////////////////////
 
-    let armOverlay = new Overlay('low_arm');
+    let armOverlay = new Overlay('manip');
 
     bgRect = makeRectangle(0, h/5.0, w, h-h/5.0);
     // Small rectangle at the top of the middle of the video
@@ -188,6 +215,9 @@ function createUiRegions(debug) {
         rectToPoly(rightRect), color, armOverlay.svg));
 
     manipulationVideoControl.addOverlay(armOverlay);
+    manipulationVideoControl.setMode("manip");
+    manipulationVideoControl.setActive(false);
+
 
     
     /////////////////////////
