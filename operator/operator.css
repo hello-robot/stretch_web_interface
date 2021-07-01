@@ -15,13 +15,41 @@
     tests from a Pixel 2XL phone (Android).*/
   touch-action: manipulation; 
   display: grid;
-  /*grid-template-columns: 1fr;*/
+/*  grid-row-start: 2;
+  grid-column-start: 1;
+*/
 }
 
-/*.video-container{
-  border: 3px green dashed;
+.v-button {
+  height: 100%;
+  width: 30px;
 }
-*/
+
+.h-button {
+  width: 100%;
+  height: 30px;
+}
+
+.rotate {
+
+    /* Safari */
+    -webkit-transform: rotate(-90deg);
+
+    /* Firefox */
+    -moz-transform: rotate(-90deg);
+
+    /* IE */
+    -ms-transform: rotate(-90deg);
+
+    /* Opera */
+    -o-transform: rotate(-90deg);
+
+}
+
+.mode_div {
+  display: grid;
+  grid-template-columns: 1fr 5fr 1fr;
+}
 
 .video_div div {
  background-color: rgba(0,0,0,0.2);
@@ -35,6 +63,14 @@
 
 .foreground {
     z-index:2;
+}
+
+#navigationVideo, #manipulationVideo {
+    border: 0px orange dashed;
+    height: 620px;
+    width: 350px;
+    z-index:0;
+    background-color: gray;
 }
 
 #panTiltCameraVideo {

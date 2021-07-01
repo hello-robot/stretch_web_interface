@@ -32,23 +32,45 @@
 	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
 	    </div>
  -->
- 		<div class="d-flex flex-row">
-		    <div class="video_div">
-		      <div class="background">
-		      	<video id="navigationVideo" autoplay></video>
-		      </div>
-		      <div class="foreground">
-		      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
-		  	  </div>
+ 		<div class="d-flex flex-row justify-content-around">
+		    <div class="mode_div border border-primary">
+		    	<div class="border border-danger"></div>
+		    	<div class="border border-danger">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button">^</button>
+		    	</div>
+		    	<div class="border border-danger"></div>
+		    	<div class="d-flex border border-success justify-content-end">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button"><</button>
+		    	</div>
+			    <div class="video_div">
+			      <div class="background">
+			      	<video id="navigationVideo" autoplay></video>
+			      </div>
+			      <div class="foreground">
+			      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
+			  	  </div>
+			    </div>
+		    	<div class="d-flex border border-success justify-content-start">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button">></button>
+		    	</div>
+		    	<div class="border border-danger"></div>
+		    	<div class="border border-danger">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button">v</button>		    		
+		    	</div>
+		    	<div class="border border-danger"></div>
 		    </div>
 
-		    <div class="video_div">
-		      <div class="background">
-		      	<video id="manipulationVideo" autoplay></video>
-		      </div>
-		      <div class="foreground">
-		      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
-		  	  </div>
+		    <div class="mode_div border border-warning">
+		    	<div class="border border-success"></div>
+			    <div class="video_div">
+			      <div class="background">
+			      	<video id="manipulationVideo" autoplay></video>
+			      </div>
+			      <div class="foreground">
+			      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
+			  	  </div>
+			    </div>
+		    	<div class="border border-success"></div>
 		    </div>
 		</div>
 
