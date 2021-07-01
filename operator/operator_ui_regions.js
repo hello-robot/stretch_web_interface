@@ -5,6 +5,9 @@ var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
+    console.log("w:" + w);
+    console.log("h:" + h);
+
 
 function setCameraViewPreset() {
     if (panTiltCameraVideoControl.currentMode != null)
@@ -27,6 +30,9 @@ function VideoControl(videoId) {
     this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     this.overlays = {}; // key is mode id, value is the Overlay object
     this.currentMode = null;
+    this.video = document.getElementById(videoId);
+    this.video.setAttribute("height", h);
+    this.video.setAttribute("width", w);
 
     this.addOverlay = function(overlay) {
         this.overlays[overlay.modeId] = overlay;
@@ -124,6 +130,9 @@ function createUiRegions(debug) {
     let navOverlay = new Overlay('nav');
     // Big rectangle at the borders of the video
     let bgRect = makeRectangle(0, 0, w, h);
+    console.log("---w:" + w);
+    console.log("---h:" + h);
+
     let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
     let leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
     let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
@@ -358,15 +367,14 @@ function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous,
 
 function arrangeOverlays(key) {
     ///////////////////////
-    let nx, ny, nw, nh;
-    let w = videoDimensions.h
-    let h = videoDimensions.w
-    nx = 0
-    ny = 0
-    nw = w
-    nh = h
+    let w = videoDimensions.h;
+    let h = videoDimensions.w;
+    let nx = 0;
+    let ny = 0;
+    let nw = w;
+    let nh = h;
     let bigViewBox = String(nx) + ' ' + String(ny) + ' ' + String(nw) + ' ' + String(nh);
-    let overlayName = key + '_ui_overlay'
+    let overlayName = key + '_ui_overlay';
     let overlay = document.getElementById(overlayName);
     overlay.setAttribute('viewBox', bigViewBox);
 }

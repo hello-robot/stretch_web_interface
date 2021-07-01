@@ -3,15 +3,24 @@
 
 function generateVideoDimensions() {
     
-    //var iw = 640;
-    //var ih = 480;
     
     // D435i 1280x720 for now. Could be 1920 x 1080 if launch file
     // were changed. The camera is rotated -90 on our robots. For
     // efficiency for now render as small images for video transport
     // 360x640.
-    var iw = 640;
-    var ih = 360;
+    var wHeight = window.innerHeight;
+    var iwDefault = 640;
+    var ihDefault = 360;
+
+    // Rescaling the video based on window height
+    var iw = wHeight*0.8;
+    if (iw < 300)
+    	iw = 300;
+
+    var ih = iw*ihDefault*1.0/iwDefault;
+    console.log("iw:" + iw);
+    console.log("ih:" + ih);
+
     var cameraFpsIdeal = 15.0;
     var ix = (iw - ih)/2.0;
     var oneUnit = ih/2.0;
@@ -72,7 +81,9 @@ function generateVideoDimensions() {
 				  dw: (ih/2.0) + (dExtra/2.0),
 				  dh: ih/2.0};
     
-    return {w:iw, h:ih, cameraFpsIdeal:cameraFpsIdeal, big: bigDim, smallTop: smallTopDim, smallBot: smallBotDim, smallBotNoWrist: smallBotDimNoWrist, smallBotZoom: smallBotDimZoom, smallBotZoomNoWrist: smallBotDimZoomNoWrist};
+    return {w:iw, h:ih, cameraFpsIdeal:cameraFpsIdeal, big: bigDim, smallTop: smallTopDim, 
+    	smallBot: smallBotDim, smallBotNoWrist: smallBotDimNoWrist, smallBotZoom: smallBotDimZoom, 
+    	smallBotZoomNoWrist: smallBotDimZoomNoWrist};
 }
 
 var videoDimensions = generateVideoDimensions();
