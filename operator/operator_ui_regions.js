@@ -140,6 +140,22 @@ function setMode(modeId) {
             if (checkbox.checked)
                 changeGripperFollow(false);
             setCameraView('nav');
+            document.getElementById('lookUpNavButton').disabled = false;
+            document.getElementById('lookLeftNavButton').disabled = false;
+            document.getElementById('lookRightNavButton').disabled = false;
+            document.getElementById('lookDownNavButton').disabled = false;
+            document.getElementById('resetViewNavButton').disabled = false;
+
+            document.getElementById('lookUpManipButton').disabled = true;
+            document.getElementById('lookLeftManipButton').disabled = true;
+            document.getElementById('lookRightManipButton').disabled = true;
+            document.getElementById('lookDownManipButton').disabled = true;
+            document.getElementById('resetViewManipButton').disabled = true;
+            document.getElementById('gripperOpenButton').disabled = true;
+            document.getElementById('gripperCloseButton').disabled = true;
+            document.getElementById('stowArmButton').disabled = true;
+            document.getElementById('prepArmButton').disabled = true;
+            document.getElementById('cameraFollowGripperOn').disabled = true;
         }
     }
     else if (modeId == 'manip') {
@@ -150,6 +166,22 @@ function setMode(modeId) {
             if (checkbox.checked)
                 changeGripperFollow(true);
             setCameraView('manip');
+            document.getElementById('lookUpNavButton').disabled = true;
+            document.getElementById('lookLeftNavButton').disabled = true;
+            document.getElementById('lookRightNavButton').disabled = true;
+            document.getElementById('lookDownNavButton').disabled = true;
+            document.getElementById('resetViewNavButton').disabled = true;
+
+            document.getElementById('lookUpManipButton').disabled = false;
+            document.getElementById('lookLeftManipButton').disabled = false;
+            document.getElementById('lookRightManipButton').disabled = false;
+            document.getElementById('lookDownManipButton').disabled = false;
+            document.getElementById('resetViewManipButton').disabled = false;
+            document.getElementById('gripperOpenButton').disabled = false;
+            document.getElementById('gripperCloseButton').disabled = false;
+            document.getElementById('stowArmButton').disabled = false;
+            document.getElementById('prepArmButton').disabled = false;
+            document.getElementById('cameraFollowGripperOn').disabled = false;
         }
     }
     else {

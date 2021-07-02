@@ -189,6 +189,24 @@ function gripperClose() {
     Database.logEvent("GripperClose", "medium");
 }
 
+function stowArm() {
+    var cmd = {type:"command",
+               subtype:"arm",
+               name:"stow",
+               modifier:"medium"};
+    sendData(cmd);
+    Database.logEvent("StowArm", "medium");
+}
+
+function prepArm() {
+    var cmd = {type:"command",
+               subtype:"arm",
+               name:"prep",
+               modifier:"medium"};
+    sendData(cmd);
+    Database.logEvent("PrepArm", "medium");
+}
+
 function gripperOpen() {
     var cmd = {type:"command",
                subtype:"gripper",
@@ -563,22 +581,30 @@ var armCommands = {
 
       let vel = extendV[modifiers[size]];
       armMove(extendMedDist, -1, vel);
-      	// executeCommandBySize(size, armMove,
-       //                       [10.0, -1], // dist (mm), timeout (s)
-       //                       [100.0, -1]); // dist (mm), timeout (s)
     },
     "retract": function(size) {
         console.log('arm: retract command received...executing');
       
       let vel = -extendV[modifiers[size]];
       armMove(extendMedDist, -1, vel);
-      	// executeCommandBySize(size, armMove,
-       //                       [-10.0, -1], // dist (mm), timeout (s)
-       //                       [-100.0, -1]); // dist (mm), timeout (s)
-
     }
 }  
 
+var fullCommands = {
+    "stow": function(size) {
+        console.log('full body: stow command received...executing');
+      
+      let vel = -extendV[modifiers[size]];
+      armMove(extendMedDist, -1, vel);
+    },
+    "prep": function(size) {
+        console.log('full body: prep command received...executing');
+      
+      let vel = -extendV[modifiers[size]];
+      armMove(extendMedDist, -1, vel);
+    }
+
+}  
 
 var wristCommands = {
     "in": function(size) {

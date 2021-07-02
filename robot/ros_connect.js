@@ -278,7 +278,6 @@ function loggedWebSocketSendBody(cmd) {
 
 function sendCommandBody(cmd) {
     if(session_body.ready) {
-
         command = JSON.stringify(cmd);
         loggedWebSocketSendBody(command);
     }
@@ -318,8 +317,26 @@ function robotModeOn(modeKey) {
     } 
 
     // We can add other presets here 
-
 }
+
+function stowRobotArm() {
+    console.log('sending armHome command')
+    sendCommandBody({type: "arm", action:"stow"});
+    console.log('sending liftHome command')
+    sendCommandBody({type: "lift", action:"stow"});
+}
+
+function prepRobotArm() {
+    // TODO: Figure out the goal pose for arm ready to manipulate
+    var prepPoseGoal = generatePoseGoal({
+        'joint_lift': 0.0,
+        'wrist_extension': 0.0,
+        'joint_wrist_yaw': 0.0
+    });
+    stowPoseGoal.send();
+    console.log('Sending stow pose to body');    
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 
