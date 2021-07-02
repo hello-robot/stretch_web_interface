@@ -47,14 +47,21 @@
 		    	<div class="d-flex justify-content-start">
 		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
+
 		    	<div class=""></div>
 		    	<div class="">
 		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Reset camera view" onclick="setCameraView('nav')">
+		    	</div>
+		    	<div class=""></div>
+
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-info btn-sm h-button" title="Reset camera view" onclick="setCameraView('nav')">
 		    			Reset camera view
 		    		</button>
 		    	</div>
 		    	<div class=""></div>
+
 		    </div>
 
 		    <div class="manip_mode_div">
@@ -80,18 +87,30 @@
 		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
 		    	<div class="d-flex flex-column justify-content-sm-center">
-					<button type="button" class="btn btn-secondary my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
+					<button type="button" class="btn btn-secondary btn-block my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
 					  <img src="gripper_open_medium.png" width="30"/>
 					</button>
-					<button type="button" class="btn btn-secondary my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
+					<button type="button" class="btn btn-secondary btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
 					  <img src="gripper_close_medium.png" width="30"/>
+					</button>
+					<button type="button" class="btn btn-secondary btn-block my-2" title="Stow arm" onclick="stowArm()">
+					  Stow arm
+					</button>
+					<button type="button" class="btn btn-secondary btn-block my-2" title="Prepare arm" onclick="prepArm()">
+					  Prepare arm
 					</button>
 		    	</div>
 
 		    	<div class=""></div>
 		    	<div class="">
 		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Reset camera view" onclick="setCameraView('manip')">
+		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
+
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-info btn-sm h-button" title="Reset camera view" onclick="setCameraView('manip')">
 		    			Reset camera view
 		    		</button>
 		    	</div>
