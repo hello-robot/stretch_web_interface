@@ -25,11 +25,6 @@
 	      </div>
 	    </div>
 
-<!-- 	<div class="presetView mb-2">
-	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
-	    </div>
- -->
-
  		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
 		    <div class="nav_mode_div">
@@ -54,7 +49,10 @@
 		    	</div>
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Reset camera view" onclick="setCameraView('nav')">
+		    			Reset camera view
+		    		</button>
 		    	</div>
 		    	<div class=""></div>
 		    </div>
@@ -92,7 +90,10 @@
 
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Reset camera view" onclick="setCameraView('manip')">
+		    			Reset camera view
+		    		</button>
 		    	</div>
 		    	<div class=""></div>
 		    	<div class=""></div>

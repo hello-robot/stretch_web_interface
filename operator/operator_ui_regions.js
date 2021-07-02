@@ -149,6 +149,7 @@ function setMode(modeId) {
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(true);
+            setCameraView('manip');
         }
     }
     else {

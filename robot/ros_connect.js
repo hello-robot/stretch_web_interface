@@ -300,9 +300,9 @@ function robotModeOn(modeKey) {
     }
 
     if (modeKey === 'manip') {
-        var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.2});
-        headNavPoseGoal.send();
-        console.log('sending navigation pose to head');
+        resetOffset();
+        lookAtGripper();
+        console.log('sending end-effector pose to head');
     }
 
     if (modeKey === 'low_arm') {
