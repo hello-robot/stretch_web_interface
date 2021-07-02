@@ -319,22 +319,28 @@ function robotModeOn(modeKey) {
     // We can add other presets here 
 }
 
+// TODO: Figure out the goal pose for arm ready to manipulate
+var stowArmPose = {
+    'joint_lift': 0.0,
+    'wrist_extension': 0.0,
+    'joint_wrist_yaw': 0.0};
+
+var prepArmPose = {
+    'joint_lift': 0.1,
+    'wrist_extension': 0.1,
+    'joint_wrist_yaw': 0.1};
+
+
 function stowRobotArm() {
-    console.log('sending armHome command')
-    sendCommandBody({type: "arm", action:"stow"});
-    console.log('sending liftHome command')
-    sendCommandBody({type: "lift", action:"stow"});
+    let prepPoseGoal = generatePoseGoal(stowArmPose);
+    prepPoseGoal.send();
+    console.log('Sending stow pose to robot');    
 }
 
 function prepRobotArm() {
-    // TODO: Figure out the goal pose for arm ready to manipulate
-    var prepPoseGoal = generatePoseGoal({
-        'joint_lift': 0.0,
-        'wrist_extension': 0.0,
-        'joint_wrist_yaw': 0.0
-    });
-    stowPoseGoal.send();
-    console.log('Sending stow pose to body');    
+    let prepPoseGoal = generatePoseGoal(prepArmPose);
+    prepPoseGoal.send();
+    console.log('Sending prep pose to robot');    
 }
 
 

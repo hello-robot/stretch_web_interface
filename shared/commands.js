@@ -191,7 +191,7 @@ function gripperClose() {
 
 function stowArm() {
     var cmd = {type:"command",
-               subtype:"arm",
+               subtype:"full",
                name:"stow",
                modifier:"medium"};
     sendData(cmd);
@@ -200,7 +200,7 @@ function stowArm() {
 
 function prepArm() {
     var cmd = {type:"command",
-               subtype:"arm",
+               subtype:"full",
                name:"prep",
                modifier:"medium"};
     sendData(cmd);
@@ -592,18 +592,13 @@ var armCommands = {
 
 var fullCommands = {
     "stow": function(size) {
-        console.log('full body: stow command received...executing');
-      
-      let vel = -extendV[modifiers[size]];
-      armMove(extendMedDist, -1, vel);
+      console.log('full body: stow command received...executing');
+      stowRobotArm();
     },
     "prep": function(size) {
-        console.log('full body: prep command received...executing');
-      
-      let vel = -extendV[modifiers[size]];
-      armMove(extendMedDist, -1, vel);
+      console.log('full body: prep command received...executing');
+      prepRobotArm();
     }
-
 }  
 
 var wristCommands = {
@@ -687,6 +682,7 @@ var commands = {
     "wrist": wristCommands,
     "gripper": gripperCommands,
     "head": headCommands,
+    "full": fullCommands,
     "mode": modeCommands
 }
 
