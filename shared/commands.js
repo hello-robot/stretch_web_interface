@@ -18,7 +18,6 @@ var cameraFollowGripper = false;
 
 function toggleCameraFollowGripper() {
     cameraFollowGripper = !cameraFollowGripper;
-    Database.logEvent("lookAtGripper", cameraFollowGripper);
     changeGripperFollow(cameraFollowGripper);
 }
 
@@ -88,6 +87,7 @@ function changeGripperFollow(isStart) {
                name:"gripper_follow",
                modifier:isStart};
     sendData(cmd);
+    Database.logEvent("LookAtGripper", isStart);
 }
 
 function moveForward() {
@@ -350,26 +350,27 @@ function turnModeOn(modeKey) {
 */
 
 function setCameraView(modeKey) {
-    var cmd;
-    if(noWristOn === false) {
-  cmd = {type:"command",
+  var cmd;
+  if(noWristOn === false) {
+    cmd = {type:"command",
                subtype:"mode",
                name : modeKey,
                modifier:"none"};
-  interfaceModifier = 'none';
-    } else {
-  cmd = {type:"command",
+    interfaceModifier = 'none';
+  } 
+  else {
+    cmd = {type:"command",
                subtype:"mode",
                name : modeKey,
                modifier:"no_wrist"};
-  interfaceModifier = 'no_wrist';
-    }
-    interfaceMode = modeKey
-    sendData(cmd)
-    Database.logEvent("SetCameraView", modeKey);
+    interfaceModifier = 'no_wrist';
+  }
+  interfaceMode = modeKey;
+  sendData(cmd);
+  Database.logEvent("SetCameraView", modeKey);
 }
 
-var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look']
+var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
 
 function createModeCommands() {
     modeCommands = {}
@@ -395,10 +396,10 @@ function createModeCommands() {
 	    } 
 	} (key)
     }
-    return modeCommands
+    return modeCommands;
 } 
 
-var modeCommands = createModeCommands()
+var modeCommands = createModeCommands();
 
 
 function executeCommandBySize(size, command, smallCommandArgs, mediumCommandArgs) {

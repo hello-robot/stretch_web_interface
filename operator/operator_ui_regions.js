@@ -84,27 +84,34 @@ function Overlay(modeId) {
     this.svg.setAttribute('preserveAspectRatio', 'none');
     this.svg.setAttribute('id', modeId + '_ui_overlay');
 
+    let bgRect = makeRectangle(0, 0, w, h);
+    this.curtain = new Region(modeId + '_curtain', null , 'curtain',
+        rectToPoly(bgRect), 'white', this.svg, true, 0.5);
+
     this.addRegion = function(region) {
         this.regions.push(region);
     }
+    this.addRegion(this.curtain);
 
     this.hide = function() {
         for (let i in this.regions) {
             this.regions[i].hide();
         }
+        this.curtain.show();
     }
 
     this.show = function() {
         for (let i in this.regions) {
             this.regions[i].show();
         }
+        this.curtain.hide();
     }
 }
 
 /*
 * Class for a video overlay
 */
-function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=true) {
+function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=true, fillOpacity=0.0) {
     this.regionId = regionId;
     this.fname = fname;
     this.label = label;
@@ -113,7 +120,7 @@ function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=tru
     this.parentSVG = parentSVG;
 
     createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
-        this.poly, color, this.isContinuous)
+        this.poly, color, this.isContinuous, fillOpacity);
 
     this.hide = function() {
         document.getElementById(this.regionId).style.display = 'none';
@@ -128,13 +135,20 @@ function setMode(modeId) {
     if (modeId == 'nav') {
         if (!navigationVideoControl.isActive) {
             navigationVideoControl.setActive(true);
-            manipulationVideoControl.setActive(false);            
+            manipulationVideoControl.setActive(false);
+            let checkbox = document.getElementById('cameraFollowGripperOn');
+            if (checkbox.checked)
+                changeGripperFollow(false);
+            setCameraView('nav');
         }
     }
     else if (modeId == 'manip') {
         if (!manipulationVideoControl.isActive) {
             navigationVideoControl.setActive(false);
             manipulationVideoControl.setActive(true);
+            let checkbox = document.getElementById('cameraFollowGripperOn');
+            if (checkbox.checked)
+                changeGripperFollow(true);
         }
     }
     else {
@@ -376,7 +390,7 @@ function createUiV1Regions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, stroke_width = 2, stroke_opacity = false){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3){
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
@@ -388,7 +402,9 @@ function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous,
     }
     path.setAttribute('title', title);
     path.setAttribute('stroke', color);
-    path.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
+    path.setAttribute('stroke-opacity', String(stroke_opacity));
+    path.setAttribute('fill', 'gray');
+    path.setAttribute('fill-opacity', String(fillOpacity));
     path.setAttribute('stroke-linejoin', "round");
     path.setAttribute('stroke-width', String(stroke_width));
     path.setAttribute('d', svgPolyString(poly));
