@@ -3,6 +3,14 @@
   <!-- REALSENSE D435i -->
   <include file="$(find stretch_core)/launch/d435i_high_resolution.launch"></include>
   <!-- -->
+
+  <!-- GRIPPER CAMERA -->
+  <include file="$(find stretch_web_interface)/launch/gripper_camera.launch"></include>
+  <!-- -->
+
+  <!-- NAVIGATION CAMERA -->
+  <include file="$(find stretch_web_interface)/launch/navigation_camera.launch"></include>
+  <!-- -->
   
   <!-- STRETCH DRIVER -->
   <param name="/stretch_driver/broadcast_odom_tf" type="bool" value="true"/>
