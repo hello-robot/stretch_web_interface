@@ -107,6 +107,13 @@ var gripperSensors = {
 	}
 }  
 
+// Camera Offsets
+var camera_offset = {
+	x: 0.014 + 0.0298, // x distance from point of rotation to rgb camera
+	y: 0.0187 + (0.0236 / 2), // z distance from point of rotation to rgb camera
+	z: (0.0182 + 0.014) - 0.012 // y distance from point of rotation to rgb camera
+}
+
 var headSensors = {
 	"transform": function (value) {
 		// Update the rotation and translation of the THREE.js camera to match the physical one
