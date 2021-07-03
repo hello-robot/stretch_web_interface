@@ -120,10 +120,10 @@ const global_reference_point = new THREE.Vector3(
 );
 
 const global_target_point = new THREE.Vector3(
-    0.037699,
+    0.037582,
     -0.002706,
-    -0.033797
-);
+    0.019540000000000113
+).add(global_reference_point);
 
 var reference_to_rotation_offset = global_rotation_point.clone().sub(global_reference_point);
 var rotation_to_target_offset = global_target_point.clone().sub(global_rotation_point);
@@ -140,14 +140,14 @@ var headSensors = {
 
 		var q_inverse = q_ros_space.clone().invert();
 		
-		var reference_point = new THREE.Vector3(value.translation.x, value.translation.y,value.translation.z);
-
-		var rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyQuaternion(q_inverse);
+		var reference_point = new THREE.Vector3(value.translation.x, value.translation.y, value.translation.z);
+		// z in global space is y in ros space
+		var rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, 0, e.y, order));
 
 		// TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
 		var rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
 
-		var rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyQuaternion(q_ros_space);
+		var rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, order));
 
 		var target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
 
