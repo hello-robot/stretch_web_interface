@@ -317,6 +317,8 @@ function arrangeOverlays(key) {
 
 ///////////////////////////////////////////////////////
 
+const positionOffset = new THREE.Vector3(0,0,0); //(0, -0.047, -0.02);
+
 function THREEinit() {
     // General THREE.js setup
     THREEscene = new THREE.Scene();
@@ -343,14 +345,15 @@ function THREEinit() {
 
     var geo = new THREE.CircleGeometry(0.52, 32) // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
     var mat = new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25});
-    const circle = new THREE.Mesh(geo, mat);
+    var circle = new THREE.Mesh(geo, mat);
+    circle.position.copy(positionOffset);
     THREEscene.add(circle);
     navModeObjects.circle = circle;
     outlineEffect.selectObject(circle);
 
-    geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    geo = new THREE.BoxGeometry(0.05, 0.05, 0.05);
     mat = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    const cube = new THREE.Mesh(geo, mat);
+    var cube = new THREE.Mesh(geo, mat);
     THREEscene.add(cube);
     navModeObjects.cube = cube;
 
