@@ -107,32 +107,61 @@ var gripperSensors = {
 	}
 }  
 
-// Camera Offsets
-var camera_offset = {
-	x: 0.014 + 0.0298, // x distance from point of rotation to rgb camera
-	y: 0.0187 + (0.0236 / 2), // z distance from point of rotation to rgb camera
-	z: (0.0182 + 0.014) - 0.012 // y distance from point of rotation to rgb camera
-}
+// Camera Position Information
+const global_rotation_point = THREE.Vector3(
+    -0.001328,
+    0,
+    -0.053331
+);
+
+
+const global_reference_point = THREE.Vector3(
+	-0.001328,
+    0.027765,
+    -0.053331
+);
+
+const global_target_point = THREE.Vector3(
+    0.019947,
+    -0.002706,
+    -0.033797
+);
+
+reference_to_rotation_offset = global_rotation_point.clone().sub(global_reference_point);
+rotation_to_target_offset = global_target_point.clone().sub(global_rotation_point);
 
 var headSensors = {
 	"transform": function (value) {
 		// Update the rotation and translation of the THREE.js camera to match the physical one
-		let x,y,z,w;
-		({x,y,z} = value.translation);
-		THREEcamera.position.set(x, -y, z);
 
-		({x,y,z,w} = value.rotation);
-		var q = new THREE.Quaternion(x, y, z, w);
+		// TODO: Because the angles need to be remapped, the quaternion needs to be converted to a euler, remapped, and then back to a quatenion
+		var q = new THREE.Quaternion(value.rotation.x, value.rotation.y, value.rotation.z, value.rotation.w);
+		var q_inverse = q.clone().invert();
+		
 		var e = new THREE.Euler();
 		e.setFromQuaternion(q);
-		e = rosEulerToTHREE(e)
-		// //THREEcamera.rotation.set(e.x, e.y, e.z);
-		// THREEcamera.rotation.x = limitAngle(e.z-(Math.PI/2), 0, Math.PI);
-		// THREEcamera.rotation.z = limitAngle(e.y-(Math.PI/2), 0, Math.PI);
-		// THREEcamera.rotation.y = limitAngle(e.x-(Math.PI/2), 0, Math.PI);
+		e = rosEulerToTHREE(e);
+
+		var reference_point = rosPostoTHREE(value.translation);
+
+		var rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyQuaternion(q_inverse);
+
+		// TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
+		var rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
+
+		var rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyQuaternion(q_inverse);
+
+		var target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
+
+		THREEcamera.position.set(target_point);
+
 		THREEcamera.rotation.set(e.x, e.y, e.z);
 		console.log(THREEcamera.rotation);
 	}
+}
+
+function rosPostoTHREE(p) {
+	return new THREE.Vector3(p.x, -p.y, p.z);
 }
 
 function rosEulerToTHREE(e) {
