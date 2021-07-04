@@ -77,16 +77,6 @@ jointStateTopic.subscribe(function(message) {
     // float64[] velocity
     // float64[] effort
     //imageTopic.unsubscribe()
-
-    sendData({
-        type: 'sensor',
-        subtype: 'head',
-        name: 'joint_transform',
-        value: {
-            pan: getJointValue(jointState, 'joint_head_pan'),
-            tilt: getJointValue(jointState, 'joint_head_tilt')
-        }
-    });
 });
 
 var tfClient = new ROSLIB.TFClient({
@@ -107,9 +97,9 @@ tfClient.subscribe('link_gripper_finger_left', function(tf) {
     });
 });
 
-var link_head_tilt_tf;
-tfClient.subscribe('link_head_tilt', function(tf) {
-    link_head_tilt_tf = tf;
+var camera_color_frame_tf;
+tfClient.subscribe('camera_color_frame', function(tf) {
+    camera_color_frame_tf = tf;
     sendData({
         type: 'sensor',
         subtype: 'head',
@@ -133,24 +123,12 @@ function sendTfs() {
         });
     }
 
-    if (link_head_tilt_tf) {
+    if (camera_color_frame_tf) {
         sendData({
             type: 'sensor',
             subtype: 'head',
             name: 'transform',
-            value: link_head_tilt_tf
-        });
-    }
-
-    if (jointState) {
-        sendData({
-            type: 'sensor',
-            subtype: 'head',
-            name: 'joint_transform',
-            value: {
-                pan: getJointValue(jointState, 'joint_head_pan'),
-                tilt: getJointValue(jointState, 'joint_head_tilt')
-            }
+            value: camera_color_frame_tf
         });
     }
 }
@@ -443,12 +421,12 @@ function sendIncrementalMove(jointName, jointValueInc) {
 
 function headLookAtGripper() {
     console.log('attempting to send headLookAtGripper command')
-    if (link_gripper_finger_left_tf && link_head_tilt_tf) {
+    if (link_gripper_finger_left_tf && camera_color_frame_tf) {
 
         var posDifference = {
-            x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
-            y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
-            z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
+            x: link_gripper_finger_left_tf.translation.x - camera_color_frame_tf.translation.x,
+            y: link_gripper_finger_left_tf.translation.y - camera_color_frame_tf.translation.y,
+            z: link_gripper_finger_left_tf.translation.z - camera_color_frame_tf.translation.z
         };
         
         // Normalize posDifference

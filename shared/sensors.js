@@ -130,8 +130,6 @@ var rotation_to_target_offset = global_target_point.clone().sub(global_rotation_
 
 var headSensors = {
 	"transform": function (value) {
-		THREEcamera.position.copy(rosPostoTHREE(value.translation));
-		return
 		// Update the rotation and translation of the THREE.js camera to match the physical one
 
 		var q_ros_space = new THREE.Quaternion(value.rotation.x, value.rotation.y, value.rotation.z, value.rotation.w);
@@ -154,10 +152,12 @@ var headSensors = {
 		var target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
 
 		//THREEcamera.position.copy(target_point);
+		THREEcamera.position.copy(rosPostoTHREE(value.translation));
 
-		var e_three_space = rosEulerToTHREE(e, 'XYZ');
+		var e_three_space = rosEulerToTHREE(e, 'YZX');
 		THREEcamera.rotation.copy(e_three_space);
 
+		/*
 		console.log("e_ros_space", e);
 		console.log("q_ros_space", q_ros_space);
 		console.log("q_inverse", q_inverse);
@@ -166,16 +166,7 @@ var headSensors = {
 		console.log("rotation_point", rotation_point.clone().multiplyScalar(100));
 		console.log("target_point", target_point);
 		console.log("e_three_space", e_three_space);
-	},
-	"joint_transform": function (value) {
-		if (value.pan!==0 && value.tilt!==0) {
-			console.log("joint_pan", value.pan);
-			console.log("joint_tilt", value.tilt);
-
-			THREEcamera.rotation.x = value.tilt+Math.PI/2;
-			THREEcamera.rotation.z = value.pan;//+(Math.PI/2);
-			THREEcamera.rotation.order = 'YZX';
-		}
+		*/
 	}
 }
 
@@ -185,9 +176,9 @@ function rosPostoTHREE(p) {
 
 function rosEulerToTHREE(e, order) {
 	return new THREE.Euler(
-		0, //limitAngle(e.x-(Math.PI/2), 0, Math.PI),
-		e.z+(Math.PI/2),//limitAngle(e.z+(Math.PI/2), -Math.PI, Math.PI),
-		e.y+(Math.PI/2),//limitAngle(e.y, -Math.PI, Math.PI),
+		e.z+(Math.PI/2),
+		0,
+		e.y+(Math.PI/2),
 		order
 	)
 }
