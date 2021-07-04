@@ -47,6 +47,7 @@
     background-color: gray;
 }
 
+/* Overlay the THREE.js canvas on top of the video */
 #remoteVideo + canvas {
     position: absolute;
     top: 0;

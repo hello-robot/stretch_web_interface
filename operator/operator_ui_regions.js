@@ -315,7 +315,7 @@ function arrangeOverlays(key) {
     
 }
 
-///////////////////////////////////////////////////////
+// THREE.js Camera Overlay Code
 
 const positionOffset = new THREE.Vector3(0, 0, 0); //(0, -0.047, -0.02);
 
@@ -354,7 +354,7 @@ function THREEinit() {
     navModeObjects.circle = circle;
     outlineEffect.selectObject(circle);
 
-    // Debugging cube
+    // Debugging cube. This should be exactly on top of stretch's lidar
     geo = new THREE.BoxGeometry(0.05, 0.05, 0.05);
     mat = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
     var cube = new THREE.Mesh(geo, mat);
@@ -383,6 +383,7 @@ function THREEanimate() {
 	THREEcomposer.render()
 }
 
+// VelocityUi Control Code
 
 function VelocityUi(elementId, commands, cursor) {
     this.elementId = elementId;
