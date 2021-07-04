@@ -77,6 +77,16 @@ jointStateTopic.subscribe(function(message) {
     // float64[] velocity
     // float64[] effort
     //imageTopic.unsubscribe()
+
+    sendData({
+        type: 'sensor',
+        subtype: 'head',
+        name: 'joint_transform',
+        value: {
+            pan: getJointValue(jointState, 'joint_head_pan'),
+            tilt: getJointValue(jointState, 'joint_head_tilt')
+        }
+    });
 });
 
 var tfClient = new ROSLIB.TFClient({
@@ -129,6 +139,18 @@ function sendTfs() {
             subtype: 'head',
             name: 'transform',
             value: link_head_tilt_tf
+        });
+    }
+
+    if (jointState) {
+        sendData({
+            type: 'sensor',
+            subtype: 'head',
+            name: 'joint_transform',
+            value: {
+                pan: getJointValue(jointState, 'joint_head_pan'),
+                tilt: getJointValue(jointState, 'joint_head_tilt')
+            }
         });
     }
 }

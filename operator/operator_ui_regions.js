@@ -317,12 +317,14 @@ function arrangeOverlays(key) {
 
 ///////////////////////////////////////////////////////
 
-const positionOffset = new THREE.Vector3(0,0,0); //(0, -0.047, -0.02);
+const positionOffset = new THREE.Vector3(0.05,0,0); //(0, -0.047, -0.02);
 
 function THREEinit() {
     // General THREE.js setup
     THREEscene = new THREE.Scene();
     THREEcamera = new THREE.PerspectiveCamera( 69, 350/620, 0.1, 1000 );
+
+    THREEcamera.position.set(0.0017999238937422997, 0.00028575863531305964, 1.302089778086701);
 
     THREErenderer = new THREE.WebGLRenderer({ alpha: true });
     THREErenderer.setSize(350, 620); // matches #remoteVideo dimensions from operator.css

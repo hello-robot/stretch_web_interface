@@ -101,7 +101,7 @@ var gripperSensors = {
 		nothingRegion.setAttribute('fill-opacity', 0.0);
     },
 	"transform": function (value) {
-		navModeObjects.cube.position.copy(rosPostoTHREE(value.translation).add(positionOffset));
+		//navModeObjects.cube.position.copy(rosPostoTHREE(value.translation).add(positionOffset));
 	}
 }  
 
@@ -130,6 +130,8 @@ var rotation_to_target_offset = global_target_point.clone().sub(global_rotation_
 
 var headSensors = {
 	"transform": function (value) {
+		THREEcamera.position.copy(rosPostoTHREE(value.translation));
+		return
 		// Update the rotation and translation of the THREE.js camera to match the physical one
 
 		var q_ros_space = new THREE.Quaternion(value.rotation.x, value.rotation.y, value.rotation.z, value.rotation.w);
@@ -142,27 +144,38 @@ var headSensors = {
 		
 		var reference_point = new THREE.Vector3(value.translation.x, value.translation.y, value.translation.z);
 		// z in global space is y in ros space
-		var rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, 0, e.y, order));
+		var rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
 
 		// TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
 		var rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
 
-		var rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, order));
+		var rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
 
 		var target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
+
+		//THREEcamera.position.copy(target_point);
+
+		var e_three_space = rosEulerToTHREE(e, 'XYZ');
+		THREEcamera.rotation.copy(e_three_space);
 
 		console.log("e_ros_space", e);
 		console.log("q_ros_space", q_ros_space);
 		console.log("q_inverse", q_inverse);
 		console.log("rotated_reference_to_rotation_offset", rotated_reference_to_rotation_offset);
 		console.log("reference_point", reference_point);
-		console.log("rotation_point", rotation_point);
+		console.log("rotation_point", rotation_point.clone().multiplyScalar(100));
 		console.log("target_point", target_point);
+		console.log("e_three_space", e_three_space);
+	},
+	"joint_transform": function (value) {
+		if (value.pan!==0 && value.tilt!==0) {
+			console.log("joint_pan", value.pan);
+			console.log("joint_tilt", value.tilt);
 
-		THREEcamera.position.copy(rosPostoTHREE(target_point));
-
-		var e_three_space = rosEulerToTHREE(e, order);
-		THREEcamera.setRotationFromEuler(e_three_space);
+			THREEcamera.rotation.x = value.tilt+Math.PI/2;
+			THREEcamera.rotation.z = value.pan;//+(Math.PI/2);
+			THREEcamera.rotation.order = 'YZX';
+		}
 	}
 }
 
@@ -173,18 +186,18 @@ function rosPostoTHREE(p) {
 function rosEulerToTHREE(e, order) {
 	return new THREE.Euler(
 		0, //limitAngle(e.x-(Math.PI/2), 0, Math.PI),
-		limitAngle(e.z-(Math.PI/2), 0, Math.PI),
-		limitAngle(e.y-(Math.PI/2), 0, Math.PI),
+		e.z+(Math.PI/2),//limitAngle(e.z+(Math.PI/2), -Math.PI, Math.PI),
+		e.y+(Math.PI/2),//limitAngle(e.y, -Math.PI, Math.PI),
 		order
 	)
 }
 
 function limitAngle(rad, lower = -Math.PI/2, upper = Math.PI/2) {
     while (rad > upper) {
-        rad -= Math.PI;
+        rad -= 2*Math.PI;
     }
     while (rad < lower) {
-        rad += Math.PI;
+        rad += 2*Math.PI;
     }
 
     return rad;
