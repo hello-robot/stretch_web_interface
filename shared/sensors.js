@@ -7,12 +7,12 @@ var liftSensors = {
 	// adjust for the effort needed to hold the arm in place
 	// against gravity
 	var adjusted_value = value - 53.88;
-	var armUpRegion1 = document.querySelector('#low_arm_up_region');
-	var armUpRegion2 = document.querySelector('#high_arm_up_region');
+	var armUpRegion1 = document.getElementById('low_arm_up_region');
+	var armUpRegion2 = document.getElementById('high_arm_up_region');
 	
-	var armDownRegion1 = document.querySelector('#low_arm_down_region');
-	var armDownRegion2 = document.querySelector('#high_arm_down_region');
-
+	var armDownRegion1 = document.getElementById('low_arm_down_region');
+	var armDownRegion2 = document.getElementById('high_arm_down_region');
+	
 	var redRegion1;
 	var redRegion2;
 	
@@ -48,11 +48,11 @@ var liftSensors = {
 
 var armSensors = {
     "arm_effort": function(value) {
-	var armExtendRegion1 = document.querySelector('#low_arm_extend_region');
-	var armExtendRegion2 = document.querySelector('#high_arm_extend_region');
+	var armExtendRegion1 = document.getElementById('low_arm_extend_region');
+	var armExtendRegion2 = document.getElementById('high_arm_extend_region');
 	
-	var armRetractRegion1 = document.querySelector('#low_arm_retract_region');
-	var armRetractRegion2 = document.querySelector('#high_arm_retract_region');
+	var armRetractRegion1 = document.getElementById('low_arm_retract_region');
+	var armRetractRegion2 = document.getElementById('high_arm_retract_region');
 
 	var redRegion1;
 	var redRegion2;
@@ -88,68 +88,68 @@ var armSensors = {
 
 var wristSensors = {
     "yaw_torque": function(value) {
-	var yawInRegion = document.querySelector('#hand_in_region');
-	var yawOutRegion = document.querySelector('#hand_out_region');
-	var redRegion;
-	var nothingRegion;
-	if (value > 0.0) {
-	    redRegion = yawOutRegion;
-	    nothingRegion = yawInRegion;
-	} else {
-	    redRegion = yawInRegion;
-	    nothingRegion = yawOutRegion;
-	}
-	redRegion.setAttribute('fill', 'red');
-	// make the torque positive and multiply it by a factor to
-	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(value) * 0.015;
-	redRegion.setAttribute('fill-opacity', redOpacity);
-	nothingRegion.setAttribute('fill-opacity', 0.0);
+		var yawInRegion = document.getElementById('hand_in_region');
+		var yawOutRegion = document.getElementById('hand_out_region');
+		var redRegion;
+		var nothingRegion;
+		if (value > 0.0) {
+			redRegion = yawOutRegion;
+			nothingRegion = yawInRegion;
+		} else {
+			redRegion = yawInRegion;
+			nothingRegion = yawOutRegion;
+		}
+		redRegion.setAttribute('fill', 'red');
+		// make the torque positive and multiply it by a factor to
+		// make sure the video will always be visible even with
+		var redOpacity = Math.abs(value) * 0.015;
+		redRegion.setAttribute('fill-opacity', redOpacity);
+		nothingRegion.setAttribute('fill-opacity', 0.0);
     },
     "bend_torque": function(value) {
-	var bendUpRegion = document.querySelector('#wrist_bend_up_region');
-	var bendDownRegion = document.querySelector('#wrist_bend_down_region');
-	var redRegion;
-	var nothingRegion;
-	if (value > 0.0) {
-	    redRegion = bendUpRegion;
-	    nothingRegion = bendDownRegion;
-	} else {
-	    redRegion = bendDownRegion;
-	    nothingRegion = bendUpRegion;
-	}
-	redRegion.setAttribute('fill', 'red');
-	// make the torque positive and multiply it by a factor to
-	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(value) * 0.8;
-	redRegion.setAttribute('fill-opacity', redOpacity);
-	nothingRegion.setAttribute('fill-opacity', 0.0);
+		var bendUpRegion = document.getElementById('wrist_bend_up_region');
+		var bendDownRegion = document.getElementById('wrist_bend_down_region');
+		var redRegion;
+		var nothingRegion;
+		if (value > 0.0) {
+			redRegion = bendUpRegion;
+			nothingRegion = bendDownRegion;
+		} else {
+			redRegion = bendDownRegion;
+			nothingRegion = bendUpRegion;
+		}
+		redRegion.setAttribute('fill', 'red');
+		// make the torque positive and multiply it by a factor to
+		// make sure the video will always be visible even with
+		var redOpacity = Math.abs(value) * 0.8;
+		redRegion.setAttribute('fill-opacity', redOpacity);
+		nothingRegion.setAttribute('fill-opacity', 0.0);
     },
     "roll_torque": function(value) {
-	var rollLeftRegion = document.querySelector('#wrist_roll_left_region');
-	var rollRightRegion = document.querySelector('#wrist_roll_right_region');
-	var redRegion;
-	var nothingRegion;
-	if (value > 0.0) {
-	    redRegion = rollLeftRegion;
-	    nothingRegion = rollRightRegion;
-	} else {
-	    redRegion = rollRightRegion;
-	    nothingRegion = rollLeftRegion;
-	}
-	redRegion.setAttribute('fill', 'red');
-	// make the torque positive and multiply it by a factor to
-	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(value) * 0.8;
-	redRegion.setAttribute('fill-opacity', redOpacity);
-	nothingRegion.setAttribute('fill-opacity', 0.0);
+		var rollLeftRegion = document.getElementById('wrist_roll_left_region');
+		var rollRightRegion = document.getElementById('wrist_roll_right_region');
+		var redRegion;
+		var nothingRegion;
+		if (value > 0.0) {
+			redRegion = rollLeftRegion;
+			nothingRegion = rollRightRegion;
+		} else {
+			redRegion = rollRightRegion;
+			nothingRegion = rollLeftRegion;
+		}
+		redRegion.setAttribute('fill', 'red');
+		// make the torque positive and multiply it by a factor to
+		// make sure the video will always be visible even with
+		var redOpacity = Math.abs(value) * 0.8;
+		redRegion.setAttribute('fill-opacity', redOpacity);
+		nothingRegion.setAttribute('fill-opacity', 0.0);
     }
 }
 
 var gripperSensors = {
 	"gripper_torque": function(value) {
-		var handCloseRegion = document.querySelector('#hand_close_region');
-		var handOpenRegion = document.querySelector('#hand_open_region');
+		var handCloseRegion = document.getElementById('hand_close_region');
+		var handOpenRegion = document.getElementById('hand_open_region');
 		var redRegion;
 		var nothingRegion;
 		if (value > 0.0) {
@@ -161,7 +161,7 @@ var gripperSensors = {
 		}
 		redRegion.setAttribute('fill', 'red');
 		// make the torque positive and multiply it by a factor to
-		// make sure the video will always be visible even with
+		// make sure the video will 	always be visible even with
 		var redOpacity = Math.abs(value) * 0.015;
 		redRegion.setAttribute('fill-opacity', redOpacity);
 		nothingRegion.setAttribute('fill-opacity', 0.0);

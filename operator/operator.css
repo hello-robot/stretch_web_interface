@@ -63,6 +63,14 @@ video {
 .foreground {
   z-index:2;
   cursor: pointer;
+  position: relative;
+}
+
+/* Three.js canvas positioning */
+.foreground > canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 

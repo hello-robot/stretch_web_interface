@@ -92,14 +92,19 @@ class THREEManager {
 
     pauseOverlayRender(modeId) {
         this.overlays[modeId].render = false;
+        this.overlays[modeId].overlay.render();
     }
 
     resumeOverlayRender(modeId) {
         this.overlays[modeId].render = true;
+        this.overlays[modeId].overlay.render();
     }
 
     animate() {
-        requestAnimationFrame(this.animate);
+        // TODO: Figure out how to properly pass self into a callback function
+        requestAnimationFrame(() => {
+            this.animate();
+        });
 
         for (const overlay in this.overlays) {
             if (this.overlays[overlay].render) {
@@ -180,10 +185,10 @@ class OverlayTHREE extends Overlay {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.threeManager.width, this.threeManager.height);
-        $(`#${modeId}_ui_overlay`).append(this.renderer.domElement);
+        $(`#${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
 
         this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
-        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.renderer));
+        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
     
         this.threeManager.addOverlay(this);
     }
@@ -194,6 +199,7 @@ class OverlayTHREE extends Overlay {
 
     addItem(obj) {
         this.objs[obj.name] = obj;
+        this.scene.add(obj.mesh);
     }
 
     hide() {
@@ -208,6 +214,10 @@ class OverlayTHREE extends Overlay {
             this.objs[obj].show();
         }
         this.threeManager.resumeOverlayRender(this.modeId);
+    }
+
+    render() {
+        this.composer.render();
     }
 }
 
@@ -330,7 +340,6 @@ var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
 
 
-
 function createUiRegions(debug) {
 
     if(debug) {
@@ -374,11 +383,11 @@ function createUiRegions(debug) {
         new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
         new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
     ));
-    const outlineEffect = new POSTPROCESSING.OutlineEffect(
-        navOverlay.scene,
+    var outlineEffect = new POSTPROCESSING.OutlineEffect(
+        navOverlayTHREE.scene,
         navOverlayTHREE.threeManager.camera,
         {visibleEdgeColor: 0xff9900});
-    const outlineEffectPass = new POSTPROCESSING.EffectPass(
+    var outlineEffectPass = new POSTPROCESSING.EffectPass(
         navOverlayTHREE.threeManager.camera,
         outlineEffect
     );
@@ -665,3 +674,4 @@ function drawText(elementID, text, x, y, font_size=100, center=false, color='whi
 
 
 createUiRegions(true); // debug = true or false
+threeManager.animate();
