@@ -141,6 +141,12 @@ class OverlaySVG extends Overlay {
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
         this.svg.setAttribute('id', modeId + '_ui_overlay');
+
+        let bgRect = makeRectangle(0, 0, w, h);
+        this.curtain = new Region(modeId + '_curtain', null , 'curtain',
+            rectToPoly(bgRect), 'white', this.svg, true, 0.5);
+        
+        this.addRegion(this.curtain);
     }
 
     addRegion(region) {
@@ -151,12 +157,14 @@ class OverlaySVG extends Overlay {
         for (let i in this.regions) {
             this.regions[i].hide();
         }
+        this.curtain.show();
     }
 
     show() {
         for (let i in this.regions) {
             this.regions[i].show();
         }
+        this.curtain.hide();
     }
 }
 
@@ -214,10 +222,9 @@ class Region {
         this.poly = poly;
         this.isContinuous = isContinuous;
         this.parentSVG = parentSVG;
-
-    createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
-        this.poly, color, this.isContinuous);
-    }
+    
+        createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
+            this.poly, color, this.isContinuous, fillOpacity);
 
 
     hide() {
@@ -250,13 +257,53 @@ function setMode(modeId) {
     if (modeId == 'nav') {
         if (!navigationVideoControl.isActive) {
             navigationVideoControl.setActive(true);
-            manipulationVideoControl.setActive(false);            
+            manipulationVideoControl.setActive(false);
+            let checkbox = document.getElementById('cameraFollowGripperOn');
+            if (checkbox.checked)
+                changeGripperFollow(false);
+            setCameraView('nav');
+            document.getElementById('lookUpNavButton').disabled = false;
+            document.getElementById('lookLeftNavButton').disabled = false;
+            document.getElementById('lookRightNavButton').disabled = false;
+            document.getElementById('lookDownNavButton').disabled = false;
+            document.getElementById('resetViewNavButton').disabled = false;
+
+            document.getElementById('lookUpManipButton').disabled = true;
+            document.getElementById('lookLeftManipButton').disabled = true;
+            document.getElementById('lookRightManipButton').disabled = true;
+            document.getElementById('lookDownManipButton').disabled = true;
+            document.getElementById('resetViewManipButton').disabled = true;
+            document.getElementById('gripperOpenButton').disabled = true;
+            document.getElementById('gripperCloseButton').disabled = true;
+            document.getElementById('stowArmButton').disabled = true;
+            document.getElementById('prepArmButton').disabled = true;
+            document.getElementById('cameraFollowGripperOn').disabled = true;
         }
     }
     else if (modeId == 'manip') {
         if (!manipulationVideoControl.isActive) {
             navigationVideoControl.setActive(false);
             manipulationVideoControl.setActive(true);
+            let checkbox = document.getElementById('cameraFollowGripperOn');
+            if (checkbox.checked)
+                changeGripperFollow(true);
+            setCameraView('manip');
+            document.getElementById('lookUpNavButton').disabled = true;
+            document.getElementById('lookLeftNavButton').disabled = true;
+            document.getElementById('lookRightNavButton').disabled = true;
+            document.getElementById('lookDownNavButton').disabled = true;
+            document.getElementById('resetViewNavButton').disabled = true;
+
+            document.getElementById('lookUpManipButton').disabled = false;
+            document.getElementById('lookLeftManipButton').disabled = false;
+            document.getElementById('lookRightManipButton').disabled = false;
+            document.getElementById('lookDownManipButton').disabled = false;
+            document.getElementById('resetViewManipButton').disabled = false;
+            document.getElementById('gripperOpenButton').disabled = false;
+            document.getElementById('gripperCloseButton').disabled = false;
+            document.getElementById('stowArmButton').disabled = false;
+            document.getElementById('prepArmButton').disabled = false;
+            document.getElementById('cameraFollowGripperOn').disabled = false;
         }
     }
     else {
@@ -536,7 +583,7 @@ function createUiV1Regions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, stroke_width = 2, stroke_opacity = false){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3){
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
@@ -548,7 +595,9 @@ function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous,
     }
     path.setAttribute('title', title);
     path.setAttribute('stroke', color);
-    path.setAttribute('stroke-opacity', String(stroke_opacity ? stroke_opacity : strokeOpacity));
+    path.setAttribute('stroke-opacity', String(stroke_opacity));
+    path.setAttribute('fill', 'gray');
+    path.setAttribute('fill-opacity', String(fillOpacity));
     path.setAttribute('stroke-linejoin', "round");
     path.setAttribute('stroke-width', String(stroke_width));
     path.setAttribute('d', svgPolyString(poly));
