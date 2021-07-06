@@ -198,7 +198,7 @@ function maybeStart() {
             dataChannel.onclose = onDataChannelStateChange;
             doCall();
         }
-	isStarted = true;
+	   isStarted = true;
     }
 }
 
@@ -258,7 +258,7 @@ function handleRemoteStreamAdded(event) {
         }
         var remoteaudio = event.stream.getAudioTracks()[0]; // get remotely captured audio track
         displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
-	videoDisplayElement.srcObject = displayStream;
+	   videoDisplayElement.srcObject = displayStream;
     }
     
     remoteStream = event.stream;

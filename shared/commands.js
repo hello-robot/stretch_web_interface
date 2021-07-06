@@ -18,7 +18,6 @@ var cameraFollowGripper = false;
 
 function toggleCameraFollowGripper() {
     cameraFollowGripper = !cameraFollowGripper;
-    Database.logEvent("lookAtGripper", cameraFollowGripper);
     changeGripperFollow(cameraFollowGripper);
 }
 
@@ -88,6 +87,7 @@ function changeGripperFollow(isStart) {
                name:"gripper_follow",
                modifier:isStart};
     sendData(cmd);
+    Database.logEvent("LookAtGripper", isStart);
 }
 
 function moveForward() {
@@ -187,6 +187,24 @@ function gripperClose() {
                modifier:"medium"};
     sendData(cmd);
     Database.logEvent("GripperClose", "medium");
+}
+
+function stowArm() {
+    var cmd = {type:"command",
+               subtype:"full",
+               name:"stow",
+               modifier:"medium"};
+    sendData(cmd);
+    Database.logEvent("StowArm", "medium");
+}
+
+function prepArm() {
+    var cmd = {type:"command",
+               subtype:"full",
+               name:"prep",
+               modifier:"medium"};
+    sendData(cmd);
+    Database.logEvent("PrepArm", "medium");
 }
 
 function gripperOpen() {
@@ -350,26 +368,27 @@ function turnModeOn(modeKey) {
 */
 
 function setCameraView(modeKey) {
-    var cmd;
-    if(noWristOn === false) {
-  cmd = {type:"command",
+  var cmd;
+  if(noWristOn === false) {
+    cmd = {type:"command",
                subtype:"mode",
                name : modeKey,
                modifier:"none"};
-  interfaceModifier = 'none';
-    } else {
-  cmd = {type:"command",
+    interfaceModifier = 'none';
+  } 
+  else {
+    cmd = {type:"command",
                subtype:"mode",
                name : modeKey,
                modifier:"no_wrist"};
-  interfaceModifier = 'no_wrist';
-    }
-    interfaceMode = modeKey
-    sendData(cmd)
-    Database.logEvent("SetCameraView", modeKey);
+    interfaceModifier = 'no_wrist';
+  }
+  interfaceMode = modeKey;
+  sendData(cmd);
+  Database.logEvent("SetCameraView", modeKey);
 }
 
-var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look']
+var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
 
 function createModeCommands() {
     modeCommands = {}
@@ -395,10 +414,10 @@ function createModeCommands() {
 	    } 
 	} (key)
     }
-    return modeCommands
+    return modeCommands;
 } 
 
-var modeCommands = createModeCommands()
+var modeCommands = createModeCommands();
 
 
 function executeCommandBySize(size, command, smallCommandArgs, mediumCommandArgs) {
@@ -562,22 +581,25 @@ var armCommands = {
 
       let vel = extendV[modifiers[size]];
       armMove(extendMedDist, -1, vel);
-      	// executeCommandBySize(size, armMove,
-       //                       [10.0, -1], // dist (mm), timeout (s)
-       //                       [100.0, -1]); // dist (mm), timeout (s)
     },
     "retract": function(size) {
         console.log('arm: retract command received...executing');
       
       let vel = -extendV[modifiers[size]];
       armMove(extendMedDist, -1, vel);
-      	// executeCommandBySize(size, armMove,
-       //                       [-10.0, -1], // dist (mm), timeout (s)
-       //                       [-100.0, -1]); // dist (mm), timeout (s)
-
     }
 }  
 
+var fullCommands = {
+    "stow": function(size) {
+      console.log('full body: stow command received...executing');
+      stowRobotArm();
+    },
+    "prep": function(size) {
+      console.log('full body: prep command received...executing');
+      prepRobotArm();
+    }
+}  
 
 var wristCommands = {
     "in": function(size) {
@@ -660,6 +682,7 @@ var commands = {
     "wrist": wristCommands,
     "gripper": gripperCommands,
     "head": headCommands,
+    "full": fullCommands,
     "mode": modeCommands
 }
 

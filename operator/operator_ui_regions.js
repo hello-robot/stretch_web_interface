@@ -215,7 +215,7 @@ class OverlayTHREE extends Overlay {
 * Class for an overlay region
 */
 class Region {
-    constructor(regionId, fname, label, poly, color, parentSVG, isContinuous=true) {
+    constructor(regionId, fname, label, poly, color, parentSVG, isContinuous=true, fillOpacity=0.0) {
         this.regionId = regionId;
         this.fname = fname;
         this.label = label;
@@ -225,6 +225,7 @@ class Region {
     
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
+    }
 
 
     hide() {
@@ -262,6 +263,7 @@ function setMode(modeId) {
             if (checkbox.checked)
                 changeGripperFollow(false);
             setCameraView('nav');
+            // TODO: Is there some way to set this button list procedurally?
             document.getElementById('lookUpNavButton').disabled = false;
             document.getElementById('lookLeftNavButton').disabled = false;
             document.getElementById('lookRightNavButton').disabled = false;
@@ -583,7 +585,7 @@ function createUiV1Regions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3) {
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');

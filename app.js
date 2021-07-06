@@ -57,7 +57,7 @@ console.log('use helmet');
 app.use(helmet());
 
 var use_content_security_policy = true;
-
+// NOTE: operator.html has its own CSP rules that override what is set here
 if (use_content_security_policy) {
     console.log('using a content security policy');
     app.use(helmet.contentSecurityPolicy({

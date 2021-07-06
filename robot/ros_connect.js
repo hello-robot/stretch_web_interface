@@ -308,7 +308,6 @@ function loggedWebSocketSendBody(cmd) {
 
 function sendCommandBody(cmd) {
     if(session_body.ready) {
-
         command = JSON.stringify(cmd);
         loggedWebSocketSendBody(command);
     }
@@ -324,26 +323,56 @@ function robotModeOn(modeKey) {
     // This is where the head pose gets set when mode is switched.
 
     if (modeKey === 'nav') {
-    var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.0})
-    headNavPoseGoal.send()
-    console.log('sending navigation pose to head')  
+        var headNavPoseGoal = generatePoseGoal({'joint_head_pan': 0.0, 'joint_head_tilt': -1.2});
+        headNavPoseGoal.send();
+        console.log('sending navigation pose to head');
+    }
+
+    if (modeKey === 'manip') {
+        resetOffset();
+        lookAtGripper();
+        console.log('sending end-effector pose to head');
     }
 
     if (modeKey === 'low_arm') {
-    var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9})
-    headManPoseGoal.send()
-    console.log('sending manipulation pose to head')    
+        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9});
+        headManPoseGoal.send();
+        console.log('sending manipulation pose to head');
     }
 
     if (modeKey === 'high_arm') {
-    var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45})
-    headManPoseGoal.send()
-    console.log('sending manipulation pose to head')
+        var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45});
+        headManPoseGoal.send();
+        console.log('sending manipulation pose to head');
     } 
 
     // We can add other presets here 
-
 }
+
+// TODO: Figure out the goal pose for arm ready to manipulate
+var stowArmPose = {
+    'joint_lift': 0.0,
+    'wrist_extension': 0.0,
+    'joint_wrist_yaw': 0.0};
+
+var prepArmPose = {
+    'joint_lift': 0.1,
+    'wrist_extension': 0.1,
+    'joint_wrist_yaw': 0.1};
+
+
+function stowRobotArm() {
+    let prepPoseGoal = generatePoseGoal(stowArmPose);
+    prepPoseGoal.send();
+    console.log('Sending stow pose to robot');    
+}
+
+function prepRobotArm() {
+    let prepPoseGoal = generatePoseGoal(prepArmPose);
+    prepPoseGoal.send();
+    console.log('Sending prep pose to robot');    
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -414,33 +443,46 @@ function sendIncrementalMove(jointName, jointValueInc) {
 
 function headLookAtGripper(isStarting) {
     isWristFollowingActive = isStarting;
+    if (isStarting)
+        resetOffset();
     return true;
 }
 
 function updateHead() {
     if (isWristFollowingActive) {
         if (link_gripper_finger_left_tf && link_head_tilt_tf) {
-
-            var posDifference = {
-                x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
-                y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
-                z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
-            };
-            
-            // Normalize posDifference
-            var scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
-            posDifference.x /= scalar;
-            posDifference.y /= scalar;
-            posDifference.z /= scalar;
-
-            var pan = Math.atan2(posDifference.y, posDifference.x);
-            var tilt = Math.atan2(posDifference.z, -posDifference.y);
-
-            var headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
-            headFollowPoseGoal.send()
-            console.log('sending arm follow pose to head') 
+            lookAtGripper();
         }
     }
+}
+
+var panOffset = 0;
+var tiltOffset = 0;
+
+function resetOffset() {
+    panOffset = 0;
+    tiltOffset = 0;
+}
+
+function lookAtGripper() {
+    let posDifference = {
+        x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
+        y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
+        z: link_gripper_finger_left_tf.translation.z - link_head_tilt_tf.translation.z
+    };
+    
+    // Normalize posDifference
+    const scalar = Math.sqrt(posDifference.x**2 + posDifference.y**2 + posDifference.z**2);
+    posDifference.x /= scalar;
+    posDifference.y /= scalar;
+    posDifference.z /= scalar;
+
+    const pan = Math.atan2(posDifference.y, posDifference.x) + panOffset;
+    const tilt = Math.atan2(posDifference.z, -posDifference.y) + tiltOffset;
+
+    let headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+    headFollowPoseGoal.send()
+    console.log('Sending arm look at pose to head.')     
 }
 
 var backendUpdateFrequency = 200; //milliseconds
@@ -499,13 +541,25 @@ function wristMove(angRad, vel) {
 }
 
 function headTilt(angRad) {
-    console.log('attempting to send headTilt command')
-    sendIncrementalMove('joint_head_tilt', angRad)
+    if (isWristFollowingActive) {
+        console.log('Adding headTilt offset to gripper following');
+        tiltOffset += angRad;
+    }
+    else {
+        console.log('Attempting to send headTilt command');
+        sendIncrementalMove('joint_head_tilt', angRad);     
+    }
 }
 
 function headPan(angRad) {
-    console.log('attempting to send headPan command')
-    sendIncrementalMove('joint_head_pan', angRad)
+    if (isWristFollowingActive) {
+        console.log('Adding headTilt offset to gripper following');
+        panOffset += angRad;
+    }
+    else {
+        console.log('attempting to send headPan command');
+        sendIncrementalMove('joint_head_pan', angRad);
+    }
 }
 
 

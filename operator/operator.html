@@ -29,21 +29,16 @@
 	      </div>
 	    </div>
 
-<!-- 	<div class="presetView mb-2">
-	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
-	    </div>
- -->
-
  		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
 		    <div class="nav_mode_div">
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
+		    		<button id="lookUpNavButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
 		    	</div>
 		    	<div class=""></div>
 		    	<div class="d-flex justify-content-end">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
+		    		<button id="lookLeftNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
 			    <div class="video_div" id="navigationVideoDiv">
 			      <div class="background">
@@ -54,25 +49,35 @@
 			  	  </div>
 			    </div>
 		    	<div class="d-flex justify-content-start">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
+		    		<button id="lookRightNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
+
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    		<button id="lookDownNavButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
 		    	</div>
 		    	<div class=""></div>
+
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button  id="resetViewNavButton"type="button" class="btn btn-info btn-sm h-button" title="Reset camera view" onclick="setCameraView('nav')">
+		    			Reset camera view
+		    		</button>
+		    	</div>
+		    	<div class=""></div>
+
 		    </div>
 
 		    <div class="manip_mode_div">
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
+		    		<button id="lookUpManipButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
 		    	</div>
 		    	<div class=""></div>
 		    	<div class=""></div>
 
 		    	<div class="d-flex justify-content-end">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
+		    		<button id="lookRightManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
 			    <div class="video_div" id="manipulationVideoDiv">
 			      <div class="background">
@@ -83,20 +88,35 @@
 			  	  </div>
 			    </div>
 		    	<div class="d-flex justify-content-start">
-		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
+		    		<button id="lookLeftManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
 		    	<div class="d-flex flex-column justify-content-sm-center">
-					<button type="button" class="btn btn-secondary my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
+					<button id="gripperOpenButton" type="button" class="btn btn-secondary btn-block my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
 					  <img src="gripper_open_medium.png" width="30"/>
 					</button>
-					<button type="button" class="btn btn-secondary my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
+					<button id="gripperCloseButton" type="button" class="btn btn-secondary btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
 					  <img src="gripper_close_medium.png" width="30"/>
+					</button>
+					<button id="stowArmButton" type="button" class="btn btn-secondary btn-block my-2" title="Stow arm" onclick="stowArm()">
+					  Stow arm
+					</button>
+					<button id="prepArmButton" type="button" class="btn btn-secondary btn-block my-2" title="Prepare arm" onclick="prepArm()">
+					  Prepare arm
 					</button>
 		    	</div>
 
 		    	<div class=""></div>
 		    	<div class="">
-		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    		<button id="lookDownManipButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
+		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
+
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button id="resetViewManipButton" type="button" class="btn btn-info btn-sm h-button" title="Reset camera view" onclick="setCameraView('manip')">
+		    			Reset camera view
+		    		</button>
 		    	</div>
 		    	<div class=""></div>
 		    	<div class=""></div>
@@ -109,9 +129,7 @@
 					    Follow gripper
 					  </label>
 					</div>
-<!-- 					<input id="" type="checkbox" ">
-			        <label>  </label>
--->		    	</div>
+		    	</div>
 		    	<div class=""></div>
 		    	<div class=""></div>
 
@@ -121,10 +139,25 @@
 
     <hr>
 
-    <!-- Button to open the settings -->
-	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#settings">
-	  Settings
-	</button>
+	<div class="d-flex flex-row">
+      <div class="">
+	      <div class="select-robot">
+	  		<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
+	  		<input id="hangup" type="button" class="btn btn-sm btn-warning" value="hang up" onclick="hangup();" />
+	      </div>
+	  </div>
+
+	  <div class="d-flex flex-fill justify-content-end mb-4">
+	    <!-- Button to open the settings -->
+	      <div class="recordswitch">
+	  		<button id="record" type="button" class="btn btn-sm btn-secondary">Start Recording</button>
+	  		<button id="download" type="button" class="btn btn-sm btn-secondary" disabled>Download Recording</button>
+	      </div>
+		  <button type="button" class="btn btn-primary btn-sm ml-4" data-toggle="modal" data-target="#settings">
+		  	Settings
+		  </button>
+	  </div>
+    </div>
 
 
 	<!-- SETTINGS -->
@@ -139,42 +172,48 @@
 	      </div>
 	      <div class="modal-body">
 
-		      <div class="onoffswitch">
-				<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
-				<label class="onoffswitch-label" for="myonoffswitch">
-				  <span class="onoffswitch-inner"></span>
-				  <span class="onoffswitch-switch"></span>
-				</label>
-		      </div>
+      		<div class="d-flex flex-row">
+			      <div class="onoffswitch">
+					<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+					<label class="onoffswitch-label" for="myonoffswitch">
+					  <span class="onoffswitch-inner"></span>
+					  <span class="onoffswitch-switch"></span>
+					</label>
+			      </div>
+			    <div class="ml-4 my-3">
+			  		<label for="audioSource">Audio in: </label><select id="audioSource"></select>
+			    </div>
+			    <div class="ml-2 my-3">
+			  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+			    </div>
+	      	</div>
 
-		      <div>
-      	        <label> Automatically change view? </label>
-		        <input id="autoViewOn" type="checkbox" onchange="toggleAutoView()">
-		      </div>
+  			<div class="d-flex flex-row">
+			    <div class="ml-2 my-3">
+			  		<label>Movement speed</label>
+			    </div>
+			    <div class="ml-2 my-3">
+				  <div class="switch-2">
+				        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
+				        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
+				        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
+				        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
+				        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
+				        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
+				        <span class="switch-selection switch-selection-sm"></span>
+				    </div>
+			    </div>
+	      	</div>
 
 	      </div>
-	      <div>
-	  		<label for="audioSource">Audio in: </label><select id="audioSource"></select>
-	  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
-	      </div>
-
-		    <div class="switch-2">
-		        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
-		        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-		        
-		        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-		        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-		        
-		        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
-		        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-		        
-		        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-		        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-		        
-		        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-		        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-		        <span class="switch-selection switch-selection-sm"></span>
-		    </div>
 
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -183,20 +222,7 @@
 	  </div>
 	</div>
 
- 
-    <div>
-      <div class="recordswitch">
-  		<button id="record" type="button" class="btn btn-secondary">Start Recording</button>
-  		<button id="download" type="button" class="btn btn-secondary" disabled>Download Recording</button>
-      </div>
-
-      <div class="select-robot">
-  		<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
-  		<input id="hangup" type="button" value="hang up" onclick="hangup();" />
-      </div>
-      <br/>
-    </div>
-    
+     
 </div>
 
 <link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
