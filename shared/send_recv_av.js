@@ -187,6 +187,8 @@ function maybeStart() {
         if (localStream != undefined) {
             console.log('adding local media stream to peer connection');
             pc.addStream(localStream);
+            // Adding by tracks, to be tested
+            //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
         }
         console.log('This peer is the ' + peer_name + '.');
         if (peer_name === 'ROBOT') {
@@ -218,6 +220,8 @@ function createPeerConnection() {
         };
         pc.onaddstream = handleRemoteStreamAdded;
         pc.onremovestream = handleRemoteStreamRemoved;
+        // TODO: Adding things by track, to be tested..
+        // pc.ontrack = handleRemoteTrackAdded;
         console.log('Created RTCPeerConnnection');
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -238,6 +242,15 @@ function handleIceCandidate(event) {
     } else {
         console.log('End of candidates.');
     }
+}
+
+function handleRemoteTrackAdded(event) {
+    // TODO: To be tested
+    console.log('Remote track added.');
+    const track = e.track;
+    const stream = e.streams[0];
+    console.log('got track id=' + track.id, track);
+    console.log('stream id=' + stream.id, stream);
 }
 
 function handleRemoteStreamAdded(event) {

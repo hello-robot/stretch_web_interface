@@ -14,8 +14,18 @@ var robotState = null;
 var isWristFollowingActive = false;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
-
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
+
+// initialize images for camera video
+
+var navigationImageReceived = false
+var navigationImg = document.createElement("IMG")
+navigationImg.style.visibility = 'hidden'
+
+var gripperImageReceived = false
+var gripperImg = document.createElement("IMG")
+gripperImg.style.visibility = 'hidden'
+
 
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
@@ -44,9 +54,7 @@ imageTopic.subscribe(function(message) {
     //console.log('Received compressed image on ' + imageTopic.name);
     //console.log('message.header =', message.header)
     //console.log('message.format =', message.format)
-    
     img.src = 'data:image/jpg;base64,' + message.data
-
     if (rosImageReceived === false) {
 	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
 	rosImageReceived = true
@@ -57,6 +65,36 @@ imageTopic.subscribe(function(message) {
     //console.log('img.naturalHeight =', img.naturalHeight)
     //console.log('attempted to draw image to the canvas')
     //imageTopic.unsubscribe()
+});
+
+var navigationImageTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/navigation_camera/image_raw/compressed',
+    messageType : 'sensor_msgs/CompressedImage'
+});
+
+navigationImageTopic.subscribe(function(message) {
+    navigationImg.src = 'data:image/jpg;base64,' + message.data
+
+    if (navigationImageReceived === false) {
+    console.log('Received first compressed image from ROS topic ' + navigationImageTopic.name);
+    navigationImageReceived = true
+    }
+});
+
+var gripperImageTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/gripper_camera/image_raw/compressed',
+    messageType : 'sensor_msgs/CompressedImage'
+});
+
+
+gripperImageTopic.subscribe(function(message) {
+    gripperImg.src = 'data:image/jpg;base64,' + message.data
+    if (gripperImageReceived === false) {
+        console.log('Received first compressed image from ROS topic ' + gripperImageTopic.name);
+        gripperImageReceived = true
+    }
 });
 
 
@@ -321,14 +359,14 @@ function robotModeOn(modeKey) {
 
 // TODO: Figure out the goal pose for arm ready to manipulate
 var stowArmPose = {
-    'joint_lift': 0.0,
-    'wrist_extension': 0.0,
-    'joint_wrist_yaw': 0.0};
+    'joint_lift': 0.25,
+    'wrist_extension': 0.1,
+    'joint_wrist_yaw': 3.4};
 
 var prepArmPose = {
-    'joint_lift': 0.1,
-    'wrist_extension': 0.1,
-    'joint_wrist_yaw': 0.1};
+    'joint_lift': 0.75,
+    'wrist_extension': 0.75,
+    'joint_wrist_yaw': 2.0};
 
 
 function stowRobotArm() {
