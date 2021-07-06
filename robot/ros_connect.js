@@ -361,12 +361,12 @@ function robotModeOn(modeKey) {
 var stowArmPose = {
     'joint_lift': 0.25,
     'wrist_extension': 0.1,
-    'joint_wrist_yaw': 3.4};
+    'joint_wrist_yaw': 3.0};
 
 var prepArmPose = {
-    'joint_lift': 0.75,
-    'wrist_extension': 0.75,
-    'joint_wrist_yaw': 2.0};
+    'joint_lift': 0.5,
+    'wrist_extension': 0.5,
+    'joint_wrist_yaw': 0.0};
 
 
 function stowRobotArm() {
