@@ -9,18 +9,6 @@ function createSignalingSocket(io) {
     var available_robots = new Set();
     var namespace = '/';
 
-    function getRoomCount(room) {
-
-        var clients = io.nsps[namespace].adapter.rooms[room];
-        
-        if (clients === undefined) {
-            return 0;
-        } else {
-            return clients.length;
-        }
-    };
-
-
     function sendAvailableRobotsUpdate(socket) {
         // let operators know about available robots
         console.log('letting operators know about available robots');
@@ -38,14 +26,6 @@ function createSignalingSocket(io) {
         console.log('new socket.io connection');
         console.log('socket.handshake = ');
         console.log(socket.handshake);
-        //console.log(socket.request.user);
-
-        // function log() {
-        //     var array = ['Message from server:'];
-        //     array.push.apply(array, arguments);
-        //     console.log(array);
-        //     //socket.emit('log', array);
-        // }
 
         var user = socket.request.user;
         var role = user.role;
@@ -57,46 +37,31 @@ function createSignalingSocket(io) {
             var room = robot_name; // use the robot's name as the robot's room identifier
 
             console.log('A ROBOT HAS CONNECTED');
-            console.log('intended room name =');
-            console.log(room);
-            
-            io.of(namespace).in(room).clients((error, clients) => {
-                if (error) throw error;
-                console.log('clients already in the room name "' + room + '"');
-                console.log(clients);
+            console.log('intended room name = ' + room);
 
-                // if the room already exists and has clients
-                // disconnect the clients
-                for (let c of clients) {
+	    // If the robot's room already exists, disconnect all
+	    // sockets in the room. For example, this will disconnect
+	    // operators that were connected to the robot in a
+	    // previous session.
 
-                    // "Disconnects this client. If value of close is
-                    // true, closes the underlying
-                    // connection. Otherwise, it just disconnects the
-                    // namespace."
-                    console.log('disconnecting client in old robot room');
-                    console.log('client =');
-                    console.log(c);
-                    //io.of('/namespace').connected[socket.id]
-                    io.of(namespace).connected[c].disconnect(true);
+	    io.of(namespace).in(room).disconnectSockets(true);
+	    
+	    // Add this robot's socket to the following two rooms:
+	    //   1) a new room named after the robot used to pair with an operator
+	    //   2) a room named "robots" to which all robots are added
+	    socket.join([room, 'robots']);
+            robot_operator_room = room;
+            console.log('adding robot to the "robots" room');
+            console.log('creating room for the robot and having it join the room');
+            connected_robots.add(robot_name);
+            available_robots.add(robot_name);
+            // let operators know about the new robot
+            sendAvailableRobotsUpdate(socket);
+            // io.to(room).emit('a room for the robot has been created, and the robot is in it'); // broadcast to everyone in the room
 
-                    //c.conn.disconnect(true);
-                }
-
-                // create the robot operator pairing room and add to the "robots" room
-                socket.join([room, 'robots'], () => {
-                    robot_operator_room = room;
-                    console.log('adding robot to the "robots" room');
-                    console.log('creating room for the robot and having it join the room');
-                    connected_robots.add(robot_name);
-                    available_robots.add(robot_name);
-                    
-                    // let operators know about the new robot
-                    sendAvailableRobotsUpdate(socket);
-                    // io.to(room).emit('a room for the robot has been created, and the robot is in it'); // broadcast to everyone in the room
-                    
-                });
-                
-            });
+	    console.log('connected robots = ' + Array.from(connected_robots).join(' '))
+	    console.log('available robots = ' + Array.from(available_robots).join(' '))
+	    
         } else {
             if(role === 'operator') {
                 console.log('AN OPERATOR HAS CONNECTED');
@@ -121,7 +86,6 @@ function createSignalingSocket(io) {
         // same underlying connection)."
 
         // convenience function to log server messages on the client
-
         
         socket.on('what robots are available', function() {
             if(role === 'operator') {
@@ -163,7 +127,7 @@ function createSignalingSocket(io) {
         socket.on('join', function(room) {
             console.log('Received request to join room ' + room);
             
-            numClients = getRoomCount(room);
+	    numClients = io.sockets.adapter.rooms.get(room).size
             console.log('Requested room ' + room + ' currently has ' + numClients + ' client(s)');
             
             if (numClients < 1) {

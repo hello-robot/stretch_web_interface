@@ -15,11 +15,17 @@ echo "Installing rosbridge"
 sudo apt-get --yes install ros-melodic-rosbridge-server
 echo "Done."
 
-# NODE 10
+# TF2
 echo ""
-echo "Installing Node.js 10"
+echo "Installing tf2-web-republisher"
+sudo apt-get --yes install ros-melodic-tf2-web-republisher
+echo "Done."
+
+# NODE 14
+echo ""
+echo "Installing Node.js 14"
 echo "Downloading from the Internet via curl."
-curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 echo "Installing nodejs with apt-get"
 sudo apt-get install -y nodejs
 echo "Done."
@@ -28,6 +34,9 @@ echo "Done."
 echo ""
 echo "Installing web-interface Node packages using npm."
 cd ~/catkin_ws/src/stretch_web_interface/
+echo "Update to latest version of npm."
+npm install -g npm
+echo "Install packages with npm."
 npm install
 echo "Done."
 

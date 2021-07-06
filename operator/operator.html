@@ -3,446 +3,230 @@
   <head>
     <!-- META tags go here -->
     <!-- This can improve the appearance of web pages on mobile devices. -->
+    
+    <!-- CSP exceptions -->
+	<!-- 
+		NOTE: It is a bit unintuitive for debugging that this document follows different CSP
+		rules than the rest of the site. Would it be possible to combine these rules with the ones in app.js?
+	-->
+	<meta http-equiv="content-type" content="text/html; charset=utf-8 ;">
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https://webrtc.github.io/adapter/ https://cdn.jsdelivr.net/; style-src 'self' https://stackpath.bootstrapcdn.com">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<meta name="viewport" content="height=device-height, initial-scale=1.0">-->
-  	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  	<link rel="stylesheet" href="styles/style.processed.css">
+ 		
+	<!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  	
+<!--   	<link rel="stylesheet" href="styles/style.processed.css"> -->
   </head>
   <body onmouseup="stopAction()">
 
-  	<div class="container-fluid px-sm-3 d-flex justify-content-center">
-  		<div>
+  	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-center">
 
 	    <div class="d-flex align-items-center">
-
-	      <div class="switch">
-			<input type="radio" class="switch-input" name="mode-switch" value="nav" id="nav_mode_button" checked>
-			<label for="nav_mode_button" class="switch-label switch-label-0" onclick="turnModeOn('nav')">Drive</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="low_arm" id="low_arm_mode_button">
-			<label for="low_arm_mode_button" class="switch-label switch-label-1" onclick="turnModeOn('low_arm')">Arm &dArr;</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="high_arm" id="high_arm_mode_button">
-			<label for="high_arm_mode_button" class="switch-label switch-label-2" onclick="turnModeOn('high_arm')">Arm &uArr;</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="hand" id="hand_mode_button">
-			<label for="hand_mode_button" class="switch-label switch-label-3" onclick="turnModeOn('hand')">Hand</label>
-			
-			<input type="radio" class="switch-input" name="mode-switch" value="look" id="look_mode_button">
-			<label for="look_mode_button" class="switch-label switch-label-4" onclick="turnModeOn('look')">Look</label>
-			<span class="switch-selection"></span>	
+	      <div id="modeSwitch">
 	      </div>
-
-
-	      <div class="onoffswitch">
-			<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
-			<label class="onoffswitch-label" for="myonoffswitch">
-			  <span class="onoffswitch-inner"></span>
-			  <span class="onoffswitch-switch"></span>
-			</label>
-	      </div>
-
 	    </div>
 
-	    <div class="switch-2">
-	        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
-	        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-	        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
-	        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-	        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-	        
-	        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-	        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-	        <span class="switch-selection switch-selection-sm"></span>
-	    </div>
-
-	    <div class="presetView mb-2">
+<!-- 	<div class="presetView mb-2">
 	      <button type="button" onclick="setCameraViewPreset()"> Center camera for current mode </button>
 	    </div>
+ -->
 
-	    <div class="video_div">
+ 		<!-- TODO: Eventually this should be generated with code -->	
+ 		<div class="container-fluid d-flex flex-row justify-content-around">
+		    <div class="nav_mode_div">
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
+		    	</div>
+		    	<div class=""></div>
+		    	<div class="d-flex justify-content-end">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
+		    	</div>
+			    <div class="video_div" id="navigationVideoDiv">
+			      <div class="background">
+			      	<video id="navigationVideo" autoplay></video>
+			      </div>
+			      <div class="foreground" onclick="setMode('nav')">
+			      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
+			  	  </div>
+			    </div>
+		    	<div class="d-flex justify-content-start">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
+		    	</div>
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    	</div>
+		    	<div class=""></div>
+		    </div>
 
-	      	<div class="background" id="videoContainer">
-			  	<video id="remoteVideo" autoplay></video>
-			</div>
-	      <!--<svg id="video_ui_overlay" viewBox="0 0 1920 1080">-->
+		    <div class="manip_mode_div">
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
+		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
 
-	      <div class="foreground">	      	
-	      	<svg id="video_ui_overlay">
-		
-	    	<svg id="nav_ui_overlay" preserveAspectRatio="none">
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_do_nothing_region"
-					>
-					<title>do nothing</title>
-				</path>
+		    	<div class="d-flex justify-content-end">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
+		    	</div>
+			    <div class="video_div" id="manipulationVideoDiv">
+			      <div class="background">
+			      	<video id="manipulationVideo" autoplay></video>
+			      </div>
+			      <div class="foreground" onclick="setMode('manip')">
+			      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
+			  	  </div>
+			    </div>
+		    	<div class="d-flex justify-content-start">
+		    		<button type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
+		    	</div>
+		    	<div class="d-flex flex-column justify-content-sm-center">
+					<button type="button" class="btn btn-secondary my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
+					  <img src="gripper_open_medium.png" width="30"/>
+					</button>
+					<button type="button" class="btn btn-secondary my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
+					  <img src="gripper_close_medium.png" width="30"/>
+					</button>
+		    	</div>
 
-	<!-- 
-	<svg id="right_arrow" version="1.1" viewBox="0.0 0.0 37.79527559055118 37.79527559055118" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><clipPath id="p.0"><path d="m0 0l37.795277 0l0 37.795277l-37.795277 0l0 -37.795277z" clip-rule="nonzero"></path></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l37.795277 0l0 37.795277l-37.795277 0z" fill-rule="evenodd"></path><path fill="#ffffff" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path><path stroke="#000000" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.4330709 15.178587l21.404064 0l0 -6.3911858l13.52507 10.110237l-13.52507 10.110235l0 -6.3911858l-21.404064 0z" fill-rule="evenodd"></path></g></svg>
+		    	<div class=""></div>
+		    	<div class="">
+		    		<button type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>		    		
+		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
 
-	-->
-		  
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_forward_region"
-					onclick="moveForward()"
-					onmousedown="startAction('moveForward')"
-					>
-					<title>move forward</title>
-				</path>
+		    	<div class=""></div>
+		    	<div class="d-flex justify-content-center">
+					<div class="form-check">
+					  <input class="form-check-input" type="checkbox" value="" onchange="toggleCameraFollowGripper()" id="cameraFollowGripperOn">
+					  <label class="form-check-label" for="cameraFollowGripperOn">
+					    Follow gripper
+					  </label>
+					</div>
+<!-- 					<input id="" type="checkbox" ">
+			        <label>  </label>
+-->		    	</div>
+		    	<div class=""></div>
+		    	<div class=""></div>
 
-		  		<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_backward_region"
-					onclick="moveBackward()"
-					onmousedown="startAction('moveBackward')"
-					>
-					<title>move backward</title>
-	          	</path>
-
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_turn_left_region"
-					onclick="turnLeft()"   
-					onmousedown="startAction('turnLeft')"
-					>
-					<title>turn left</title>
-				</path>
-		  
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_turn_right_region"
-					onclick="turnRight()"   
-					onmousedown="startAction('turnRight')"
-					>
-					<title>turn right</title>
-				</path>
-
-				<g
-					id="ccw_cw_text_region"
-					>
-				</g>
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_ccw_region"
-					onclick="turnCCW()"   
-					onmousedown="startAction('turnCCW')"
-					>
-					<title>turn ccw 90</title>
-				</path>
-				<path
-					fill-opacity="0.0"
-					stroke-opacity="1.0"
-					id="nav_cw_region"
-					onclick="turnCW()"   
-					onmousedown="startAction('turnCW')"
-					>
-					<title>turn cw 90</title>
-				</path>
-		</svg>
-
-		
-		<svg id="low_arm_ui_overlay" preserveAspectRatio="none">
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_down_region"
-	            onclick="liftDown()"
-	            onmousedown="startAction('liftDown')"
-	            >
-	            <title>arm down</title>
-	          </path>
-		  
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_up_region"
-	            onclick="liftUp()"   
-	            onmousedown="startAction('liftUp')"
-	            >
-	            <title>arm up</title>
-		  </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_retract_region"
-	            onclick="armRetract()"   
-	            onmousedown="startAction('armRetract')"
-	            >
-	            <title>retract arm</title>
-	          </path>
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_extend_region"
-	            onclick="armExtend()"   
-	            onmousedown="startAction('armExtend')"
-	            >
-	            <title>extend arm</title>
-	          </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_base_forward_region"
-	            onclick="moveForward()"
-	            onmousedown="startAction('moveForward')"
-	            >
-	            <title>move forward</title>
-	          </path>
-
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="low_arm_base_backward_region"
-	            onclick="moveBackward()"
-	            onmousedown="startAction('moveBackward')"
-	            >
-	            <title>move backward</title>
-	          </path>
-		  
-		</svg>
-
-		
-		<svg id="high_arm_ui_overlay" preserveAspectRatio="none">
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_down_region"
-	            onclick="liftDown()"   
-	            onmousedown="startAction('liftDown')"
-	            >
-	            <title>arm down</title>
-	          </path>
-		  
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_up_region"
-	            onclick="liftUp()"   
-	            onmousedown="startAction('liftUp')"
-	            >
-	            <title>arm up</title>
-		  </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_retract_region"
-	            onclick="armRetract()"   
-	            onmousedown="startAction('armRetract')"
-	            >
-	            <title>retract arm</title>
-	          </path>
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_extend_region"
-	            onclick="armExtend()"   
-	            onmousedown="startAction('armExtend')"
-	            >
-	            <title>extend arm</title>
-	          </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_base_forward_region"
-	            onclick="moveForward()"
-	            onmousedown="startAction('moveForward')"
-	            >
-	            <title>move forward</title>
-	          </path>
-
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="high_arm_base_backward_region"
-	            onclick="moveBackward()"
-	            onmousedown="startAction('moveBackward')"
-	            >
-	            <title>move backward</title>
-	          </path>
-
-		</svg>
-
-		
-		<svg id="hand_ui_overlay" preserveAspectRatio="none">
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="hand_open_region"
-	            onclick="gripperOpen()"   
-	            onmousedown="startAction('gripperOpen')"
-	            >
-	            <title>open gripper</title>
-		  </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="hand_close_region"
-	            onclick="gripperClose()"   
-	            onmousedown="startAction('gripperClose')"
-	            >
-	            <title>close gripper</title>
-	          </path>
-
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="hand_in_region"
-	            onclick="wristIn()"   
-	            onmousedown="startAction('wristIn')"
-	            >
-	            <title>gripper in</title>
-	          </path>
-	          
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="hand_out_region"
-	            onclick="wristOut()"   
-	            onmousedown="startAction('wristOut')"
-	            >
-	            <title>gripper out</title>
-	          </path>
-
-		</svg>
-
-		
-		<svg id="look_ui_overlay" preserveAspectRatio="none">
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="look_up_region"
-	            onclick="lookUp()"   
-	            onmousedown="startAction('lookUp')"
-	            >
-	            <title>look up</title>
-	          </path>
-		  
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="look_down_region"
-	            onclick="lookDown()"   
-	            onmousedown="startAction('lookDown')"
-	            >
-	            <title>look_down</title>
-	          </path>
-		  
-		  <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="look_left_region"
-	            onclick="lookLeft()"   
-	            onmousedown="startAction('lookLeft')"
-	            >
-	            <title>look left</title>
-	          </path>
-
-	          <path
-	            fill-opacity="0.0"
-	            stroke-opacity="1.0"
-	            id="look_right_region"
-	            onclick="lookRight()"   
-	            onmousedown="startAction('lookRight')"
-	            >
-	            <title>look right</title>
-	          </path>
-		  
-	      	</svg>
-	      </svg></div>
-	    </div>
-	</div>
+		    </div>
+		</div>
 	</div>
 
     <hr>
+
+    <!-- Button to open the settings -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#settings">
+	  Settings
+	</button>
+
+
+	<!-- SETTINGS -->
+	<div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle" aria-hidden="true">
+	  <div class="modal-dialog modal-lg" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="settingsTitle">Settings</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+
+		      <div class="onoffswitch">
+				<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+				<label class="onoffswitch-label" for="myonoffswitch">
+				  <span class="onoffswitch-inner"></span>
+				  <span class="onoffswitch-switch"></span>
+				</label>
+		      </div>
+
+		      <div>
+      	        <label> Automatically change view? </label>
+		        <input id="autoViewOn" type="checkbox" onchange="toggleAutoView()">
+		      </div>
+
+	      </div>
+	      <div>
+	  		<label for="audioSource">Audio in: </label><select id="audioSource"></select>
+	  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+	      </div>
+
+		    <div class="switch-2">
+		        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
+		        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
+		        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
+		        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
+		        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
+		        
+		        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
+		        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
+		        <span class="switch-selection switch-selection-sm"></span>
+		    </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
  
     <div>
       <div class="recordswitch">
-  <button id="taskButton" onclick="updateTask()">Start Task 1</button>
-  <button id="record">Start Recording</button>
-  <button id="download" disabled>Download Recording</button>
+  		<button id="record" type="button" class="btn btn-secondary">Start Recording</button>
+  		<button id="download" type="button" class="btn btn-secondary" disabled>Download Recording</button>
       </div>
 
       <div class="select-robot">
-  <label for="robotToControl">Robot: </label><select id="robotToControl"></select>
-  
-  <input id="hangup" type="button" value="hang up" onclick="hangup();" />
-  <label for="audioSource">Audio in: </label><select id="audioSource"></select>
-  <label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
+  		<label for="robotToControl">Robot: </label><select id="robotToControl"></select>
+  		<input id="hangup" type="button" value="hang up" onclick="hangup();" />
       </div>
       <br/>
-    </div>
-
-    <div id="interface-config">
-        <label> Automatically change view? </label>
-        <input id="autoViewOn" type="checkbox" onchange="toggleAutoView()">
-
-		<br>
-
-        <label> Camera automatically follow gripper </label>
-        <input id="cameraFollowGripperOn" type="checkbox" onchange="toggleCameraFollowGripper()">
     </div>
     
 </div>
 
 <link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
+
+<!-- <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+ -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!-- THREE.js core and extensions -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.22.1/build/postprocessing.min.js" integrity="sha256-pyGwxSnoRHKgrnFqpxGf22nsl+CEKp1/vaD9NH+6a1Q=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script src="../shared/video_dimensions.js"></script>
 <script src="operator.js"></script>
-<script type='text/javascript' >
-  /*Interesting.. There is a variable here for velocity 
-  control, but not referenced anywhere else. */
-  var velocityControlOn = false;
-  var noWristOn = true;
-</script>
 <script src="operator_ui_regions.js"></script>
-<!--<script type="module">
-    import {createUiRegions} from '/operator/operator_ui_regions.js';
-    createUiRegions();
-    </script>-->
-<script src="/socket.io/socket.io.js"></script>
-<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
+<script src="../shared/database.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="operator_acquire_av.js"></script>
 <script src="operator_recorder.js"></script>
 <script src="../shared/send_recv_av.js"></script>
-<script src="../shared/database.js"></script>
 <script type='text/javascript' >
-  function runOnOpenDataChannel() {
-  // When the robot and the operator are first connected, switch to navigation mode.
-  	console.log('starting in navigation mode')
-  	turnModeOn('nav')
-  }
-  var db = new Database(config, runOnOpenDataChannel);
+	initializeOperatorInterface();
 </script>
 </body>
 </html>
