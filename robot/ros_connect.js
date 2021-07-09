@@ -152,6 +152,17 @@ tfClient.subscribe('link_gripper_finger_left', function(tf) {
     });
 });
 
+var link_head_tilt_tf;
+tfClient.subscribe('link_head_tilt', function(tf) {
+    link_head_tilt_tf = tf;
+    sendData({
+        type: 'sensor',
+        subtype: 'head',
+        name: 'transform',
+        value: tf
+    });
+});
+
 var camera_color_frame_tf;
 tfClient.subscribe('camera_color_frame', function(tf) {
     camera_color_frame_tf = tf;
@@ -188,7 +199,7 @@ function sendTfs() {
     }
 }
 
-var trajectoryClients = {}
+var trajectoryClients = {};
 trajectoryClients.main = new ROSLIB.ActionClient({
     ros : ros,
     serverName : inSim ? '/stretch_joint_state_controller/follow_joint_trajectory' : '/stretch_controller/follow_joint_trajectory',
@@ -357,6 +368,9 @@ function sendCommandBody(cmd) {
 
 function robotModeOn(modeKey) {
     console.log('robotModeOn called with modeKey = ' + modeKey)
+
+    let debugDiv = document.getElementById("debug-text");
+    debugDiv.innerHTML = "Robot mode: " + modeKey;
     
     // This is where the head pose gets set when mode is switched.
 
@@ -365,26 +379,21 @@ function robotModeOn(modeKey) {
         headNavPoseGoal.send();
         console.log('sending navigation pose to head');
     }
-
-    if (modeKey === 'manip') {
+    else if (modeKey === 'manip') {
         resetOffset();
         lookAtGripper();
         console.log('sending end-effector pose to head');
     }
-
-    if (modeKey === 'low_arm') {
+    else if (modeKey === 'low_arm') {
         var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.9});
         headManPoseGoal.send();
         console.log('sending manipulation pose to head');
     }
-
-    if (modeKey === 'high_arm') {
+    else if (modeKey === 'high_arm') {
         var headManPoseGoal = generatePoseGoal({'joint_head_pan': -1.57, 'joint_head_tilt': -0.45});
         headManPoseGoal.send();
         console.log('sending manipulation pose to head');
     } 
-
-    // We can add other presets here 
 }
 
 // TODO: Figure out the goal pose for arm ready to manipulate
@@ -503,6 +512,7 @@ function resetOffset() {
 }
 
 function lookAtGripper() {
+
     let posDifference = {
         x: link_gripper_finger_left_tf.translation.x - link_head_tilt_tf.translation.x,
         y: link_gripper_finger_left_tf.translation.y - link_head_tilt_tf.translation.y,
@@ -517,6 +527,9 @@ function lookAtGripper() {
 
     const pan = Math.atan2(posDifference.y, posDifference.x) + panOffset;
     const tilt = Math.atan2(posDifference.z, -posDifference.y) + tiltOffset;
+
+    let debugDiv = document.getElementById("debug-text");
+    debugDiv.innerHTML += "\n lookAtGripper: " + pan + "," + tilt;
 
     let headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
     headFollowPoseGoal.send()

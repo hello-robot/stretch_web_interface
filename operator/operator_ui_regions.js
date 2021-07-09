@@ -31,28 +31,6 @@ class VideoControl {
             this.combinedSVG.appendChild(overlay.svg);
     }
 
-    setMode(modeId) {
-        this.currentMode = modeId;
-        let buttonName = modeId + '_mode_button';
-        let button = document.getElementById(buttonName);
-        if (button)
-            button.checked = true;
-        
-        arrangeOverlays(modeId);
-
-        const modeNames = this.getModeNames();
-        for (let i in modeNames) {
-            if (modeNames[i] !== modeId) {
-                this.overlays[modeNames[i]].forEach( function(overlay) {
-                    overlay.hide();
-                });
-            }
-        }
-        this.overlays[modeId].forEach( function(overlay) {
-            overlay.show();
-        });
-    }
-
     getModeNames() {
         return Object.keys(this.overlays);
     }
@@ -146,6 +124,13 @@ class OverlaySVG extends Overlay {
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
         this.svg.setAttribute('id', modeId + '_ui_overlay');
+
+        ///////////////////////
+        let w = videoDimensions.h;
+        let h = videoDimensions.w;
+        let bigViewBox = String(0) + ' ' + String(0) + ' ' + String(w) + ' ' + String(h);
+        this.svg.setAttribute('viewBox', bigViewBox);
+
 
         let bgRect = makeRectangle(0, 0, w, h);
         this.curtain = new Region(modeId + '_curtain', null , 'curtain',
@@ -271,6 +256,7 @@ function setMode(modeId) {
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(false);
+            // turnModeOn('nav');
             setCameraView('nav');
             // TODO: Is there some way to set this button list procedurally?
             document.getElementById('lookUpNavButton').disabled = false;
@@ -298,6 +284,7 @@ function setMode(modeId) {
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(true);
+            // turnModeOn('manip');
             setCameraView('manip');
             document.getElementById('lookUpNavButton').disabled = true;
             document.getElementById('lookLeftNavButton').disabled = true;
@@ -395,9 +382,6 @@ function createUiRegions(debug) {
     navOverlayTHREE.addRenderPass(outlineEffectPass);
     navigationVideoControl.addOverlay(navOverlayTHREE, "threejs");
 
-    navigationVideoControl.setMode("nav");
-    navigationVideoControl.setActive(true);
-
     
     /////////////////////////
     // manipulation
@@ -439,9 +423,6 @@ function createUiRegions(debug) {
         rectToPoly(rightRect2), color, armOverlay.svg));
 
     manipulationVideoControl.addOverlay(armOverlay);
-    manipulationVideoControl.setMode("manip");
-    manipulationVideoControl.setActive(false);
-
 }
 
 const panTiltCameraModes = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
@@ -597,20 +578,6 @@ function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous,
     path.setAttribute('stroke-width', String(stroke_width));
     path.setAttribute('d', svgPolyString(poly));
     parentSVG.appendChild(path);
-}
-
-function arrangeOverlays(key) {
-    ///////////////////////
-    let w = videoDimensions.h;
-    let h = videoDimensions.w;
-    let nx = 0;
-    let ny = 0;
-    let nw = w;
-    let nh = h;
-    let bigViewBox = String(nx) + ' ' + String(ny) + ' ' + String(nw) + ' ' + String(nh);
-    let overlayName = key + '_ui_overlay';
-    let overlay = document.getElementById(overlayName);
-    overlay.setAttribute('viewBox', bigViewBox);
 }
 
 function svgPolyString(points) {

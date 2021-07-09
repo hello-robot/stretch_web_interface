@@ -388,7 +388,7 @@ function setCameraView(modeKey) {
   Database.logEvent("SetCameraView", modeKey);
 }
 
-var modeKeys = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
+var modeKeys = ['nav', 'manip', 'low_arm', 'high_arm', 'hand', 'look'];
 
 function createModeCommands() {
     modeCommands = {}
