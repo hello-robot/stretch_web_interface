@@ -53,7 +53,7 @@ class VideoStream {
         });
     }
 
-    // Different per video and even modes
+    // TODO: Different per video and even modes
     drawVideo() {
         if (this.imageReceived === true) {
             var d435iRotation = 90.0 * degToRad;
