@@ -390,12 +390,12 @@ function robotModeOn(modeKey) {
 // TODO: Figure out the goal pose for arm ready to manipulate
 var stowArmPose = {
     'joint_lift': 0.25,
-    'wrist_extension': 0.1,
+    'wrist_extension': 0.05,
     'joint_wrist_yaw': 3.0};
 
 var prepArmPose = {
-    'joint_lift': 0.5,
-    'wrist_extension': 0.5,
+    'joint_lift': 0.6,
+    'wrist_extension': 0.1,
     'joint_wrist_yaw': 0.0};
 
 
