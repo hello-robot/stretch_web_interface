@@ -1,44 +1,37 @@
 'use strict';
 
-// TODO: This might be redundant with 'interfaceMode' remove after checking
-var strokeOpacity = 0.0;
-var w = videoDimensions.h;
-var h = videoDimensions.w;
-
-
-function setCameraViewPreset() {
-    if (panTiltCameraVideoControl.currentMode != null)
-        setCameraView(panTiltCameraVideoControl.currentMode);
-}
-
-
-var navigationVideoControl = new VideoControl('navigationVideo', 'nav');
-var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
-
 /*
 * Class for a video stream visualization with an overlay
 * This is redundant at the moment but will be necessary
 * soon, when we want to have more than one video stream
 * visualization.
 */
-function VideoControl(videoId, currentMode=null) {
-    this.videoId = videoId;
-    this.combinedSVG = document.getElementById(videoId + "Overlay");
-    this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    this.overlays = {}; // key is mode id, value is the Overlay object
-    this.currentMode = currentMode;
-    this.videoDiv = document.getElementById(videoId + "Div");
-    this.video = document.getElementById(videoId);
-    this.video.setAttribute("height", h);
-    this.video.setAttribute("width", w);
-    this.isActive = false;
-
-    this.addOverlay = function(overlay) {
-        this.overlays[overlay.modeId] = overlay;
-        this.combinedSVG.appendChild(overlay.svg);
+class VideoControl {
+    constructor(videoId, currentMode=null) {
+        this.videoId = videoId;
+        this.combinedSVG = document.getElementById(videoId + "Overlay");
+        this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        this.overlays = {}; // key is mode id, values are the Overlay objects
+        this.currentMode = currentMode;
+        this.videoDiv = document.getElementById(videoId + "Div");
+        this.video = document.getElementById(videoId);
+        this.video.setAttribute("height", h);
+        this.video.setAttribute("width", w);
+        this.isActive = false;
     }
 
-    this.setMode = function(modeId) {
+    addOverlay(overlay, type="svg") {
+        if (this.overlays.hasOwnProperty(overlay.modeId)) {
+            this.overlays[overlay.modeId].push(overlay);
+        } else {
+            this.overlays[overlay.modeId] = [overlay];
+        }
+
+        if (type === "svg")
+            this.combinedSVG.appendChild(overlay.svg);
+    }
+
+    setMode(modeId) {
         this.currentMode = modeId;
         let buttonName = modeId + '_mode_button';
         let button = document.getElementById(buttonName);
@@ -50,57 +43,129 @@ function VideoControl(videoId, currentMode=null) {
         const modeNames = this.getModeNames();
         for (let i in modeNames) {
             if (modeNames[i] !== modeId) {
-                this.overlays[modeNames[i]].hide();
+                this.overlays[modeNames[i]].forEach( function(overlay) {
+                    overlay.hide();
+                });
             }
         }
-        this.overlays[modeId].show();
+        this.overlays[modeId].forEach( function(overlay) {
+            overlay.show();
+        });
     }
 
-    this.getModeNames = function() {
+    getModeNames() {
         return Object.keys(this.overlays);
     }
 
-    this.setActive = function(isActive) {
+    setActive(isActive) {
         this.isActive = isActive;
         if (this.isActive){
             this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.1)";
-            this.overlays[this.currentMode].show();
+            this.overlays[this.currentMode].forEach( function(overlay) {
+                overlay.show();
+            });
         }
         else{
             this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.5)";
-            this.overlays[this.currentMode].hide();
+            this.overlays[this.currentMode].forEach( function(overlay) {
+                overlay.hide();
+            });
+        }
+    }
+}
+
+class THREEManager {
+    constructor(camera, width, height) {
+        this.camera = camera;
+        this.width = width;
+        this.height = height;
+
+        this.overlays = {};
+    }
+
+    addOverlay(overlay) {
+        this.overlays[overlay.modeId] = {
+            overlay: overlay,
+            render: true
+        };
+    }
+
+    pauseOverlayRender(modeId) {
+        this.overlays[modeId].render = false;
+        this.overlays[modeId].overlay.render();
+    }
+
+    resumeOverlayRender(modeId) {
+        this.overlays[modeId].render = true;
+        this.overlays[modeId].overlay.render();
+    }
+
+    animate() {
+        // TODO: Figure out how to properly pass self into a callback function
+        requestAnimationFrame(() => {
+            this.animate();
+        });
+
+        for (const overlay in this.overlays) {
+            if (this.overlays[overlay].render) {
+                this.overlays[overlay].overlay.render();
+            }
         }
     }
 }
 
 /*
-* Class for a video overlay
+* Base class for a video overlay
 */
-function Overlay(modeId) {
-    this.modeId = modeId;
-    this.regions = [];
+class Overlay {
+    constructor(modeId) {
+        this.modeId = modeId;
+    }
 
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttribute('preserveAspectRatio', 'none');
-    this.svg.setAttribute('id', modeId + '_ui_overlay');
+    addItem() {
+        console.warn("addItem() should be overridden by the child class");
+    }
 
-    let bgRect = makeRectangle(0, 0, w, h);
-    this.curtain = new Region(modeId + '_curtain', null , 'curtain',
-        rectToPoly(bgRect), 'white', this.svg, true, 0.5);
+    hide() {
+        console.warn("hide() should be overridden by the child class");
+    }
 
-    this.addRegion = function(region) {
+    show() {
+        console.warn("show() should be overridden by the child class");
+    }
+}
+
+/*
+* Class for an SVG video overlay
+*/
+class OverlaySVG extends Overlay {
+    constructor(modeId) {
+        super(modeId);
+        this.regions = [];
+
+        this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.svg.setAttribute('preserveAspectRatio', 'none');
+        this.svg.setAttribute('id', modeId + '_ui_overlay');
+
+        let bgRect = makeRectangle(0, 0, w, h);
+        this.curtain = new Region(modeId + '_curtain', null , 'curtain',
+            rectToPoly(bgRect), 'white', this.svg, true, 0.5);
+        
+        this.addRegion(this.curtain);
+    }
+
+    addRegion(region) {
         this.regions.push(region);
     }
-    this.addRegion(this.curtain);
 
-    this.hide = function() {
+    hide() {
         for (let i in this.regions) {
             this.regions[i].hide();
         }
         this.curtain.show();
     }
 
-    this.show = function() {
+    show() {
         for (let i in this.regions) {
             this.regions[i].show();
         }
@@ -109,25 +174,93 @@ function Overlay(modeId) {
 }
 
 /*
-* Class for a video overlay
+* Class for an THREE.js video overlay
 */
-function Region(regionId, fname, label, poly, color, parentSVG, isContinuous=true, fillOpacity=0.0) {
-    this.regionId = regionId;
-    this.fname = fname;
-    this.label = label;
-    this.poly = poly;
-    this.isContinuous = isContinuous;
-    this.parentSVG = parentSVG;
+class OverlayTHREE extends Overlay {
+    constructor(modeId, threeManager) {
+        super(modeId);
+        this.objs = {};
 
-    createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
-        this.poly, color, this.isContinuous, fillOpacity);
+        this.threeManager = threeManager;
+        this.scene = new THREE.Scene();
+        this.renderer = new THREE.WebGLRenderer({ alpha: true });
+        this.renderer.setSize(this.threeManager.width, this.threeManager.height);
+        $(`#${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
 
-    this.hide = function() {
+        this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
+        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
+    
+        this.threeManager.addOverlay(this);
+    }
+
+    addRenderPass(renderPass) {
+        this.composer.addPass(renderPass);
+    }
+
+    addItem(obj) {
+        this.objs[obj.name] = obj;
+        this.scene.add(obj.mesh);
+    }
+
+    hide() {
+        for (const obj in this.objs) {
+            this.objs[obj].hide();
+        }
+        this.threeManager.pauseOverlayRender(this.modeId);
+    }
+
+    show() {
+        for (const obj in this.objs) {
+            this.objs[obj].show();
+        }
+        this.threeManager.resumeOverlayRender(this.modeId);
+    }
+
+    render() {
+        this.composer.render();
+    }
+}
+
+/*
+* Class for an overlay region
+*/
+class Region {
+    constructor(regionId, fname, label, poly, color, parentSVG, isContinuous=true, fillOpacity=0.0) {
+        this.regionId = regionId;
+        this.fname = fname;
+        this.label = label;
+        this.poly = poly;
+        this.isContinuous = isContinuous;
+        this.parentSVG = parentSVG;
+    
+        createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
+            this.poly, color, this.isContinuous, fillOpacity);
+    }
+
+
+    hide() {
         document.getElementById(this.regionId).style.display = 'none';
     }
 
-    this.show = function() {
+    show() {
         document.getElementById(this.regionId).style.display = 'block';
+    }
+}
+
+class THREEObject {
+    constructor(name, geo, mat) {
+        this.name = name;
+        this.geo = geo;
+        this.mat = mat;
+        this.mesh = new THREE.Mesh(this.geo, this.mat);
+    }
+
+    hide() {
+        this.mesh.visible = false;
+    }
+
+    show() {
+        this.mesh.visible = true;
     }
 }
 
@@ -140,6 +273,7 @@ function setMode(modeId) {
             if (checkbox.checked)
                 changeGripperFollow(false);
             setCameraView('nav');
+            // TODO: Is there some way to set this button list procedurally?
             document.getElementById('lookUpNavButton').disabled = false;
             document.getElementById('lookLeftNavButton').disabled = false;
             document.getElementById('lookRightNavButton').disabled = false;
@@ -189,6 +323,22 @@ function setMode(modeId) {
     }
 }
 
+// TODO: This might be redundant with 'interfaceMode' remove after checking
+var strokeOpacity = 0.0;
+var w = videoDimensions.h;
+var h = videoDimensions.w;
+
+
+function setCameraViewPreset() {
+    if (panTiltCameraVideoControl.currentMode != null)
+        setCameraView(panTiltCameraVideoControl.currentMode);
+}
+
+var navigationVideoControl = new VideoControl('navigationVideo', 'nav');
+var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
+
+var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
+
 
 function createUiRegions(debug) {
 
@@ -203,7 +353,7 @@ function createUiRegions(debug) {
     // navigation
     /////////////////////////
 
-    let navOverlay = new Overlay('nav');
+    let navOverlay = new OverlaySVG('nav');
     // Big rectangle at the borders of the video
     let bgRect = makeRectangle(0, 0, w, h);
     let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
@@ -225,6 +375,27 @@ function createUiRegions(debug) {
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
         rectToPoly(rightRect), color, navOverlay.svg, false));
     navigationVideoControl.addOverlay(navOverlay);
+
+    let navOverlayTHREE = new OverlayTHREE('nav', threeManager);
+
+    navOverlayTHREE.addItem(new THREEObject(
+        'reach_visualization_circle',
+        new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
+        new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
+    ));
+    var outlineEffect = new POSTPROCESSING.OutlineEffect(
+        navOverlayTHREE.scene,
+        navOverlayTHREE.threeManager.camera,
+        {visibleEdgeColor: 0xff9900});
+    var outlineEffectPass = new POSTPROCESSING.EffectPass(
+        navOverlayTHREE.threeManager.camera,
+        outlineEffect
+    );
+    outlineEffectPass.renderToScreen = true;
+    outlineEffect.selectObject(navOverlayTHREE.objs.reach_visualization_circle.mesh);
+    navOverlayTHREE.addRenderPass(outlineEffectPass);
+    navigationVideoControl.addOverlay(navOverlayTHREE, "threejs");
+
     navigationVideoControl.setMode("nav");
     navigationVideoControl.setActive(true);
 
@@ -233,7 +404,7 @@ function createUiRegions(debug) {
     // manipulation
     /////////////////////////
 
-    let armOverlay = new Overlay('manip');
+    let armOverlay = new OverlaySVG('manip');
 
     bgRect = makeRectangle(0, h/5.0, w, h-h/5.0);
     // Small rectangle at the top of the middle of the video
@@ -423,7 +594,7 @@ function createUiV1Regions(debug) {
 
 /////// UTILITY FUNCTIONS //////////
 
-function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3){
+function createRegionSVG(parentSVG, id, fname, title, poly, color, isContinuous, fillOpacity, stroke_width = 2, stroke_opacity = 0.3) {
     let path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('fill-opacity', '0.0');
     path.setAttribute('stroke-opacity', '1.0');
@@ -501,6 +672,6 @@ function drawText(elementID, text, x, y, font_size=100, center=false, color='whi
     document.getElementById(elementID).appendChild(txt);
 }
 
+
 createUiRegions(true); // debug = true or false
-
-
+threeManager.animate();

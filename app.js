@@ -56,34 +56,37 @@ var app = express();
 console.log('use helmet');
 app.use(helmet());
 
-var use_content_security_policy = true
-
+var use_content_security_policy = true;
+// NOTE: operator.html has its own CSP rules that override what is set here
 if (use_content_security_policy) {
     console.log('using a content security policy');
     app.use(helmet.contentSecurityPolicy({
-	directives:{
-	    defaultSrc:["'self'"],
-	    scriptSrc:["'self'", "'unsafe-inline'", 
-            'static.robotwebtools.org', 
-            'robotwebtools.org', 
-            'webrtc.github.io',
-            'www.gstatic.com',
-            'code.jquery.com',
-            'cdnjs.cloudflare.com',
-            'stackpath.bootstrapcdn.com'],
-	    connectSrc:["'self'", 'ws://localhost:9090'],
-	    imgSrc: ["'self'", 'data:'],
-	    styleSrc:["'self'", 
-            'stackpath.bootstrapcdn.com'],
-	    fontSrc:["'self'"]}}));
+        directives: {
+            defaultSrc:["'self'"],
+            scriptSrc:["'self'", "'unsafe-inline'", 
+                'static.robotwebtools.org', 
+                'robotwebtools.org', 
+                'webrtc.github.io',
+                'www.gstatic.com',
+                'code.jquery.com',
+                'cdnjs.cloudflare.com',
+                'stackpath.bootstrapcdn.com',
+                'cdn.jsdelivr.net'],
+            connectSrc:["'self'", 'ws://localhost:9090'],
+            imgSrc: ["'self'", 'data:'],
+            styleSrc:["'self'", 
+                'stackpath.bootstrapcdn.com'],
+            fontSrc:["'self'"]}
+        })
+    );
 } else {
     // Disable the content security policy. This is helpful during
     // development, but risky when deployed.
     console.log('WARNING: Not using a content security policy. This risky when deployed!');
     app.use(
-	helmet({
-	    contentSecurityPolicy: false,
-	})
+        helmet({
+            contentSecurityPolicy: false,
+        })
     );
 }
 

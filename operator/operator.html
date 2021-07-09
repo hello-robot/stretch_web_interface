@@ -5,13 +5,17 @@
     <!-- This can improve the appearance of web pages on mobile devices. -->
     
     <!-- CSP exceptions -->
+	<!-- 
+		NOTE: It is a bit unintuitive for debugging that this document follows different CSP
+		rules than the rest of the site. Would it be possible to combine these rules with the ones in app.js?
+	-->
 	<meta http-equiv="content-type" content="text/html; charset=utf-8 ;">
-	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https://webrtc.github.io/adapter/; style-src 'self' https://stackpath.bootstrapcdn.com">
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https://webrtc.github.io/adapter/ https://cdn.jsdelivr.net/; style-src 'self' https://stackpath.bootstrapcdn.com">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<meta name="viewport" content="height=device-height, initial-scale=1.0">-->
  		
- 		<!-- Bootstrap CSS -->
+	<!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   	
 <!--   	<link rel="stylesheet" href="styles/style.processed.css"> -->
@@ -232,7 +236,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-
+<!-- THREE.js core and extensions -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.22.1/build/postprocessing.min.js" integrity="sha256-pyGwxSnoRHKgrnFqpxGf22nsl+CEKp1/vaD9NH+6a1Q=" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/postprocessing@6.22.1/build/postprocessing.js"></script>
 <script src="../shared/video_dimensions.js"></script>
 <script src="operator.js"></script>
 <script src="operator_ui_regions.js"></script>

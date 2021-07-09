@@ -9,8 +9,6 @@ var img = document.createElement("IMG");
 img.style.visibility = 'hidden';
 var rosJointStateReceived = false;
 var jointState = null;
-var rosRobotStateReceived = false;
-var robotState = null;
 var isWristFollowingActive = false;
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
@@ -146,17 +144,49 @@ var tfClient = new ROSLIB.TFClient({
 var link_gripper_finger_left_tf;
 tfClient.subscribe('link_gripper_finger_left', function(tf) {
     link_gripper_finger_left_tf = tf;
+    sendData({
+        type: 'sensor',
+        subtype: 'gripper',
+        name: 'transform',
+        value: tf
+    });
 });
 
-var link_head_tilt_tf;
-tfClient.subscribe('link_head_tilt', function(tf) {
-    link_head_tilt_tf = tf;
+var camera_color_frame_tf;
+tfClient.subscribe('camera_color_frame', function(tf) {
+    camera_color_frame_tf = tf;
+    sendData({
+        type: 'sensor',
+        subtype: 'head',
+        name: 'transform',
+        value: tf
+    });
 });
 
 var base_tf;
 tfClient.subscribe('odom', function(tf) {
     base_tf = tf;
 });
+
+function sendTfs() {
+    if (link_gripper_finger_left_tf) {
+        sendData({
+            type: 'sensor',
+            subtype: 'gripper',
+            name: 'transform',
+            value: link_gripper_finger_left_tf
+        });
+    }
+
+    if (camera_color_frame_tf) {
+        sendData({
+            type: 'sensor',
+            subtype: 'head',
+            name: 'transform',
+            value: camera_color_frame_tf
+        });
+    }
+}
 
 var trajectoryClients = {}
 trajectoryClients.main = new ROSLIB.ActionClient({
@@ -414,17 +444,6 @@ function baseTurn(ang_deg, vel) {
 	baseTurnRightPoseGoal.send()
     }
     //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
-}
-
-function limitAngle(rad) {
-    while (rad > Math.PI) {
-        rad -= Math.PI;
-    }
-    while (rad < -Math.PI) {
-        rad += Math.PI;
-    }
-
-    return rad;
 }
 
 function getJointEffort(jointStateMessage, jointName) {

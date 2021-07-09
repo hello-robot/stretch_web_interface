@@ -43,6 +43,8 @@
 
     <script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
     <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script src="../shared/commands.js"></script>
     <script src="../shared/video_dimensions.js"></script>
     <script src="robot.js"></script>
@@ -58,6 +60,7 @@
       // When the robot and the operator are first connected, switch to navigation mode.
       //console.log('starting in navigation mode')
       //turnModeOn('nav')
+      sendTfs();
       }
     </script>
   </body>
