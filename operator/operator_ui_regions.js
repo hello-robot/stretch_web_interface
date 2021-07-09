@@ -256,6 +256,7 @@ function setMode(modeId) {
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(false);
+            
             // turnModeOn('nav');
             setCameraView('nav');
             // TODO: Is there some way to set this button list procedurally?
@@ -270,8 +271,8 @@ function setMode(modeId) {
             document.getElementById('lookRightManipButton').disabled = true;
             document.getElementById('lookDownManipButton').disabled = true;
             document.getElementById('resetViewManipButton').disabled = true;
-            document.getElementById('gripperOpenButton').disabled = true;
-            document.getElementById('gripperCloseButton').disabled = true;
+            //document.getElementById('gripperOpenButton').disabled = true;
+            //document.getElementById('gripperCloseButton').disabled = true;
             document.getElementById('stowArmButton').disabled = true;
             document.getElementById('prepArmButton').disabled = true;
             document.getElementById('cameraFollowGripperOn').disabled = true;
@@ -284,6 +285,7 @@ function setMode(modeId) {
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(true);
+            
             // turnModeOn('manip');
             setCameraView('manip');
             document.getElementById('lookUpNavButton').disabled = true;
@@ -297,8 +299,8 @@ function setMode(modeId) {
             document.getElementById('lookRightManipButton').disabled = false;
             document.getElementById('lookDownManipButton').disabled = false;
             document.getElementById('resetViewManipButton').disabled = false;
-            document.getElementById('gripperOpenButton').disabled = false;
-            document.getElementById('gripperCloseButton').disabled = false;
+            //document.getElementById('gripperOpenButton').disabled = false;
+            //document.getElementById('gripperCloseButton').disabled = false;
             document.getElementById('stowArmButton').disabled = false;
             document.getElementById('prepArmButton').disabled = false;
             document.getElementById('cameraFollowGripperOn').disabled = false;

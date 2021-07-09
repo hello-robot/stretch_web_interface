@@ -4,9 +4,6 @@ var messages_received_body = [];
 var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
-var rosImageReceived = false;
-var img = document.createElement("IMG");
-img.style.visibility = 'hidden';
 var rosJointStateReceived = false;
 var jointState = null;
 var isWristFollowingActive = false;
@@ -15,6 +12,10 @@ var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 
 // initialize images for camera video
+
+var rosImageReceived = false;
+var img = document.createElement("IMG");
+img.style.visibility = 'hidden';
 
 var navigationImageReceived = false
 var navigationImg = document.createElement("IMG")
@@ -49,14 +50,14 @@ var imageTopic = new ROSLIB.Topic({
 });
 
 imageTopic.subscribe(function(message) {
+    img.src = 'data:image/jpg;base64,' + message.data;
+    if (rosImageReceived === false) {
+    	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
+    	rosImageReceived = true;
+    }
     //console.log('Received compressed image on ' + imageTopic.name);
     //console.log('message.header =', message.header)
     //console.log('message.format =', message.format)
-    img.src = 'data:image/jpg;base64,' + message.data
-    if (rosImageReceived === false) {
-	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
-	rosImageReceived = true
-    }
     //console.log('img.width =', img.width)
     //console.log('img.height =', img.height)
     //console.log('img.naturalWidth =', img.naturalWidth)
@@ -72,11 +73,11 @@ var navigationImageTopic = new ROSLIB.Topic({
 });
 
 navigationImageTopic.subscribe(function(message) {
-    navigationImg.src = 'data:image/jpg;base64,' + message.data
+    navigationImg.src = 'data:image/jpg;base64,' + message.data;
 
     if (navigationImageReceived === false) {
     console.log('Received first compressed image from ROS topic ' + navigationImageTopic.name);
-    navigationImageReceived = true
+    navigationImageReceived = true;
     }
 });
 
@@ -88,10 +89,10 @@ var gripperImageTopic = new ROSLIB.Topic({
 
 
 gripperImageTopic.subscribe(function(message) {
-    gripperImg.src = 'data:image/jpg;base64,' + message.data
+    gripperImg.src = 'data:image/jpg;base64,' + message.data;
     if (gripperImageReceived === false) {
         console.log('Received first compressed image from ROS topic ' + gripperImageTopic.name);
-        gripperImageReceived = true
+        gripperImageReceived = true;
     }
 });
 

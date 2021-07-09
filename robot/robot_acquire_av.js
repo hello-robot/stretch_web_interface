@@ -14,23 +14,84 @@
 
 'use strict';
 
-var audioStream;
+var editedFps = 15;
+var handRoll = 0.0;
+var degToRad = (2.0* Math.PI)/360.0;
 
+class VideoStream {
+    constructor(videoId, width, height, topicName) {
+        this.videoId = videoId;
+        this.canvas = document.createElement('canvas');
+        this.displayElement = document.getElementById(videoId);
+        this.camDim = {w:width, h:height};
+        this.editedDim = {w:height, h:width}; // Different per camera
+        this.canvas.width = this.editedDim.w;
+        this.canvas.height = this.editedDim.h;
+        this.context = this.canvas.getContext('2d');
+        this.context.fillStyle="black";
+        this.context.fillRect(0, 0, editedDim.w, editedDim.h);
+
+        this.localStream = null;
+        this.displayStream = null;
+        this.editedVideoStream = this.canvas.captureStream(editedFps);
+
+        this.imageReceived = false;
+        this.topic = new ROSLIB.Topic({
+            ros : ros,
+            name : topicName
+            messageType : 'sensor_msgs/CompressedImage'
+        });
+        this.img = document.createElement("IMG");
+        this.img.style.visibility = 'hidden';
+
+        this.topic.subscribe(function(message) {
+            this.img.src = 'data:image/jpg;base64,' + message.data;
+            if (this.imageReceived === false) {
+                console.log('Received first compressed image from ROS topic ' + imageTopic.name);
+                this.imageReceived = true;
+            }
+        });
+    }
+
+    // Different per video and even modes
+    drawVideo() {
+        if (this.imageReceived === true) {
+            var d435iRotation = 90.0 * degToRad;
+            this.context.fillStyle="black";
+            this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
+            this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
+            this.context.rotate(d435iRotation);
+            this.context.drawImage(this.img, -this.camDim.w/2, -this.camDim.h/2, this.camDim.w, this.camDim.h)
+            this.context.rotate(-d435iRotation);
+            this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
+        }
+        requestAnimationFrame(this.drawVideo); // EEH will this work?
+    }
+
+    // TODO: This is work in progress but should not impact anything
+    start() {
+        this.displayStream = new MediaStream(this.editedVideoStream); // make a copy of the stream for local display
+        // remove audio tracks from displayStream
+        for (let a of this.displayStream.getAudioTracks()) {
+            this.displayStream.removeTrack(a);
+        }
+        this.localStream = new MediaStream(this.editedVideoStream);
+        this.displayElement.srcObject = this.displayStream; // display the stream    
+    
+        drawVideo(); 
+    }
+}
+
+var audioStream;
+var localStream;
 var audioInId;
 var audioOutId;
 
-var editedFps = 15;
 var videoEditingCanvas = document.createElement('canvas');
 var videoDisplayElement = document.querySelector('video');
-
 var camDim = {w:videoDimensions.w, h:videoDimensions.h};
-console.log('camDim', camDim);
-
 // Make room for -90 deg rotation due to D435i orientation.
 var editedDim = {w:camDim.h, h:camDim.w}
-
-var handRoll = 0.0;  
-var degToRad = (2.0* Math.PI)/360.0;
 
 videoEditingCanvas.width = editedDim.w;
 videoEditingCanvas.height = editedDim.h;
@@ -40,21 +101,16 @@ videoEditingContext.fillRect(0, 0, editedDim.w, editedDim.h);
 var editedVideoStream = videoEditingCanvas.captureStream(editedFps);
 
 function drawVideo() {
-    var d;
-
     if (rosImageReceived === true) {
-	//var d435iRotation = -90.0 * degToRad;
-	var d435iRotation = 90.0 * degToRad;
-	
-	videoEditingContext.fillStyle="black";
-	videoEditingContext.fillRect(0, 0, editedDim.w, editedDim.h);
-	videoEditingContext.translate(editedDim.w/2, editedDim.h/2);
-	videoEditingContext.rotate(d435iRotation);
-	videoEditingContext.drawImage(img, -camDim.w/2, -camDim.h/2, camDim.w, camDim.h)
-	videoEditingContext.rotate(-d435iRotation);
-	videoEditingContext.translate(-editedDim.w/2, -editedDim.h/2);
+    	var d435iRotation = 90.0 * degToRad;
+    	videoEditingContext.fillStyle="black";
+    	videoEditingContext.fillRect(0, 0, editedDim.w, editedDim.h);
+    	videoEditingContext.translate(editedDim.w/2, editedDim.h/2);
+    	videoEditingContext.rotate(d435iRotation);
+    	videoEditingContext.drawImage(img, -camDim.w/2, -camDim.h/2, camDim.w, camDim.h)
+    	videoEditingContext.rotate(-d435iRotation);
+    	videoEditingContext.translate(-editedDim.w/2, -editedDim.h/2);
     }
-    
     requestAnimationFrame(drawVideo);
 }
 
@@ -150,9 +206,10 @@ function start() {
     for (let a of displayStream.getAudioTracks()) {
         displayStream.removeTrack(a);
     }
-    videoDisplayElement.srcObject = displayStream; // display the stream
-    
+
     localStream = new MediaStream(editedVideoStream);
+
+    videoDisplayElement.srcObject = displayStream; // display the stream    
     
     var constraints;
     

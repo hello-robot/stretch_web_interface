@@ -14,7 +14,6 @@ var objects_sent = [];
 
 var isChannelReady = false;
 var isStarted = false;
-var localStream;
 var pc;
 var remoteStream;
 var displayStream;
