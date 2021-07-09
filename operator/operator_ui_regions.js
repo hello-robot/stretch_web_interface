@@ -405,13 +405,17 @@ function createUiRegions(debug) {
 
     let armOverlay = new OverlaySVG('manip');
 
-    bgRect = makeRectangle(0, h/5.0, w, h-h/5.0);
+    bgRect = makeRectangle(0, h/6.0, w, h-2.0*h/6.0);
     // Small rectangle at the top of the middle of the video
-    let tpRect = makeRectangle(w*(3.0/10.0), 2.0*h/5.0, w*(4.0/10.0), h/5.0);
+    let tpRect = makeRectangle(w*(3.0/10.0), 2.0*h/6.0, w*(4.0/10.0), h/6.0);
     // small rectangle at the bottom of the middle of the video
-    let btRect = makeRectangle(w*(3.0/10.0), 3.0*h/5.0, w*(4.0/10.0), h/5.0);
-    leftRect = makeRectangle(0, 0, w/2.0, h/5.0);
-    rightRect = makeRectangle(w/2.0, 0, w/2.0, h/5.0);
+    let btRect = makeRectangle(w*(3.0/10.0), 3.0*h/6.0, w*(4.0/10.0), h/6.0);
+    
+    leftRect = makeRectangle(0, 0, w/2.0, h/6.0);
+    rightRect = makeRectangle(w/2.0, 0, w/2.0, h/6.0);
+    
+    let leftRect2 = makeRectangle(0, 5.0*h/6.0, w/2.0, h/6.0);
+    let rightRect2 = makeRectangle(w/2.0, 5.0*h/6.0, w/2.0, h/6.0);
 
     armOverlay.addRegion(new Region('manip_up_region', 'liftUp' , 'lift arm',
         rectToPoly(tpRect), color, armOverlay.svg));
@@ -429,6 +433,10 @@ function createUiRegions(debug) {
         rectToPoly(leftRect), color, armOverlay.svg));
     armOverlay.addRegion(new Region('manip_out_region', 'wristOut' , 'turn hand out',
         rectToPoly(rightRect), color, armOverlay.svg));
+    armOverlay.addRegion(new Region('manip_close_region', 'gripperClose' , 'open hand',
+        rectToPoly(leftRect2), color, armOverlay.svg));
+    armOverlay.addRegion(new Region('manip_open_region', 'gripperOpen' , 'close hand',
+        rectToPoly(rightRect2), color, armOverlay.svg));
 
     manipulationVideoControl.addOverlay(armOverlay);
     manipulationVideoControl.setMode("manip");

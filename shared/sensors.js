@@ -129,8 +129,8 @@ var wristSensors = {
 
 var gripperSensors = {
 	"gripper_torque": function(value) {
-		var handCloseRegion = document.getElementById('gripperCloseButton');
-		var handOpenRegion = document.getElementById('gripperOpenButton');
+		var handCloseRegion = document.getElementById('manip_close_region');
+		var handOpenRegion = document.getElementById('manip_open_region');
 		var redRegion;
 		var nothingRegion;
 		if (value > 0.0) {
@@ -140,15 +140,18 @@ var gripperSensors = {
 			redRegion = handCloseRegion;
 			nothingRegion = handOpenRegion;
 		}
-		redRegion.setAttribute('fill', 'red');
+
 		// make the torque positive and multiply it by a factor to
 		// make sure the video will 	always be visible even with
-		var redOpacity = Math.abs(value) * 0.015;
-		redRegion.setAttribute('fill-opacity', redOpacity);
-		nothingRegion.setAttribute('fill-opacity', 0.0);
 
-		redRegion.setAttribute("background-color", "rgba(1, 0, 0, " + redOpacity + ")");
-		nothingRegion.setAttribute("background-color", "rgba(0.2, 0.2, 0.2, 1.0)");
+		var redOpacity = Math.abs(value) * 0.015;
+		if (redRegion) {
+			redRegion.setAttribute('fill', 'red');
+			redRegion.setAttribute('fill-opacity', redOpacity);			
+		}
+		if (nothingRegion)
+			nothingRegion.setAttribute('fill-opacity', 0.0);
+
     },
 	"transform": function (value) {
 		//navModeObjects.cube.position.copy(rosPostoTHREE(value.translation).add(positionOffset));
