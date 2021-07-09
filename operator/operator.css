@@ -113,27 +113,27 @@ video {
     cursor: url('rotate_cw.png'), auto;
 }
 
-#low_arm_down_region {
+#manip_down_region {
     cursor: url('down_arrow_medium.png'), auto;
 }
 
-#low_arm_up_region {
+#manip_up_region {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
-#low_arm_extend_region {
+#manip_extend_region {
     cursor: url('out_arrow.png'), auto;
 }
 
-#low_arm_retract_region {
+#manip_retract_region {
     cursor: url('in_arrow.png'), auto;
 }
 
-#low_arm_base_forward_region {
+#manip_base_forward_region {
     cursor: url('left_arrow_medium.png'), auto; 
 }
 
-#low_arm_base_backward_region {
+#manip_base_backward_region {
     cursor: url('right_arrow_medium.png'), auto;
 }
 
@@ -163,19 +163,19 @@ video {
 }
 
 
-#hand_open_region {
+#manip_open_region {
     cursor: url('gripper_open_medium.png'), auto;
 }
 
-#hand_close_region {
+#manip_close_region {
     cursor: url('gripper_close_medium.png'), auto;
 }
 
-#hand_in_region {
+#manip_in_region {
     cursor: url('left_turn_medium.png'), auto;
 }
 
-#hand_out_region {
+#manip_out_region {
     cursor: url('right_turn_medium.png'), auto;
 }
 

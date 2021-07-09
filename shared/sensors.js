@@ -4,92 +4,72 @@ var driveSensors = {
 
 var liftSensors = {
     "lift_effort": function(value) {
-	// adjust for the effort needed to hold the arm in place
-	// against gravity
-	var adjusted_value = value - 53.88;
-	var armUpRegion1 = document.getElementById('low_arm_up_region');
-	var armUpRegion2 = document.getElementById('high_arm_up_region');
-	
-	var armDownRegion1 = document.getElementById('low_arm_down_region');
-	var armDownRegion2 = document.getElementById('high_arm_down_region');
-	
-	var redRegion1;
-	var redRegion2;
-	
-	var nothingRegion1;
-	var nothingRegion2;
-	
-	if (adjusted_value > 0.0) {
-	    redRegion1 = armUpRegion1;
-	    redRegion2 = armUpRegion2;
-	    nothingRegion1 = armDownRegion1;
-	    nothingRegion2 = armDownRegion2;
-	} else {
-	    redRegion1 = armDownRegion1;
-	    redRegion2 = armDownRegion2;
-	    nothingRegion1 = armUpRegion1;
-	    nothingRegion2 = armUpRegion2;
-	}
-	redRegion1.setAttribute('fill', 'red');
-	redRegion2.setAttribute('fill', 'red');
+		// adjust for the effort needed to hold the arm in place
+		// against gravity
+		var adjusted_value = value - 53.88;
+		var armUpRegion1 = document.getElementById('manip_up_region');		
+		var armDownRegion1 = document.getElementById('manip_down_region');
+		var redRegion1;
+		var nothingRegion1;
+		
+		if (adjusted_value > 0.0) {
+		    redRegion1 = armUpRegion1;
+		    nothingRegion1 = armDownRegion1;
+		} else {
+		    redRegion1 = armDownRegion1;
+		    nothingRegion1 = armUpRegion1;
+		}
+		// make the torque positive and multiply it by a factor to
+		// make sure the video will always be visible even with
+		var redOpacity = Math.abs(adjusted_value) * 0.005;
 
-	// make the torque positive and multiply it by a factor to
-	// make sure the video will always be visible even with
-	var redOpacity = Math.abs(adjusted_value) * 0.005;
+		if (redRegion1) {
+			redRegion1.setAttribute('fill', 'red');
+			redRegion1.setAttribute('fill-opacity', redOpacity);		
+		}
+		
+		if (nothingRegion1)
+			nothingRegion1.setAttribute('fill-opacity', 0.0);
 
-	redRegion1.setAttribute('fill-opacity', redOpacity);
-	redRegion2.setAttribute('fill-opacity', redOpacity);
-	
-	nothingRegion1.setAttribute('fill-opacity', 0.0);
-	nothingRegion2.setAttribute('fill-opacity', 0.0);
     }
 }  
 
 
 var armSensors = {
     "arm_effort": function(value) {
-	var armExtendRegion1 = document.getElementById('low_arm_extend_region');
-	var armExtendRegion2 = document.getElementById('high_arm_extend_region');
-	
-	var armRetractRegion1 = document.getElementById('low_arm_retract_region');
-	var armRetractRegion2 = document.getElementById('high_arm_retract_region');
-
+	var armExtendRegion1 = document.getElementById('manip_extend_region');	
+	var armRetractRegion1 = document.getElementById('manip_retract_region');
 	var redRegion1;
-	var redRegion2;
-	
 	var nothingRegion1;
-	var nothingRegion2;
 	
 	if (value > 0.0) {
 	    redRegion1 = armExtendRegion1;
-	    redRegion2 = armExtendRegion2;
 	    nothingRegion1 = armRetractRegion1;
-	    nothingRegion2 = armRetractRegion2;
 	} else {
 	    redRegion1 = armRetractRegion1;
-	    redRegion2 = armRetractRegion2;
 	    nothingRegion1 = armExtendRegion1;
-	    nothingRegion2 = armExtendRegion2;
 	}
-	redRegion1.setAttribute('fill', 'red');
-	redRegion2.setAttribute('fill', 'red');
 
 	// make the torque positive and multiply it by a factor to
 	// make sure the video will always be visible even with
+
 	var redOpacity = Math.abs(value) * 0.005;
 
-	redRegion1.setAttribute('fill-opacity', redOpacity);
-	redRegion2.setAttribute('fill-opacity', redOpacity);
+	if (redRegion1) {		
+		redRegion1.setAttribute('fill', 'red');
+		redRegion1.setAttribute('fill-opacity', redOpacity);
+	}
 	
-	nothingRegion1.setAttribute('fill-opacity', 0.0);
-	nothingRegion2.setAttribute('fill-opacity', 0.0);
+	if (nothingRegion1)
+		nothingRegion1.setAttribute('fill-opacity', 0.0);
+
     }
 }  
 
 var wristSensors = {
     "yaw_torque": function(value) {
-		var yawInRegion = document.getElementById('hand_in_region');
-		var yawOutRegion = document.getElementById('hand_out_region');
+		var yawInRegion = document.getElementById('manip_in_region');
+		var yawOutRegion = document.getElementById('manip_out_region');
 		var redRegion;
 		var nothingRegion;
 		if (value > 0.0) {
@@ -106,6 +86,7 @@ var wristSensors = {
 		redRegion.setAttribute('fill-opacity', redOpacity);
 		nothingRegion.setAttribute('fill-opacity', 0.0);
     },
+    // The following seems to be relevant for th new wrist
     "bend_torque": function(value) {
 		var bendUpRegion = document.getElementById('wrist_bend_up_region');
 		var bendDownRegion = document.getElementById('wrist_bend_down_region');
@@ -148,8 +129,8 @@ var wristSensors = {
 
 var gripperSensors = {
 	"gripper_torque": function(value) {
-		var handCloseRegion = document.getElementById('hand_close_region');
-		var handOpenRegion = document.getElementById('hand_open_region');
+		var handCloseRegion = document.getElementById('gripperCloseButton');
+		var handOpenRegion = document.getElementById('gripperOpenButton');
 		var redRegion;
 		var nothingRegion;
 		if (value > 0.0) {
@@ -165,6 +146,9 @@ var gripperSensors = {
 		var redOpacity = Math.abs(value) * 0.015;
 		redRegion.setAttribute('fill-opacity', redOpacity);
 		nothingRegion.setAttribute('fill-opacity', 0.0);
+
+		redRegion.setAttribute("background-color", "rgba(1, 0, 0, " + redOpacity + ")");
+		nothingRegion.setAttribute("background-color", "rgba(0.2, 0.2, 0.2, 1.0)");
     },
 	"transform": function (value) {
 		//navModeObjects.cube.position.copy(rosPostoTHREE(value.translation).add(positionOffset));

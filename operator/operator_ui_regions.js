@@ -237,7 +237,6 @@ class Region {
             this.poly, color, this.isContinuous, fillOpacity);
     }
 
-
     hide() {
         document.getElementById(this.regionId).style.display = 'none';
     }
@@ -414,49 +413,26 @@ function createUiRegions(debug) {
     leftRect = makeRectangle(0, 0, w/2.0, h/5.0);
     rightRect = makeRectangle(w/2.0, 0, w/2.0, h/5.0);
 
-    armOverlay.addRegion(new Region('low_arm_up_region', 'liftUp' , 'lift arm',
+    armOverlay.addRegion(new Region('manip_up_region', 'liftUp' , 'lift arm',
         rectToPoly(tpRect), color, armOverlay.svg));
-    armOverlay.addRegion(new Region('low_arm_down_region', 'liftDown' , 'lower arm',
+    armOverlay.addRegion(new Region('manip_down_region', 'liftDown' , 'lower arm',
         rectToPoly(btRect), color, armOverlay.svg));
-    armOverlay.addRegion(new Region('low_arm_extend_region', 'armExtend' , 'extend arm',
+    armOverlay.addRegion(new Region('manip_extend_region', 'armExtend' , 'extend arm',
         [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, armOverlay.svg));
-    armOverlay.addRegion(new Region('low_arm_retract_region', 'armRetract' , 'retract arm',
+    armOverlay.addRegion(new Region('manip_retract_region', 'armRetract' , 'retract arm',
         [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, armOverlay.svg));
-    armOverlay.addRegion(new Region('low_arm_base_forward_region', 'moveForward' , 'move forward',
+    armOverlay.addRegion(new Region('manip_base_forward_region', 'moveForward' , 'move forward',
         [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, armOverlay.svg));
-    armOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
+    armOverlay.addRegion(new Region('manip_base_backward_region', 'moveBackward' , 'move backward',
         [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, armOverlay.svg));
-    
-    armOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
+    armOverlay.addRegion(new Region('manip_in_region', 'wristIn' , 'turn hand in',
         rectToPoly(leftRect), color, armOverlay.svg));
-    armOverlay.addRegion(new Region('hand_out_region', 'wristOut' , 'turn hand out',
+    armOverlay.addRegion(new Region('manip_out_region', 'wristOut' , 'turn hand out',
         rectToPoly(rightRect), color, armOverlay.svg));
 
     manipulationVideoControl.addOverlay(armOverlay);
     manipulationVideoControl.setMode("manip");
     manipulationVideoControl.setActive(false);
-
-
-    
-    /////////////////////////
-    // hand
-    /////////////////////////
-
-    // let handOverlay = new Overlay('hand');
-
-    // tpRect = makeRectangle(0, 0, w, h/4.0);
-    // btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
-    // smRect = makeRectangle(w/3.0, 2.0*(h/5.0), w/3.0, h/5.0);
-
-    // handOverlay.addRegion(new Region('hand_close_region', 'gripperClose' , 'close hand',
-    //     rectToPoly(smRect), color, handOverlay.svg));
-    // handOverlay.addRegion(new Region('hand_out_region', 'wristOut' , 'turn hand out',
-    //     rectToPoly(tpRect), color, handOverlay.svg));
-    // handOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
-    //     rectToPoly(btRect), color, handOverlay.svg));
-    // handOverlay.addRegion(new Region('hand_open_region', 'gripperOpen' , 'open hand',
-    //     [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll, smRect.ul, 
-    //     smRect.ll, smRect.lr, smRect.ur, smRect.ul], color, handOverlay.svg));
 
 }
 
