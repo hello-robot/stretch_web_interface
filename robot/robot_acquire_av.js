@@ -102,13 +102,6 @@ class VideoStream {
         this.img = document.createElement("IMG");
         this.img.style.visibility = 'hidden';
 
-        this.topic.subscribe(function(message) {
-            this.img.src = 'data:image/jpg;base64,' + message.data;
-            if (this.imageReceived === false) {
-                console.log('Received first compressed image from ROS topic ' + imageTopic.name);
-                this.imageReceived = true;
-            }
-        });
     }
 
     drawVideo() {
@@ -151,6 +144,7 @@ class PanTiltVideoStream extends VideoStream {
         let camDim = {w:videoDimensions.w, h:videoDimensions.h};
         let editedDim = {w:camDim.h, h:camDim.w}
         super(videoId, camDim, editedDim, topicName);
+        this.topic.subscribe(pantiltImageCallback);
     }
 
     drawVideo() {
@@ -166,14 +160,24 @@ class WideAngleVideoStream extends VideoStream {
         let wideEditedDim = {w:wideVideoDimensions.camW, 
             h:wideVideoDimensions.camH};
         super(videoId, wideCamDim, wideEditedDim, topicName);
+
+        if (this.videoId == "gripperVideo") {
+            this.topic.subscribe(gripperImageCallback);
+        }
+        else if (this.videoId == "overheadVideo") {
+            this.topic.subscribe(overheadImageCallback);
+        }
+
     }
 
     drawVideo() {
         this.renderVideo();
-        if (this.videoId == "gripperVideo")
+        if (this.videoId == "gripperVideo") {
             requestAnimationFrame(drawGripperStream); // EEH will this work?
-        else if (this.videoId == "overheadVideo")
+        }
+        else if (this.videoId == "overheadVideo") {
             requestAnimationFrame(drawOverheadStream); // EEH will this work?
+        }
     }
 }
 
@@ -189,6 +193,29 @@ function drawOverheadStream() {
     overheadStream.drawVideo();
 }
 
+function pantiltImageCallback(message) {
+    pantiltStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (pantiltStream.imageReceived === false) {
+        console.log('Received first compressed image from ROS topic ' + pantiltStream.topic.name);
+        pantiltStream.imageReceived = true;
+    }
+}
+
+function gripperImageCallback(message) {
+    gripperStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (gripperStream.imageReceived === false) {
+        console.log('Received first compressed image from ROS topic ' + gripperStream.topic.name);
+        gripperStream.imageReceived = true;
+    }
+}
+
+function overheadImageCallback(message) {
+    overheadStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (overheadStream.imageReceived === false) {
+        console.log('Received first compressed image from ROS topic ' + overheadStream.topic.name);
+        overheadStream.imageReceived = true;
+    }
+}
 
 //////////// Beign replaced ///////////
 

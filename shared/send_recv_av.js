@@ -228,7 +228,7 @@ function createPeerConnection() {
         pc.onopen = function() {
             console.log('RTC channel opened.');
         };
-        pc.onaddstream = handleRemoteStreamAdded;
+        //pc.onaddstream = handleRemoteStreamAdded;
         pc.onremovestream = handleRemoteStreamRemoved;
         // TODO: Adding things by track, to be tested..
         pc.ontrack = handleRemoteTrackAdded;
@@ -254,27 +254,32 @@ function handleIceCandidate(event) {
     }
 }
 
+var noStreamYet = true;
 function handleRemoteTrackAdded(event) {
     // TODO: To be tested
     console.log('Remote track added.');
-    const track = e.track;
-    const stream = e.streams[0];
+    const track = event.track;
+    const stream = event.streams[0];
     console.log('got track id=' + track.id, track);
     console.log('stream id=' + stream.id, stream);
 
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: adding remote tracks');
         
-        // remove audio tracks from displayStream
-        for (let a of pantiltStream.displayStream.getAudioTracks()) {
-            pantiltStream.displayStream.removeTrack(a);
-        }
+        // if (pantiltStream) {
+        //     // remove audio tracks from displayStream
+        //     for (let a of pantiltStream.displayStream.getAudioTracks()) {
+        //         pantiltStream.displayStream.removeTrack(a);
+        //     }            
+        // }
 
         // For now put on all available displays on the operator side
-        if (panTiltCameraVideo)
+        if (panTiltCameraVideo) 
             panTiltCameraVideo.srcObject = stream;
-        if (navigationVideo)
+        if (navigationVideo && noStreamYet) {
             navigationVideo.srcObject = stream;
+            noStreamYet = false;
+        }
         if (manipulationVideo)
             manipulationVideo.srcObject = stream;
 
