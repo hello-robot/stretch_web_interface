@@ -126,7 +126,12 @@ class VideoStream {
             this.context.rotate(-d435iRotation);
             this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
         }
-        requestAnimationFrame(this.drawVideo); // EEH will this work?
+        if (this.videoId == "pantiltVideo")
+            requestAnimationFrame(drawPantiltStream); // EEH will this work?
+        else if (this.videoId == "gripperVideo")
+            requestAnimationFrame(drawGripperStream); // EEH will this work?
+        else if (this.videoId == "overheadVideo")
+            requestAnimationFrame(drawOverheadStream); // EEH will this work?
     }
 
     start() {
@@ -140,8 +145,20 @@ class VideoStream {
     
         this.drawVideo(); 
     }
-
 }
+
+function drawPantiltStream() {
+    pantiltStream.drawVideo();
+}
+
+function drawGripperStream() {
+    gripperStream.drawVideo();
+}
+
+function drawOverheadStream() {
+    overheadStream.drawVideo();
+}
+
 
 //////////// Beign replaced ///////////
 
