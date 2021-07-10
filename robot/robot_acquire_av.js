@@ -20,17 +20,12 @@ function startStreams() {
 
     const videoTopicName = inSim ? '/realsense/color/image_raw/compressed':
                                     '/camera/color/image_raw/compressed';
-    let camDim = {w:videoDimensions.w, h:videoDimensions.h};
-    let editedDim = {w:camDim.h, h:camDim.w}
-    pantiltStream = new VideoStream("pantiltVideo", 
-        camDim, editedDim, videoTopicName);
+    pantiltStream = new PanTiltVideoStream("pantiltVideo", videoTopicName);
 
-    let wideCamDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camH};
-    var wideEditedDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camW};
-    overheadStream = new VideoStream("overheadVideo", wideCamDim, wideEditedDim,
+    overheadStream = new WideAngleVideoStream("overheadVideo",
         '/navigation_camera/image_raw/compressed');
 
-    gripperStream = new VideoStream("gripperVideo", wideCamDim, wideEditedDim,
+    gripperStream = new WideAngleVideoStream("gripperVideo",
         '/gripper_camera/image_raw/compressed');
 
     pantiltStream.start();
@@ -91,6 +86,8 @@ class VideoStream {
         this.context = this.canvas.getContext('2d');
         this.context.fillStyle="black";
         this.context.fillRect(0, 0, editedDim.w, editedDim.h);
+        this.isRotated = true;
+        this.isZoomed = false;
 
         this.localStream = null;
         this.displayStream = null;
@@ -114,24 +111,25 @@ class VideoStream {
         });
     }
 
-    // TODO: Different per video and even modes
     drawVideo() {
+        console.warn("drawVideo() should be implemented by child class.");
+    }
+
+    renderVideo() {
         if (this.imageReceived === true) {
-            var d435iRotation = 90.0 * degToRad;
-            this.context.fillStyle="black";
-            this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
-            this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
-            this.context.rotate(d435iRotation);
-            this.context.drawImage(this.img, -this.camDim.w/2, -this.camDim.h/2, this.camDim.w, this.camDim.h)
-            this.context.rotate(-d435iRotation);
-            this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
+            if (this.isRotated) {
+                const rotation = 90.0 * degToRad;
+                this.context.fillStyle="black";
+                this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
+                this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
+                this.context.rotate(rotation);
+                this.context.drawImage(this.img, 
+                    -this.camDim.w/2, -this.camDim.h/2, 
+                    this.camDim.w, this.camDim.h);
+                this.context.rotate(-rotation);
+                this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
+            }
         }
-        if (this.videoId == "pantiltVideo")
-            requestAnimationFrame(drawPantiltStream); // EEH will this work?
-        else if (this.videoId == "gripperVideo")
-            requestAnimationFrame(drawGripperStream); // EEH will this work?
-        else if (this.videoId == "overheadVideo")
-            requestAnimationFrame(drawOverheadStream); // EEH will this work?
     }
 
     start() {
@@ -144,6 +142,37 @@ class VideoStream {
         this.displayElement.srcObject = this.displayStream; // display the stream    
     
         this.drawVideo(); 
+    }
+}
+
+
+class PanTiltVideoStream extends VideoStream {
+    constructor(videoId, topicName) {
+        let camDim = {w:videoDimensions.w, h:videoDimensions.h};
+        let editedDim = {w:camDim.h, h:camDim.w}
+        super(videoId, camDim, editedDim, topicName);
+    }
+
+    drawVideo() {
+        renderVideo();
+        requestAnimationFrame(drawPantiltStream); // EEH will this work?
+    }
+}
+
+class WideAngleVideoStream extends VideoStream {
+    constructor(videoId, topicName) {
+        let wideCamDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camH};
+        let wideEditedDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camW};
+        super(videoId, wideCamDim, wideEditedDim, topicName);
+    }
+
+    drawVideo() {
+        renderVideo();
+
+        if (this.videoId == "gripperVideo")
+            requestAnimationFrame(drawGripperStream); // EEH will this work?
+        else if (this.videoId == "overheadVideo")
+            requestAnimationFrame(drawOverheadStream); // EEH will this work?
     }
 }
 

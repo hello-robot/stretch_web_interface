@@ -13,18 +13,9 @@ var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", versio
 
 // initialize images for camera video
 
-var rosImageReceived = false;
-var img = document.createElement("IMG");
-img.style.visibility = 'hidden';
-
-var navigationImageReceived = false
-var navigationImg = document.createElement("IMG")
-navigationImg.style.visibility = 'hidden'
-
-var gripperImageReceived = false
-var gripperImg = document.createElement("IMG")
-gripperImg.style.visibility = 'hidden'
-
+// var rosImageReceived = false;
+// var img = document.createElement("IMG");
+// img.style.visibility = 'hidden';
 
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
@@ -43,65 +34,35 @@ ros.on('close', function() {
     console.log('Connection to websocket has been closed.');
 });
 
-var imageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
-    messageType : 'sensor_msgs/CompressedImage'
-});
+// var imageTopic = new ROSLIB.Topic({
+//     ros : ros,
+//     name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
+//     messageType : 'sensor_msgs/CompressedImage'
+// });
 
-imageTopic.subscribe(function(message) {
-    img.src = 'data:image/jpg;base64,' + message.data;
-    if (rosImageReceived === false) {
-    	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
-    	rosImageReceived = true;
-    }
-    //console.log('Received compressed image on ' + imageTopic.name);
-    //console.log('message.header =', message.header)
-    //console.log('message.format =', message.format)
-    //console.log('img.width =', img.width)
-    //console.log('img.height =', img.height)
-    //console.log('img.naturalWidth =', img.naturalWidth)
-    //console.log('img.naturalHeight =', img.naturalHeight)
-    //console.log('attempted to draw image to the canvas')
-    //imageTopic.unsubscribe()
-});
+// imageTopic.subscribe(function(message) {
+//     img.src = 'data:image/jpg;base64,' + message.data;
+//     if (rosImageReceived === false) {
+//     	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
+//     	rosImageReceived = true;
+//     }
+//     //console.log('Received compressed image on ' + imageTopic.name);
+//     //console.log('message.header =', message.header)
+//     //console.log('message.format =', message.format)
+//     //console.log('img.width =', img.width)
+//     //console.log('img.height =', img.height)
+//     //console.log('img.naturalWidth =', img.naturalWidth)
+//     //console.log('img.naturalHeight =', img.naturalHeight)
+//     //console.log('attempted to draw image to the canvas')
+//     //imageTopic.unsubscribe()
+// });
 
-var navigationImageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : '/navigation_camera/image_raw/compressed',
-    messageType : 'sensor_msgs/CompressedImage'
-});
-
-navigationImageTopic.subscribe(function(message) {
-    navigationImg.src = 'data:image/jpg;base64,' + message.data;
-
-    if (navigationImageReceived === false) {
-    console.log('Received first compressed image from ROS topic ' + navigationImageTopic.name);
-    navigationImageReceived = true;
-    }
-});
-
-var gripperImageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : '/gripper_camera/image_raw/compressed',
-    messageType : 'sensor_msgs/CompressedImage'
-});
-
-
-gripperImageTopic.subscribe(function(message) {
-    gripperImg.src = 'data:image/jpg;base64,' + message.data;
-    if (gripperImageReceived === false) {
-        console.log('Received first compressed image from ROS topic ' + gripperImageTopic.name);
-        gripperImageReceived = true;
-    }
-});
 
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
     name : inSim ? '/joint_states/' : '/stretch/joint_states/',
     messageType : 'sensor_msgs/JointState'
 });
-
 
 jointStateTopic.subscribe(function(message) {
 
