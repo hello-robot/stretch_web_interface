@@ -96,7 +96,6 @@ gripperImageTopic.subscribe(function(message) {
     }
 });
 
-
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
     name : inSim ? '/joint_states/' : '/stretch/joint_states/',

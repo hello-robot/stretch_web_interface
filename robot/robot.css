@@ -1,12 +1,13 @@
 
-#video-display-div {
+.video-display {
     height:90%;
 }
 
-#video-display {
+.video-element {
     /*position:absolute;*/
     height:90%;
     z-index:1;
+    border: 1px gray solid;
 }
 
 /* The switch - the box around the slider */
