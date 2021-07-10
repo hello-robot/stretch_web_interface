@@ -179,18 +179,29 @@ var navigationVideo = document.querySelector('#navigationVideo');
 var manipulationVideo = document.querySelector('#manipulationVideo');
 
 function maybeStart() {
-    console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+    console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
     if (!isStarted && isChannelReady) {
         console.log('>>>>>> creating peer connection');
         createPeerConnection();
-        if (localStream != undefined) {
-            console.log('adding local media stream to peer connection');
-            pc.addStream(localStream);
-            // Adding by tracks, to be tested
-            //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-        }
         console.log('This peer is the ' + peer_name + '.');
         if (peer_name === 'ROBOT') {
+            if (pantiltStream.localStream != undefined) {
+                console.log('adding local media stream to peer connection');
+                
+                // pc.addStream(pantiltStream.localStream);
+
+                // Adding by tracks, to be tested
+                //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+                // TODO: To be tested.. this is a wild guess!
+                let stream = pantiltStream.localStream;
+                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+                stream = overheadStream.localStream;
+                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+                stream = gripperStream.localStream;
+                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+            }
             dataConstraint = null;
             dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
             console.log('Creating data channel.');
@@ -220,7 +231,7 @@ function createPeerConnection() {
         pc.onaddstream = handleRemoteStreamAdded;
         pc.onremovestream = handleRemoteStreamRemoved;
         // TODO: Adding things by track, to be tested..
-        // pc.ontrack = handleRemoteTrackAdded;
+        pc.ontrack = handleRemoteTrackAdded;
         console.log('Created RTCPeerConnnection');
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -250,27 +261,49 @@ function handleRemoteTrackAdded(event) {
     const stream = e.streams[0];
     console.log('got track id=' + track.id, track);
     console.log('stream id=' + stream.id, stream);
+
+    if (peer_name === 'OPERATOR') {
+        console.log('OPERATOR: adding remote tracks');
+        
+        // remove audio tracks from displayStream
+        for (let a of pantiltStream.displayStream.getAudioTracks()) {
+            pantiltStream.displayStream.removeTrack(a);
+        }
+
+        // For now put on all available displays on the operator side
+        if (panTiltCameraVideo)
+            panTiltCameraVideo.srcObject = stream;
+        if (navigationVideo)
+            navigationVideo.srcObject = stream;
+        if (manipulationVideo)
+            manipulationVideo.srcObject = stream;
+
+    }
 }
 
 function handleRemoteStreamAdded(event) {
     console.log('Remote stream added.');
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: starting to display remote stream');
+
+        // How to extract the tracks from the incoming stream? event.stream
+
         if (panTiltCameraVideo)
             panTiltCameraVideo.srcObject = event.stream;
         if (navigationVideo)
             navigationVideo.srcObject = event.stream;
         if (manipulationVideo)
             manipulationVideo.srcObject = event.stream;
+
     } else if (peer_name === 'ROBOT') {
         console.log('ROBOT: adding remote audio to display');
         // remove audio tracks from displayStream
-        for (let a of displayStream.getAudioTracks()) {
-            displayStream.removeTrack(a);
+        for (let a of pantiltStream.displayStream.getAudioTracks()) {
+            pantiltStream.displayStream.removeTrack(a);
         }
         var remoteaudio = event.stream.getAudioTracks()[0]; // get remotely captured audio track
-        displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
-	   videoDisplayElement.srcObject = displayStream;
+        pantiltStream.displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
+	    pantiltStream.displayElement.srcObject = pantiltStream.displayStream;
     }
     
     remoteStream = event.stream;
