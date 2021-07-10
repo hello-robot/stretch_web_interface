@@ -154,21 +154,22 @@ class PanTiltVideoStream extends VideoStream {
     }
 
     drawVideo() {
-        renderVideo();
+        this.renderVideo();
         requestAnimationFrame(drawPantiltStream); // EEH will this work?
     }
 }
 
 class WideAngleVideoStream extends VideoStream {
     constructor(videoId, topicName) {
-        let wideCamDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camH};
-        let wideEditedDim = {w:wideVideoDimensions.camW, h:wideVideoDimensions.camW};
+        let wideCamDim = {w:wideVideoDimensions.camW, 
+            h:wideVideoDimensions.camH};
+        let wideEditedDim = {w:wideVideoDimensions.camW, 
+            h:wideVideoDimensions.camH};
         super(videoId, wideCamDim, wideEditedDim, topicName);
     }
 
     drawVideo() {
-        renderVideo();
-
+        this.renderVideo();
         if (this.videoId == "gripperVideo")
             requestAnimationFrame(drawGripperStream); // EEH will this work?
         else if (this.videoId == "overheadVideo")
