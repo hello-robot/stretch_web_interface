@@ -195,11 +195,15 @@ function maybeStart() {
 
                 // TODO: To be tested.. this is a wild guess!
                 let stream = pantiltStream.localStream;
-                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+                let info = {};
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
                 stream = overheadStream.localStream;
-                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
                 stream = gripperStream.localStream;
-                stream.getTracks().forEach(t => pc.addTrack(t, stream));
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
+
+                cameraInfo = {'type':'camerainfo', 'info': {}};
+                sendData(cameraInfo);
 
             }
             dataConstraint = null;
@@ -254,7 +258,6 @@ function handleIceCandidate(event) {
     }
 }
 
-var noStreamYet = true;
 function handleRemoteTrackAdded(event) {
     // TODO: To be tested
     console.log('Remote track added.');
@@ -273,15 +276,20 @@ function handleRemoteTrackAdded(event) {
         //     }            
         // }
 
-        // For now put on all available displays on the operator side
-        if (panTiltCameraVideo) 
-            panTiltCameraVideo.srcObject = stream;
-        if (navigationVideo && noStreamYet) {
-            navigationVideo.srcObject = stream;
-            noStreamYet = false;
+        if (cameraInfo) {
+
+            let thisTrackId = track.id;
+            let thisTrackContent = cameraInfo[track.id];
+            
+            // This is where we would change which view displays which camera stream
+            if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) 
+                panTiltCameraVideo.srcObject = stream;
+            if (thisTrackContent=="overheadStream" && navigationVideo) {
+                navigationVideo.srcObject = stream;
+            }
+            if (thisTrackContent=="gripperStream" && manipulationVideo)
+                manipulationVideo.srcObject = stream;
         }
-        if (manipulationVideo)
-            manipulationVideo.srcObject = stream;
 
     }
 }
@@ -387,7 +395,10 @@ function sendData(obj) {
 	    // unless being recorded, don't store or write information to the console due to high
 	    // frequency and large amount of data (analogous to audio and video).
 	    dataChannel.send(data);
-            break;
+        break;
+    case 'camerainfo':
+        dataChannel.send(data);
+        break;
 	default:
 	    console.log('*************************************************************');
 	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
@@ -413,6 +424,7 @@ function dataChannelCallback(event) {
     dataChannel.onclose = onDataChannelStateChange;
 }
 
+var cameraInfo = null;
 function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
@@ -429,6 +441,10 @@ function onReceiveMessageCallback(event) {
                 addToSensorLog(obj);
             }
             receiveSensorReading(obj);
+            break;
+        case 'camerainfo':
+            // The mapping between stream id and content is received from the robot
+            cameraInfo = obj.info;
             break;
         default:
             console.log('*******************************************************');
