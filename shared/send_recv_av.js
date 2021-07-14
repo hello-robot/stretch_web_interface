@@ -193,7 +193,6 @@ function maybeStart() {
                 // Adding by tracks, to be tested
                 //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
 
-                // TODO: To be tested.. this is a wild guess!
                 let stream = pantiltStream.localStream;
                 let info = {};
                 stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
@@ -202,8 +201,7 @@ function maybeStart() {
                 stream = gripperStream.localStream;
                 stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
 
-                cameraInfo = {'type':'camerainfo', 'info': {}};
-                sendData(cameraInfo);
+                cameraInfo = {'type':'camerainfo', 'info': info};
 
             }
             dataConstraint = null;
@@ -258,6 +256,7 @@ function handleIceCandidate(event) {
     }
 }
 
+var allRemoteStreams = [];
 function handleRemoteTrackAdded(event) {
     // TODO: To be tested
     console.log('Remote track added.');
@@ -276,22 +275,28 @@ function handleRemoteTrackAdded(event) {
         //     }            
         // }
 
+        allRemoteStreams.push({'track': track, 'stream': stream});
         if (cameraInfo) {
-
-            let thisTrackId = track.id;
-            let thisTrackContent = cameraInfo[track.id];
-            
-            // This is where we would change which view displays which camera stream
-            if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) 
-                panTiltCameraVideo.srcObject = stream;
-            if (thisTrackContent=="overheadStream" && navigationVideo) {
-                navigationVideo.srcObject = stream;
-            }
-            if (thisTrackContent=="gripperStream" && manipulationVideo)
-                manipulationVideo.srcObject = stream;
+            displayRemoteStream(track, stream);
         }
-
+        else{
+            console.log("No camera info yet.");
+        }
     }
+}
+
+function displayRemoteStream(track, stream) {
+    let thisTrackId = track.id;
+    let thisTrackContent = cameraInfo[track.id];
+    
+    // This is where we would change which view displays which camera stream
+    if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) 
+        panTiltCameraVideo.srcObject = stream;
+    if (thisTrackContent=="overheadStream" && navigationVideo) {
+        navigationVideo.srcObject = stream;
+    }
+    if (thisTrackContent=="gripperStream" && manipulationVideo)
+        manipulationVideo.srcObject = stream;
 }
 
 function handleRemoteStreamAdded(event) {
@@ -381,32 +386,35 @@ function stop() {
 
 function sendData(obj) {
     if (isStarted && (dataChannel.readyState === 'open')) {
-	var data = JSON.stringify(obj);
-	switch(obj.type) {
-	case 'command':
-	    if (recordOn && addToCommandLog) {
-		addToCommandLog(obj);
-	    }
-	    objects_sent.push(obj);
-	    dataChannel.send(data);
-	    console.log('Sent Data: ' + data);
+    	var data = JSON.stringify(obj);
+    	switch(obj.type) {
+    	case 'command':
+    	    if (recordOn && addToCommandLog) {
+    		addToCommandLog(obj);
+    	    }
+    	    objects_sent.push(obj);
+    	    dataChannel.send(data);
+    	    console.log('Sent Data: ' + data);
+                break;
+    	case 'sensor':
+    	    // unless being recorded, don't store or write information to the console due to high
+    	    // frequency and large amount of data (analogous to audio and video).
+    	    dataChannel.send(data);
             break;
-	case 'sensor':
-	    // unless being recorded, don't store or write information to the console due to high
-	    // frequency and large amount of data (analogous to audio and video).
-	    dataChannel.send(data);
-        break;
-    case 'camerainfo':
-        dataChannel.send(data);
-        break;
-	default:
-	    console.log('*************************************************************');
-	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
-	    console.log('Received Data: ' + event.data);
-	    console.log('Received Object: ' + obj);
-	    console.log('*************************************************************');
-	}
+        case 'camerainfo':
+            dataChannel.send(data);
+            console.log("Sending camera info.");
+            break;
+    	default:
+    	    console.log('*************************************************************');
+    	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
+    	    console.log('Received Data: ' + event.data);
+    	    console.log('Received Object: ' + obj);
+    	    console.log('*************************************************************');
+    	}
     }
+    else
+        console.log("Cannot send data: ", isStarted, dataChannel);
 }
 
 function closeDataChannels() {
@@ -431,7 +439,7 @@ function onReceiveMessageCallback(event) {
         case 'command':
             objects_received.push(obj);
             console.log('Received Data: ' + event.data);
-            //console.log('Received Object: ' + obj);
+            console.log('Received Object: ' + obj);
             executeCommand(obj);
             break;
         case 'sensor':
@@ -445,6 +453,10 @@ function onReceiveMessageCallback(event) {
         case 'camerainfo':
             // The mapping between stream id and content is received from the robot
             cameraInfo = obj.info;
+            for (let i in allRemoteStreams) {
+                displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
+            }
+            console.log("Camera info received.");
             break;
         default:
             console.log('*******************************************************');
@@ -459,7 +471,6 @@ function onDataChannelStateChange() {
     var readyState = dataChannel.readyState;
     console.log('Data channel state is: ' + readyState);
     if (readyState === 'open') {
-	runOnOpenDataChannel();
-    } else {
-    }
+    	runOnOpenDataChannel();
+    } 
 }
