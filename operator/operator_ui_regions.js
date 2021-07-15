@@ -7,12 +7,12 @@
 * visualization.
 */
 class VideoControl {
-    constructor(videoId, currentMode=null) {
+    constructor(videoId, mode) {
         this.videoId = videoId;
+        this.currentMode = mode;
         this.combinedSVG = document.getElementById(videoId + "Overlay");
         this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
         this.overlays = {}; // key is mode id, values are the Overlay objects
-        this.currentMode = currentMode;
         this.videoDiv = document.getElementById(videoId + "Div");
         this.video = document.getElementById(videoId);
         this.video.setAttribute("height", h);
@@ -50,6 +50,22 @@ class VideoControl {
             });
         }
     }
+
+    addIcons() {
+        for (let overlay of this.overlays[this.currentMode]) {
+            if (overlay.type == 'control') {
+                overlay.addIcons();
+            }
+        }
+    }
+
+    removeIcons() {
+        for (let overlay of this.overlays[this.currentMode]) {
+            if (overlay.type == 'control') {
+                overlay.removeIcons();
+            }
+        }
+    }
 }
 
 class THREEManager {
@@ -57,7 +73,6 @@ class THREEManager {
         this.camera = camera;
         this.width = width;
         this.height = height;
-
         this.overlays = {};
     }
 
@@ -120,6 +135,7 @@ class OverlaySVG extends Overlay {
     constructor(modeId) {
         super(modeId);
         this.regions = [];
+        this.type = 'control';
 
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
@@ -156,6 +172,19 @@ class OverlaySVG extends Overlay {
         }
         this.curtain.hide();
     }
+
+    addIcons() {
+        for (let i in this.regions) {
+            this.regions[i].addIcon();
+        }
+    }
+
+    removeIcons() {
+        for (let i in this.regions) {
+            this.regions[i].removeIcon();
+        }
+    }
+
 }
 
 /*
@@ -165,7 +194,7 @@ class OverlayTHREE extends Overlay {
     constructor(modeId, threeManager) {
         super(modeId);
         this.objs = {};
-
+        this.type = 'viz';
         this.threeManager = threeManager;
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -217,9 +246,10 @@ class Region {
         this.poly = poly;
         this.isContinuous = isContinuous;
         this.parentSVG = parentSVG;
+        this.iconName = iconName;
 
-        if (iconName && showPermanentIcons)
-            createIconSVG(this.parentSVG, this.regionId + "Icon", iconName, poly);
+        if (checkSettingValue("showPermanentIcons"))
+            this.addIcon();
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
 
@@ -238,22 +268,33 @@ class Region {
         if (iconElement)
             iconElement.style.display = 'block';
     }
+
+    removeIcon() {
+        let id = this.regionId + "Icon";
+        let icon = document.getElementById(id);
+        if (icon)
+            this.parentSVG.removeChild(icon);               
+    }
+
+    addIcon() {
+        const width = 30;
+        let id = this.regionId + "Icon";
+        if (this.iconName) {
+            let icon = document.createElementNS('http://www.w3.org/2000/svg','image');
+            icon.setAttributeNS(null,'id', id);
+            icon.setAttributeNS(null,'width', width);
+            icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
+                'icons/' + this.iconName + '.png');
+            let center = getPolyCenter(this.poly)
+            icon.setAttributeNS(null,'x', center.x-width/2);
+            icon.setAttributeNS(null,'y', center.y-width/2);
+            icon.setAttributeNS(null, 'visibility', 'visible');
+            icon.setAttributeNS(null, 'opacity', "0.5");        
+            this.parentSVG.appendChild(icon);               
+        }
+    }
 }
 
-function createIconSVG(parentSVG, id, iconName, poly) {
-    const width = 30;
-    let icon = document.createElementNS('http://www.w3.org/2000/svg','image');
-    icon.setAttributeNS(null,'id', id);
-    icon.setAttributeNS(null,'width', width);
-    icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
-        'icons/' + iconName + '.png');
-    let center = getPolyCenter(poly)
-    icon.setAttributeNS(null,'x', center.x-width/2);
-    icon.setAttributeNS(null,'y', center.y-width/2);
-    icon.setAttributeNS(null, 'visibility', 'visible');
-    icon.setAttributeNS(null, 'opacity', "0.5");        
-    parentSVG.appendChild(icon);    
-}
 
 function getPolyCenter(points) {
     let avgX = 0;
@@ -297,6 +338,9 @@ function setMode(modeId) {
             // turnModeOn('nav');
             setCameraView('nav');
             // TODO: Is there some way to set this button list procedurally?
+            // TODO: The buttons should be programatically added and part of
+            // a "mode" class.. stationary cameras will not 
+            // have those buttons. 
             document.getElementById('lookUpNavButton').disabled = false;
             document.getElementById('lookLeftNavButton').disabled = false;
             document.getElementById('lookRightNavButton').disabled = false;

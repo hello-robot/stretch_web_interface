@@ -51,6 +51,24 @@ function createAndAddSwitchButton(parentDiv, id, text, isChecked=false){
 	parentDiv.appendChild(label);
 }
 
+function checkSettingValue(id){
+	let element = document.getElementById(id);
+	return element.checked;
+}
+
+function checkboxSettingChange(element){
+	if (element.id == "showPermanentIcons") {
+		if (element.checked == true) {
+			navigationVideoControl.addIcons();
+			manpulationVideoControl.addIcons();
+		}
+		else {
+			navigationVideoControl.removeIcons();
+			manpulationVideoControl.removeIcons();
+		}
+	}
+
+}
 
 
 
