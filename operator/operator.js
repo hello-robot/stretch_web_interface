@@ -60,11 +60,11 @@ function checkboxSettingChange(element){
 	if (element.id == "showPermanentIcons") {
 		if (element.checked == true) {
 			navigationVideoControl.addIcons();
-			manpulationVideoControl.addIcons();
+			manipulationVideoControl.addIcons();
 		}
 		else {
 			navigationVideoControl.removeIcons();
-			manpulationVideoControl.removeIcons();
+			manipulationVideoControl.removeIcons();
 		}
 	}
 

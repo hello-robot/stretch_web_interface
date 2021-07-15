@@ -1,5 +1,6 @@
 'use strict';
 
+
 /*
 * Class for a video stream visualization with an overlay
 * This is redundant at the moment but will be necessary
@@ -8,16 +9,43 @@
 */
 class VideoControl {
     constructor(videoId, mode) {
-        this.videoId = videoId;
+
         this.currentMode = mode;
-        this.combinedSVG = document.getElementById(videoId + "Overlay");
-        this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
         this.overlays = {}; // key is mode id, values are the Overlay objects
-        this.videoDiv = document.getElementById(videoId + "Div");
-        this.video = document.getElementById(videoId);
-        this.video.setAttribute("height", h);
-        this.video.setAttribute("width", w);
+        
+        this.videoDiv = document.createElement('div');
+        this.videoDiv.setAttribute('id', videoId + 'Div');
+        this.videoDiv.setAttribute('class', 'video_div');
+
+        let bgDiv = document.createElement('div');
+        let fgDiv = document.createElement('div');
+        bgDiv.setAttribute('class', 'background');
+        fgDiv.setAttribute('class', 'foreground');
+        fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
+        
+        this.combinedSVG = document.createElement('svg');
+        this.combinedSVG.setAttribute('id', videoId + 'Overlay');
+        this.combinedSVG.setAttribute('class', 'video_ui_overlay');
+        this.video = document.createElement('video');
+        this.video.setAttribute('id', videoId);
+        this.video.setAttribute('autoplay', true);
+        bgDiv.appendChild(this.video);
+        fgDiv.appendChild(this.combinedSVG);
+
+        this.videoDiv.appendChild(fgDiv);
+        this.videoDiv.appendChild(bgDiv);
+
+        setDimensions(w, h);
+
+        let containerDiv = document.getElementById(videoId + "DivHolder");
+        containerDiv.appendChild(this.videoDiv);
         this.isActive = false;
+    }
+
+    setDimensions(w, h) {
+        this.video.setAttribute("height", h);
+        this.video.setAttribute("width", w);        
+        this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     }
 
     addOverlay(overlay, type="svg") {
@@ -54,7 +82,7 @@ class VideoControl {
     addIcons() {
         for (let overlay of this.overlays[this.currentMode]) {
             if (overlay.type == 'control') {
-                overlay.addIcons();
+                overlay.addIcons(this.isActive);
             }
         }
     }
@@ -173,9 +201,11 @@ class OverlaySVG extends Overlay {
         this.curtain.hide();
     }
 
-    addIcons() {
+    addIcons(isVisible) {
         for (let i in this.regions) {
             this.regions[i].addIcon();
+            if (!isVisible)
+                this.regions[i].hide();
         }
     }
 
@@ -252,7 +282,6 @@ class Region {
             this.addIcon();
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
-
     }
 
     hide() {

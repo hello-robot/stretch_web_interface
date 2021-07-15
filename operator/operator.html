@@ -32,6 +32,7 @@
  		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
 		    <div class="nav_mode_div">
+
 		    	<div class=""></div>
 		    	<div class="">
 		    		<button id="lookUpNavButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
@@ -40,14 +41,11 @@
 		    	<div class="d-flex justify-content-end">
 		    		<button id="lookLeftNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
-			    <div class="video_div" id="navigationVideoDiv">
-			      <div class="background">
-			      	<video id="navigationVideo" autoplay></video>
-			      </div>
-			      <div class="foreground" onclick="setMode('nav')">
-			      	<svg id="navigationVideoOverlay" class="video_ui_overlay"></svg>
-			  	  </div>
-			    </div>
+
+		    	<div id="navigationVideoDivHolder">
+		    		<!-- add stuff here -->
+		    	</div>
+
 		    	<div class="d-flex justify-content-start">
 		    		<button id="lookRightNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
@@ -79,7 +77,12 @@
 		    	<div class="d-flex justify-content-end">
 		    		<button id="lookRightManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
-			    <div class="video_div" id="manipulationVideoDiv">
+			    
+		    	<div id="manipulationVideoDivHolder">
+		    		<!-- add stuff here -->
+		    	</div>
+
+<!-- 			    <div class="video_div" id="manipulationVideoDiv">
 			      <div class="background">
 			      	<video id="manipulationVideo" autoplay></video>
 			      </div>
@@ -87,17 +90,12 @@
 			      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
 			  	  </div>
 			    </div>
+ -->
+
 		    	<div class="d-flex justify-content-start">
 		    		<button id="lookLeftManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
 		    	<div class="d-flex flex-column justify-content-sm-center">
-<!-- 					<button id="gripperCloseButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
-			  		<img src="gripper_close_medium.png" width="30"/>
-					</button>
-					<button id="gripperOpenButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
-					  <img src="gripper_open_medium.png" width="30"/>
-					</button>
- -->		
 	 					<button id="stowArmButton" type="button" class="btn btn-secondary btn-block my-2" title="Stow arm" onclick="stowArm()">
 						  Stow arm
 						</button>

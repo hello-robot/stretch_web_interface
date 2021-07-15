@@ -175,8 +175,6 @@ socket.on('webrtc message', function(message) {
 
 
 var panTiltCameraVideo = document.querySelector('#panTiltCameraVideo');
-var navigationVideo = document.querySelector('#navigationVideo');
-var manipulationVideo = document.querySelector('#manipulationVideo');
 
 function maybeStart() {
     console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
@@ -268,13 +266,6 @@ function handleRemoteTrackAdded(event) {
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: adding remote tracks');
         
-        // if (pantiltStream) {
-        //     // remove audio tracks from displayStream
-        //     for (let a of pantiltStream.displayStream.getAudioTracks()) {
-        //         pantiltStream.displayStream.removeTrack(a);
-        //     }            
-        // }
-
         allRemoteStreams.push({'track': track, 'stream': stream});
         if (cameraInfo) {
             displayRemoteStream(track, stream);
@@ -292,11 +283,11 @@ function displayRemoteStream(track, stream) {
     // This is where we would change which view displays which camera stream
     if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) 
         panTiltCameraVideo.srcObject = stream;
-    if (thisTrackContent=="overheadStream" && navigationVideo) {
-        navigationVideo.srcObject = stream;
+    if (thisTrackContent=="overheadStream" && navigationVideoControl) {
+        navigationVideoControl.video.srcObject = stream;
     }
-    if (thisTrackContent=="gripperStream" && manipulationVideo)
-        manipulationVideo.srcObject = stream;
+    if (thisTrackContent=="gripperStream" && manipulationVideoControl)
+        manipulationVideoControl.video.srcObject = stream;
 }
 
 function handleRemoteStreamAdded(event) {
@@ -308,10 +299,10 @@ function handleRemoteStreamAdded(event) {
 
         if (panTiltCameraVideo)
             panTiltCameraVideo.srcObject = event.stream;
-        if (navigationVideo)
-            navigationVideo.srcObject = event.stream;
-        if (manipulationVideo)
-            manipulationVideo.srcObject = event.stream;
+        if (navigationVideoControl)
+            navigationVideoControl.video.srcObject = event.stream;
+        if (manipulationVideoControl)
+            manipulationVideoControl.video.srcObject = event.stream;
 
     } else if (peer_name === 'ROBOT') {
         console.log('ROBOT: adding remote audio to display');
