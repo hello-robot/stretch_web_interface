@@ -134,7 +134,7 @@ class OverlaySVG extends Overlay {
 
         let bgRect = makeRectangle(0, 0, w, h);
         this.curtain = new Region(modeId + '_curtain', null , 'curtain',
-            rectToPoly(bgRect), 'white', this.svg, true, 0.5);
+            rectToPoly(bgRect), 'white', null, this.svg, true, 0.5);
         
         this.addRegion(this.curtain);
     }
@@ -210,26 +210,63 @@ class OverlayTHREE extends Overlay {
 * Class for an overlay region
 */
 class Region {
-    constructor(regionId, fname, label, poly, color, parentSVG, isContinuous=true, fillOpacity=0.0) {
+    constructor(regionId, fname, label, poly, color, iconName, parentSVG, isContinuous=true, fillOpacity=0.0) {
         this.regionId = regionId;
         this.fname = fname;
         this.label = label;
         this.poly = poly;
         this.isContinuous = isContinuous;
         this.parentSVG = parentSVG;
-    
+
+        if (iconName)
+            createIconSVG(this.parentSVG, this.regionId + "Icon", iconName, poly);
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
+
     }
 
     hide() {
         document.getElementById(this.regionId).style.display = 'none';
+        let iconElement = document.getElementById(this.regionId + "Icon");
+        if (iconElement)
+            iconElement.style.display = 'none';
     }
 
     show() {
         document.getElementById(this.regionId).style.display = 'block';
+        let iconElement = document.getElementById(this.regionId + "Icon");
+        if (iconElement)
+            iconElement.style.display = 'block';
     }
 }
+
+function createIconSVG(parentSVG, id, iconName, poly) {
+    const width = 30;
+    let icon = document.createElementNS('http://www.w3.org/2000/svg','image');
+    icon.setAttributeNS(null,'id', id);
+    icon.setAttributeNS(null,'width', width);
+    icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
+        'icons/' + iconName + '.png');
+    let center = getPolyCenter(poly)
+    icon.setAttributeNS(null,'x', center.x-width/2);
+    icon.setAttributeNS(null,'y', center.y-width/2);
+    icon.setAttributeNS(null, 'visibility', 'visible');
+    icon.setAttributeNS(null, 'opacity', "0.5");        
+    parentSVG.appendChild(icon);    
+}
+
+function getPolyCenter(points) {
+    let avgX = 0;
+    let avgY = 0;
+    for (let p of points) {
+        avgX += p.x;
+        avgY += p.y;
+    }
+    avgX /= points.length;
+    avgY /= points.length;
+    return {'x': avgX, 'y': avgY};
+}
+
 
 class THREEObject {
     constructor(name, geo, mat) {
@@ -349,23 +386,30 @@ function createUiRegions(debug) {
     let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
 
     navOverlay.addRegion(new Region('nav_do_nothing_region', null, 'do nothing',
-        rectToPoly(smRect), color, navOverlay.svg));
+        rectToPoly(smRect), color, null, navOverlay.svg));
     navOverlay.addRegion(new Region('nav_forward_region', 'moveForward', 'move forward',
-        [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul], color, navOverlay.svg));
+        [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul], 
+        color, 'up_arrow_medium', navOverlay.svg));
     navOverlay.addRegion(new Region('nav_backward_region', 'moveBackward' , 'move backward',
-        [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll], color, navOverlay.svg));
+        [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll], 
+        color, 'down_arrow_medium', navOverlay.svg));
     navOverlay.addRegion(new Region('nav_turn_left_region', 'turnLeft' , 'turn left',
-        [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul], color, navOverlay.svg));
+        [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul], 
+        color, 'left_turn_medium', navOverlay.svg));
     navOverlay.addRegion(new Region('nav_turn_right_region', 'turnRight' , 'turn right',
-        [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur], color, navOverlay.svg));
+        [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur], 
+        color, 'right_turn_medium', navOverlay.svg));
     navOverlay.addRegion(new Region('nav_cw_region', 'turnCW' , 'turn 90 degrees CW',
-        rectToPoly(leftRect), color, navOverlay.svg, false));
+        rectToPoly(leftRect), 
+        color, 'rotate_cw', navOverlay.svg, false));
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
-        rectToPoly(rightRect), color, navOverlay.svg, false));
+        rectToPoly(rightRect), 
+        color, 'rotate_ccw', navOverlay.svg, false));
     navigationVideoControl.addOverlay(navOverlay);
 
-    let navOverlayTHREE = new OverlayTHREE('nav', threeManager);
+    /////////////// Reach visualization overlay ///////////
 
+    let navOverlayTHREE = new OverlayTHREE('nav', threeManager);
     navOverlayTHREE.addItem(new THREEObject(
         'reach_visualization_circle',
         new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
@@ -404,25 +448,35 @@ function createUiRegions(debug) {
     let rightRect2 = makeRectangle(w/2.0, 5.0*h/6.0, w/2.0, h/6.0);
 
     armOverlay.addRegion(new Region('manip_up_region', 'liftUp' , 'lift arm',
-        rectToPoly(tpRect), color, armOverlay.svg));
+        rectToPoly(tpRect), 
+        color, 'up_arrow_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_down_region', 'liftDown' , 'lower arm',
-        rectToPoly(btRect), color, armOverlay.svg));
+        rectToPoly(btRect), 
+        color, 'down_arrow_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_extend_region', 'armExtend' , 'extend arm',
-        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, armOverlay.svg));
+        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], 
+        color, 'out_arrow', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_retract_region', 'armRetract' , 'retract arm',
-        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, armOverlay.svg));
+        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], 
+        color, 'in_arrow', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_base_forward_region', 'moveForward' , 'move forward',
-        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, armOverlay.svg));
+        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], 
+        color, 'left_arrow_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_base_backward_region', 'moveBackward' , 'move backward',
-        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, armOverlay.svg));
+        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], 
+        color, 'right_arrow_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_in_region', 'wristIn' , 'turn hand in',
-        rectToPoly(leftRect), color, armOverlay.svg));
+        rectToPoly(leftRect), 
+        color, 'left_turn_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_out_region', 'wristOut' , 'turn hand out',
-        rectToPoly(rightRect), color, armOverlay.svg));
+        rectToPoly(rightRect), 
+        color, 'right_turn_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_close_region', 'gripperClose' , 'open hand',
-        rectToPoly(leftRect2), color, armOverlay.svg));
+        rectToPoly(leftRect2), 
+        color, 'gripper_close_medium', armOverlay.svg));
     armOverlay.addRegion(new Region('manip_open_region', 'gripperOpen' , 'close hand',
-        rectToPoly(rightRect2), color, armOverlay.svg));
+        rectToPoly(rightRect2), 
+        color, 'gripper_open_medium', armOverlay.svg));
 
     manipulationVideoControl.addOverlay(armOverlay);
 }
