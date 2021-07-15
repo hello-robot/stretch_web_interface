@@ -219,34 +219,6 @@ function overheadImageCallback(message) {
 
 //////////// Beign replaced ///////////
 
-// var localStream;
-// var videoEditingCanvas = document.createElement('canvas');
-// var videoDisplayElement = document.querySelector('video');
-// var camDim = {w:videoDimensions.w, h:videoDimensions.h};
-// // Make room for -90 deg rotation due to D435i orientation.
-// var editedDim = {w:camDim.h, h:camDim.w}
-// videoEditingCanvas.width = editedDim.w;
-// videoEditingCanvas.height = editedDim.h;
-// var videoEditingContext = videoEditingCanvas.getContext('2d');
-// videoEditingContext.fillStyle="black";
-// videoEditingContext.fillRect(0, 0, editedDim.w, editedDim.h);
-// var editedVideoStream = videoEditingCanvas.captureStream(editedFps);
-
-// function drawVideo() {
-//     if (rosImageReceived === true) {
-//     	var d435iRotation = 90.0 * degToRad;
-//     	videoEditingContext.fillStyle="black";
-//     	videoEditingContext.fillRect(0, 0, editedDim.w, editedDim.h);
-//     	videoEditingContext.translate(editedDim.w/2, editedDim.h/2);
-//     	videoEditingContext.rotate(d435iRotation);
-//     	videoEditingContext.drawImage(img, -camDim.w/2, -camDim.h/2, camDim.w, camDim.h)
-//     	videoEditingContext.rotate(-d435iRotation);
-//     	videoEditingContext.translate(-editedDim.w/2, -editedDim.h/2);
-//     }
-//     requestAnimationFrame(drawVideo);
-// }
-
-
 ///////////////////
 /* Audio streams */
 ///////////////////
