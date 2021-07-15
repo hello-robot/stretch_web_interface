@@ -404,8 +404,8 @@ function sendData(obj) {
     	    console.log('*************************************************************');
     	}
     }
-    else
-        console.log("Cannot send data: ", isStarted, dataChannel);
+    // else
+    //     console.log("Cannot send data: ", isStarted, dataChannel);
 }
 
 function closeDataChannels() {

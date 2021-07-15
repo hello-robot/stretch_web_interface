@@ -25,6 +25,7 @@ router.get('/robot/:file', auth.robot);
 
 // route for operator directory
 router.get('/operator/:file', auth.operator);
+router.get('/operator/icons/:file', auth.operator);
 
 // route for shared directory
 router.get('/shared/:file', auth.shared);

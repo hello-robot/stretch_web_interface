@@ -36,6 +36,7 @@ userController.robot = function(req, res) {
 // Only give approved logged-in operators access to files in the operator directory
 userController.operator = function(req, res) {
     var file = req.params.file;
+    console.log('file', file, operator_root);
     if (isOperator(req)) {
         res.sendFile(operator_root + "/" + file); 
     } else {

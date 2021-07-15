@@ -35,7 +35,7 @@ class VideoControl {
         this.videoDiv.appendChild(fgDiv);
         this.videoDiv.appendChild(bgDiv);
 
-        setDimensions(w, h);
+        this.setDimensions(w, h);
 
         let containerDiv = document.getElementById(videoId + "DivHolder");
         containerDiv.appendChild(this.videoDiv);
@@ -313,7 +313,7 @@ class Region {
             icon.setAttributeNS(null,'id', id);
             icon.setAttributeNS(null,'width', width);
             icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
-                'icons/' + this.iconName + '.png');
+                this.iconName + '.png');
             let center = getPolyCenter(this.poly)
             icon.setAttributeNS(null,'x', center.x-width/2);
             icon.setAttributeNS(null,'y', center.y-width/2);
