@@ -218,7 +218,7 @@ class Region {
         this.isContinuous = isContinuous;
         this.parentSVG = parentSVG;
 
-        if (iconName)
+        if (iconName && showPermanentIcons)
             createIconSVG(this.parentSVG, this.regionId + "Icon", iconName, poly);
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
