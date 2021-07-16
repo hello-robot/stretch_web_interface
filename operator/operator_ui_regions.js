@@ -37,9 +37,14 @@ class VideoControl {
 
         this.setDimensions(w, h);
 
+        this.isActive = false;
+
         let containerDiv = document.getElementById(videoId + "DivHolder");
         containerDiv.appendChild(this.videoDiv);
-        this.isActive = false;
+    }
+
+    addRemoteStream(stream) {
+        this.video.srcObject = stream;
     }
 
     setDimensions(w, h) {
@@ -357,9 +362,9 @@ class THREEObject {
 
 function setMode(modeId) {
     if (modeId == 'nav') {
-        if (!navigationVideoControl.isActive) {
-            navigationVideoControl.setActive(true);
-            manipulationVideoControl.setActive(false);
+        if (!overheadVideoControl.isActive) {
+            overheadVideoControl.setActive(true);
+            gripperVideoControl.setActive(false);
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(false);
@@ -389,9 +394,9 @@ function setMode(modeId) {
         }
     }
     else if (modeId == 'manip') {
-        if (!manipulationVideoControl.isActive) {
-            navigationVideoControl.setActive(false);
-            manipulationVideoControl.setActive(true);
+        if (!gripperVideoControl.isActive) {
+            overheadVideoControl.setActive(false);
+            gripperVideoControl.setActive(true);
             let checkbox = document.getElementById('cameraFollowGripperOn');
             if (checkbox.checked)
                 changeGripperFollow(true);
@@ -432,8 +437,10 @@ function setCameraViewPreset() {
         setCameraView(panTiltCameraVideoControl.currentMode);
 }
 
-var navigationVideoControl = new VideoControl('navigationVideo', 'nav');
-var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
+var overheadVideoControl = new VideoControl('navigationVideo', 'nav');
+var gripperVideoControl = new VideoControl('manipulationVideo', 'manip');
+var navOverlay = new OverlaySVG('nav');
+var armOverlay = new OverlaySVG('manip');
 
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
 
@@ -451,7 +458,6 @@ function createUiRegions(debug) {
     // navigation
     /////////////////////////
 
-    let navOverlay = new OverlaySVG('nav');
     // Big rectangle at the borders of the video
     let bgRect = makeRectangle(0, 0, w, h);
     let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
@@ -478,7 +484,7 @@ function createUiRegions(debug) {
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
         rectToPoly(rightRect), 
         color, 'rotate_ccw', navOverlay.svg, false));
-    navigationVideoControl.addOverlay(navOverlay);
+    overheadVideoControl.addOverlay(navOverlay);
 
     /////////////// Reach visualization overlay ///////////
 
@@ -499,14 +505,12 @@ function createUiRegions(debug) {
     outlineEffectPass.renderToScreen = true;
     outlineEffect.selectObject(navOverlayTHREE.objs.reach_visualization_circle.mesh);
     navOverlayTHREE.addRenderPass(outlineEffectPass);
-    navigationVideoControl.addOverlay(navOverlayTHREE, "threejs");
+    overheadVideoControl.addOverlay(navOverlayTHREE, "threejs");
 
     
     /////////////////////////
     // manipulation
     /////////////////////////
-
-    let armOverlay = new OverlaySVG('manip');
 
     bgRect = makeRectangle(0, h/6.0, w, h-2.0*h/6.0);
     // Small rectangle at the top of the middle of the video
@@ -551,7 +555,7 @@ function createUiRegions(debug) {
         rectToPoly(rightRect2), 
         color, 'gripper_open_medium', armOverlay.svg));
 
-    manipulationVideoControl.addOverlay(armOverlay);
+    gripperVideoControl.addOverlay(armOverlay);
 }
 
 const panTiltCameraModes = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];

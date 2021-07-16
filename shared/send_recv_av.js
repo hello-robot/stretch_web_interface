@@ -256,7 +256,6 @@ function handleIceCandidate(event) {
 
 var allRemoteStreams = [];
 function handleRemoteTrackAdded(event) {
-    // TODO: To be tested
     console.log('Remote track added.');
     const track = event.track;
     const stream = event.streams[0];
@@ -281,13 +280,15 @@ function displayRemoteStream(track, stream) {
     let thisTrackContent = cameraInfo[track.id];
     
     // This is where we would change which view displays which camera stream
-    if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) 
-        panTiltCameraVideo.srcObject = stream;
-    if (thisTrackContent=="overheadStream" && navigationVideoControl) {
-        navigationVideoControl.video.srcObject = stream;
+    if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) {
+        panTiltCameraVideo.addRemoteStream(stream);
     }
-    if (thisTrackContent=="gripperStream" && manipulationVideoControl)
-        manipulationVideoControl.video.srcObject = stream;
+    if (thisTrackContent=="overheadStream" && overheadVideoControl) {
+        overheadVideoControl.addRemoteStream(stream);
+    }
+    if (thisTrackContent=="gripperStream" && gripperVideoControl){
+        gripperVideoControl.addRemoteStream(stream);
+    }
 }
 
 function handleRemoteStreamAdded(event) {
@@ -295,16 +296,15 @@ function handleRemoteStreamAdded(event) {
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: starting to display remote stream');
 
-        // How to extract the tracks from the incoming stream? event.stream
-
         if (panTiltCameraVideo)
-            panTiltCameraVideo.srcObject = event.stream;
-        if (navigationVideoControl)
-            navigationVideoControl.video.srcObject = event.stream;
-        if (manipulationVideoControl)
-            manipulationVideoControl.video.srcObject = event.stream;
+            panTiltCameraVideo.addRemoteStream(event.stream);
+        if (overheadVideoControl)
+            overheadVideoControl.addRemoteStream(event.stream);
+        if (gripperVideoControl)
+            gripperVideoControl.addRemoteStream(event.stream);
 
-    } else if (peer_name === 'ROBOT') {
+    }
+    else if (peer_name === 'ROBOT') {
         console.log('ROBOT: adding remote audio to display');
         // remove audio tracks from displayStream
         for (let a of pantiltStream.displayStream.getAudioTracks()) {
