@@ -13,30 +13,31 @@ class VideoControl {
         this.currentMode = mode;
         this.overlays = {}; // key is mode id, values are the Overlay objects
         
-        this.videoDiv = document.createElement('div');
-        this.videoDiv.setAttribute('id', videoId + 'Div');
-        this.videoDiv.setAttribute('class', 'video_div');
-
+        // Background div including the video element
         let bgDiv = document.createElement('div');
-        let fgDiv = document.createElement('div');
         bgDiv.setAttribute('class', 'background');
-        fgDiv.setAttribute('class', 'foreground');
-        fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
-        
-        this.combinedSVG = document.createElement('svg');
-        this.combinedSVG.setAttribute('id', videoId + 'Overlay');
-        this.combinedSVG.setAttribute('class', 'video_ui_overlay');
         this.video = document.createElement('video');
         this.video.setAttribute('id', videoId);
         this.video.setAttribute('autoplay', true);
         bgDiv.appendChild(this.video);
+        
+        // Foreground div including the overlay SVG
+        let fgDiv = document.createElement('div');
+        fgDiv.setAttribute('class', 'foreground');
+        fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
+        this.combinedSVG = document.createElement('svg');
+        this.combinedSVG.setAttribute('id', videoId + 'Overlay');
+        this.combinedSVG.setAttribute('class', 'video_ui_overlay');
         fgDiv.appendChild(this.combinedSVG);
 
+        // Container grid div to combine the video and the overlay
+        this.videoDiv = document.createElement('div');
+        this.videoDiv.setAttribute('id', videoId + 'Div');
+        this.videoDiv.setAttribute('class', 'video_div');
         this.videoDiv.appendChild(fgDiv);
         this.videoDiv.appendChild(bgDiv);
 
         this.setDimensions(w, h);
-
         this.isActive = false;
 
         let containerDiv = document.getElementById(videoId + "DivHolder");
@@ -386,8 +387,6 @@ function setMode(modeId) {
             document.getElementById('lookRightManipButton').disabled = true;
             document.getElementById('lookDownManipButton').disabled = true;
             document.getElementById('resetViewManipButton').disabled = true;
-            //document.getElementById('gripperOpenButton').disabled = true;
-            //document.getElementById('gripperCloseButton').disabled = true;
             document.getElementById('stowArmButton').disabled = true;
             document.getElementById('prepArmButton').disabled = true;
             document.getElementById('cameraFollowGripperOn').disabled = true;
@@ -414,8 +413,6 @@ function setMode(modeId) {
             document.getElementById('lookRightManipButton').disabled = false;
             document.getElementById('lookDownManipButton').disabled = false;
             document.getElementById('resetViewManipButton').disabled = false;
-            //document.getElementById('gripperOpenButton').disabled = false;
-            //document.getElementById('gripperCloseButton').disabled = false;
             document.getElementById('stowArmButton').disabled = false;
             document.getElementById('prepArmButton').disabled = false;
             document.getElementById('cameraFollowGripperOn').disabled = false;
@@ -426,30 +423,22 @@ function setMode(modeId) {
     }
 }
 
-// TODO: This might be redundant with 'interfaceMode' remove after checking
-var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
-
-function setCameraViewPreset() {
-    if (panTiltCameraVideoControl.currentMode != null)
-        setCameraView(panTiltCameraVideoControl.currentMode);
-}
-
-var overheadVideoControl = new VideoControl('navigationVideo', 'nav');
-var gripperVideoControl = new VideoControl('manipulationVideo', 'manip');
 var navOverlay = new OverlaySVG('nav');
 var armOverlay = new OverlaySVG('manip');
 
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
 
+var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h);
+var gripperVideoControl = new VideoControl('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h);
+var panTiltNavVideoControl = new VideoControl('panTiltNavVideo', 'nav', videoDimensions.h, videoDimensions.w);
+var panTiltManipVideoControl = new VideoControl('panTiltManipVideo', 'manip', videoDimensions.h, videoDimensions.w);
 
-function createUiRegions(debug) {
 
-    if(debug) {
-       strokeOpacity = 0.1; //1.0;
-    }
+function createUiRegions() {
+
     var regionPoly;
     var color = 'white';
     var cornerRectSize = 40;
@@ -484,7 +473,6 @@ function createUiRegions(debug) {
     navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
         rectToPoly(rightRect), 
         color, 'rotate_ccw', navOverlay.svg, false));
-    overheadVideoControl.addOverlay(navOverlay);
 
     /////////////// Reach visualization overlay ///////////
 
@@ -505,9 +493,7 @@ function createUiRegions(debug) {
     outlineEffectPass.renderToScreen = true;
     outlineEffect.selectObject(navOverlayTHREE.objs.reach_visualization_circle.mesh);
     navOverlayTHREE.addRenderPass(outlineEffectPass);
-    overheadVideoControl.addOverlay(navOverlayTHREE, "threejs");
-
-    
+       
     /////////////////////////
     // manipulation
     /////////////////////////
@@ -555,138 +541,11 @@ function createUiRegions(debug) {
         rectToPoly(rightRect2), 
         color, 'gripper_open_medium', armOverlay.svg));
 
-    gripperVideoControl.addOverlay(armOverlay);
-}
+    //////////////////////////////////////////////
 
-const panTiltCameraModes = ['nav', 'low_arm', 'high_arm', 'hand', 'look'];
-var panTiltCameraVideoControl;
-
-function createUiV1Regions(debug) {
-
-    panTiltCameraVideoControl = new VideoControl('panTiltCameraVideo');
-    if(debug) {
-	   strokeOpacity = 0.1; //1.0;
-    }
-    var regionPoly;
-    var color = 'white';
-    var cornerRectSize = 40;
-    
-    /////////////////////////
-    // nav
-    /////////////////////////
-
-    let navOverlay = new Overlay('nav');
-    // Big rectangle at the borders of the video
-    let bgRect = makeRectangle(0, 0, w, h);
-    let smRect = makeSquare((w/2.0)-(w/20.0), (h*(3.0/4.0))-(h/20.0), w/10.0, h/10.0); 
-    let leftRect = makeSquare(0, h-cornerRectSize, cornerRectSize);
-    let rightRect = makeSquare(w-cornerRectSize, h-cornerRectSize, cornerRectSize); 
-
-    navOverlay.addRegion(new Region('nav_do_nothing_region', null, 'do nothing',
-        rectToPoly(smRect), color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_forward_region', 'moveForward', 'move forward',
-        [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul], color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_backward_region', 'moveBackward' , 'move backward',
-        [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll], color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_turn_left_region', 'turnLeft' , 'turn left',
-        [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul], color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_turn_right_region', 'turnRight' , 'turn right',
-        [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur], color, navOverlay.svg));
-    navOverlay.addRegion(new Region('nav_cw_region', 'turnCW' , 'turn 90 degrees CW',
-        rectToPoly(leftRect), color, navOverlay.svg, false));
-    navOverlay.addRegion(new Region('nav_ccw_region', 'turnCCW' , 'turn 90 degrees CCW',
-        rectToPoly(rightRect), color, navOverlay.svg, false));
-    panTiltCameraVideoControl.addOverlay(navOverlay);
-
-    
-    /////////////////////////
-    // low_arm
-    /////////////////////////
-
-    let lowArmOverlay = new Overlay('low_arm');
-    // Small rectangle at the top of the middle of the video
-    let tpRect = makeRectangle(w*(3.0/10.0), h/4.0, w*(4.0/10.0), h/4.0);
-    // small rectangle at the bottom of the middle of the video
-    let btRect = makeRectangle(w*(3.0/10.0), h/2.0, w*(4.0/10.0), h/4.0);
-
-    lowArmOverlay.addRegion(new Region('low_arm_up_region', 'liftUp' , 'lift arm',
-        rectToPoly(tpRect), color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_down_region', 'liftDown' , 'lower arm',
-        rectToPoly(btRect), color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_extend_region', 'armExtend' , 'extend arm',
-        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_retract_region', 'armRetract' , 'retract arm',
-        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_base_forward_region', 'moveForward' , 'move forward',
-        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, lowArmOverlay.svg));
-    lowArmOverlay.addRegion(new Region('low_arm_base_backward_region', 'moveBackward' , 'move backward',
-        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, lowArmOverlay.svg));
-    panTiltCameraVideoControl.addOverlay(lowArmOverlay);
-
-
-    /////////////////////////
-    // high_arm
-    /////////////////////////
-
-    let highArmOverlay = new Overlay('high_arm');
-
-    highArmOverlay.addRegion(new Region('high_arm_up_region', 'liftUp' , 'lift arm',
-        rectToPoly(tpRect), color, highArmOverlay.svg));
-    highArmOverlay.addRegion(new Region('high_arm_down_region', 'liftDown' , 'lower arm',
-        rectToPoly(btRect), color, highArmOverlay.svg));
-    highArmOverlay.addRegion(new Region('high_arm_extend_region', 'armExtend' , 'extend arm',
-        [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul], color, highArmOverlay.svg));
-    highArmOverlay.addRegion(new Region('high_arm_retract_region', 'armRetract' , 'retract arm',
-        [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll], color, highArmOverlay.svg));
-    highArmOverlay.addRegion(new Region('high_arm_base_forward_region', 'moveForward' , 'move forward',
-        [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll], color, highArmOverlay.svg));
-    highArmOverlay.addRegion(new Region('high_arm_base_backward_region', 'moveBackward' , 'move backward',
-        [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr], color, highArmOverlay.svg));
-    panTiltCameraVideoControl.addOverlay(highArmOverlay);
-
-    
-    /////////////////////////
-    // hand
-    /////////////////////////
-
-    let handOverlay = new Overlay('hand');
-
-    tpRect = makeRectangle(0, 0, w, h/4.0);
-    btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
-    smRect = makeRectangle(w/3.0, 2.0*(h/5.0), w/3.0, h/5.0);
-
-    handOverlay.addRegion(new Region('hand_close_region', 'gripperClose' , 'close hand',
-        rectToPoly(smRect), color, handOverlay.svg));
-    handOverlay.addRegion(new Region('hand_out_region', 'gripperOpen' , 'open hand',
-        rectToPoly(tpRect), color, handOverlay.svg));
-    handOverlay.addRegion(new Region('hand_in_region', 'wristIn' , 'turn hand in',
-        rectToPoly(btRect), color, handOverlay.svg));
-    handOverlay.addRegion(new Region('hand_open_region', 'wristOut' , 'turn hand out',
-        [tpRect.ll, tpRect.lr, btRect.ur, btRect.ul, tpRect.ll, smRect.ul, 
-        smRect.ll, smRect.lr, smRect.ur, smRect.ul], color, handOverlay.svg));
-    panTiltCameraVideoControl.addOverlay(handOverlay);
-
-    /////////////////////////
-    // look
-    /////////////////////////
-
-    let lookOverlay = new Overlay('look');
-
-    tpRect = makeRectangle(0, 0, w, h/4.0);
-    btRect = makeRectangle(0, 3.0*(h/4.0), w, h/4.0);
-    let ltRect = makeRectangle(0, h/4.0, w/2.0, h/2.0);
-    let rtRect = makeRectangle(w/2.0, h/4.0, w/2.0, h/2.0);
-
-    lookOverlay.addRegion(new Region('look_up_region', 'lookUp' , 'look up',
-        rectToPoly(tpRect), color, lookOverlay.svg));
-    lookOverlay.addRegion(new Region('look_down_region', 'lookDown' , 'look down',
-        rectToPoly(btRect), color, lookOverlay.svg));
-    lookOverlay.addRegion(new Region('look_left_region', 'lookLeft' , 'look left',
-        rectToPoly(ltRect), color, lookOverlay.svg));
-    lookOverlay.addRegion(new Region('look_right_region', 'lookRight' , 'look right',
-        rectToPoly(rtRect), color, lookOverlay.svg));
-    
-    panTiltCameraVideoControl.addOverlay(lookOverlay);
+    panTiltNavVideoControl.addOverlay(navOverlay);
+    panTiltNavVideoControl.addOverlay(navOverlayTHREE, "threejs");
+    panTiltManipVideoControl.addOverlay(armOverlay);
 
 }
 
@@ -757,5 +616,5 @@ function drawText(elementID, text, x, y, font_size=100, center=false, color='whi
 }
 
 
-createUiRegions(true); // debug = true or false
+createUiRegions(); // debug = true or false
 threeManager.animate();
