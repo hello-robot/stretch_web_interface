@@ -280,7 +280,7 @@ function displayRemoteStream(track, stream) {
     let thisTrackContent = cameraInfo[track.id];
     
     // This is where we would change which view displays which camera stream
-    if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) {
+    if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
         panTiltVideoControl.addRemoteStream(stream);
     }
     if (thisTrackContent=="overheadStream" && overheadVideoControl) {

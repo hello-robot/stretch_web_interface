@@ -57,16 +57,33 @@ function checkSettingValue(id){
 }
 
 function checkboxSettingChange(element){
-	if (element.id == "showPermanentIcons") {
+	if (element.id == "showPermanentIconsOverhead") {
 		if (element.checked == true) {
-			navigationVideoControl.addIcons();
-			manipulationVideoControl.addIcons();
+			overheadVideoControl.addIcons();
 		}
 		else {
-			navigationVideoControl.removeIcons();
-			manipulationVideoControl.removeIcons();
+			overheadVideoControl.removeIcons();
 		}
 	}
+
+	if (element.id == "showPermanentIconsPantilt") {
+		if (element.checked == true) {
+			panTiltVideoControl.addIcons();
+		}
+		else {
+			panTiltVideoControl.removeIcons();
+		}
+	}
+
+	if (element.id == "showPermanentIconsGripper") {
+		if (element.checked == true) {
+			gripperVideoControl.addIcons();
+		}
+		else {
+			gripperVideoControl.removeIcons();
+		}
+	}
+
 
 }
 

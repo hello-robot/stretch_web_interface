@@ -28,7 +28,7 @@ class VideoControl {
         // Foreground div including the overlay SVG
         let fgDiv = document.createElement('div');
         fgDiv.setAttribute('class', 'foreground');
-        fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
+        //fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
         this.combinedSVG = document.createElement('svg');
         this.combinedSVG.setAttribute('id', videoId + 'Overlay');
         this.combinedSVG.setAttribute('class', 'video_ui_overlay');
@@ -436,8 +436,7 @@ class Region {
         this.parentSVG = parentSVG;
         this.iconName = iconName;
 
-        if (checkSettingValue("showPermanentIcons"))
-            this.addIcon();
+        this.addIcon();
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
     }
