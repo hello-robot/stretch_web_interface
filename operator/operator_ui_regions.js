@@ -11,7 +11,7 @@ class VideoControl {
     constructor(videoId, mode, width, height, hasButtons=true) {
 
         this.currentMode = mode;
-        this.overlays = {}; // key is mode id, values are the Overlay objects
+        this.overlays = {}; // key is mode id, values are a list of Overlay objects
         
         let containerDiv = document.getElementById(videoId + "Holder");
 
@@ -140,7 +140,6 @@ class VideoControl {
         }
         containerDiv.appendChild(document.createElement('div'));
 
-
         this.setDimensions(width, height);
         this.isActive = false;
 
@@ -156,36 +155,73 @@ class VideoControl {
         this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     }
 
-    addOverlay(overlay, type="svg") {
+    addOverlay(overlay) {
         if (this.overlays.hasOwnProperty(overlay.modeId)) {
             this.overlays[overlay.modeId].push(overlay);
         } else {
             this.overlays[overlay.modeId] = [overlay];
         }
+    }
 
-        if (type === "svg")
-            this.combinedSVG.appendChild(overlay.svg);
+    setMode(modeId) {
+        let modeNames = this.getModeNames();
+        this.currentMode = modeId;
+
+        // Clean up the SVG
+        while (this.combinedSVG.lastChild) {
+            this.combinedSVG.removeChild(this.combinedSVG.lastChild);
+        }
+
+        for (let m of modeNames) {
+            let modeOverlays = this.overlays[m];
+            for (let o of modeOverlays) {
+                if (m == modeId) {
+                    if (o.type === 'control')
+                        this.combinedSVG.appendChild(o.svg);
+                    o.show();
+                }
+                else {
+                    o.hide();
+                }
+            }
+        }
+    }
+
+    setActive(isActive) {
+        this.isActive = isActive;
+        console.log("this.currentMode", this.currentMode);
+        console.log("this.overlays", this.overlays);
+
+        let modeOverlays = this.overlays[this.currentMode];
+        if (modeOverlays) {
+            for (let o of modeOverlays) {
+                if (o.type == 'control') {
+                    o.setActive(isActive);
+                }
+            }
+        }
     }
 
     getModeNames() {
         return Object.keys(this.overlays);
     }
 
-    setActive(isActive) {
-        this.isActive = isActive;
-        if (this.isActive){
-            this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.1)";
-            this.overlays[this.currentMode].forEach( function(overlay) {
-                overlay.show();
-            });
-        }
-        else{
-            this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.5)";
-            this.overlays[this.currentMode].forEach( function(overlay) {
-                overlay.hide();
-            });
-        }
-    }
+
+    // setActive(isActive) {
+    //     this.isActive = isActive;
+    //     if (this.isActive){
+    //         this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.1)";
+    //         this.overlays[this.currentMode].forEach( function(overlay) {
+    //             overlay.show();
+    //         });
+    //     }
+    //     else{
+    //         this.videoDiv.style.backgroundColor = "rgba(0,0,0,0.5)";
+    //         this.overlays[this.currentMode].forEach( function(overlay) {
+    //             overlay.hide();
+    //         });
+    //     }
+    // }
 
     addIcons() {
         for (let overlay of this.overlays[this.currentMode]) {
@@ -268,10 +304,11 @@ class Overlay {
 * Class for an SVG video overlay
 */
 class OverlaySVG extends Overlay {
-    constructor(modeId, width, height) {
+    constructor(modeId, width, height, hasCurtain=true) {
         super(modeId);
         this.regions = [];
         this.type = 'control';
+        this.isActive = true;
 
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
@@ -283,12 +320,13 @@ class OverlaySVG extends Overlay {
         let bigViewBox = String(0) + ' ' + String(0) + ' ' + String(width) + ' ' + String(height);
         this.svg.setAttribute('viewBox', bigViewBox);
 
-
-        let bgRect = makeRectangle(0, 0, width, height);
-        this.curtain = new Region(modeId + '_curtain', null , 'curtain',
-            rectToPoly(bgRect), 'white', null, this.svg, true, 0.5);
-        
-        this.addRegion(this.curtain);
+        if (hasCurtain) {
+            let bgRect = makeRectangle(0, 0, width, height);
+            this.curtain = new Region(modeId + '_curtain', null , 'curtain',
+                rectToPoly(bgRect), 'white', null, this.svg, true, 0.5);
+            
+            this.addRegion(this.curtain);     
+        }
     }
 
     addRegion(region) {
@@ -299,14 +337,26 @@ class OverlaySVG extends Overlay {
         for (let i in this.regions) {
             this.regions[i].hide();
         }
-        this.curtain.show();
     }
 
     show() {
         for (let i in this.regions) {
             this.regions[i].show();
         }
-        this.curtain.hide();
+    }
+
+    setActive(isActive) {
+        this.isActive = isActive;
+        if (this.curtain){
+            if (isActive){
+                this.show();
+                this.curtain.hide();
+            }
+            else {
+                this.hide();
+                this.curtain.show();
+            }
+        }
     }
 
     addIcons(isVisible) {
@@ -393,14 +443,18 @@ class Region {
     }
 
     hide() {
-        document.getElementById(this.regionId).style.display = 'none';
+        let elem = document.getElementById(this.regionId);
+        if (elem)
+            elem.style.display = 'none';
         let iconElement = document.getElementById(this.regionId + "Icon");
         if (iconElement)
             iconElement.style.display = 'none';
     }
 
     show() {
-        document.getElementById(this.regionId).style.display = 'block';
+        let elem = document.getElementById(this.regionId);
+        if (elem)
+            elem.style.display = 'block';
         let iconElement = document.getElementById(this.regionId + "Icon");
         if (iconElement)
             iconElement.style.display = 'block';
@@ -464,72 +518,43 @@ class THREEObject {
 }
 
 function setMode(modeId) {
-    if (modeId == 'nav') {
-        if (!overheadVideoControl.isActive) {
-            overheadVideoControl.setActive(true);
-            gripperVideoControl.setActive(false);
-            let checkbox = document.getElementById('cameraFollowGripperOn');
-            if (checkbox.checked)
-                changeGripperFollow(false);
-            
-            // turnModeOn('nav');
-            setCameraView('nav');
-            // TODO: Is there some way to set this button list procedurally?
-            // TODO: The buttons should be programatically added and part of
-            // a "mode" class.. stationary cameras will not 
-            // have those buttons. 
-            document.getElementById('lookUpNavButton').disabled = false;
-            document.getElementById('lookLeftNavButton').disabled = false;
-            document.getElementById('lookRightNavButton').disabled = false;
-            document.getElementById('lookDownNavButton').disabled = false;
-            document.getElementById('resetViewNavButton').disabled = false;
+    let modeButtonNav = document.getElementById('modeButtonNav');
+    let modeButtonManip = document.getElementById('modeButtonManip');
+ 
+    panTiltVideoControl.setMode(modeId);
+    overheadVideoControl.setMode(modeId);
+    gripperVideoControl.setMode(modeId);
 
-            document.getElementById('lookUpManipButton').disabled = true;
-            document.getElementById('lookLeftManipButton').disabled = true;
-            document.getElementById('lookRightManipButton').disabled = true;
-            document.getElementById('lookDownManipButton').disabled = true;
-            document.getElementById('resetViewManipButton').disabled = true;
-            document.getElementById('stowArmButton').disabled = true;
-            document.getElementById('prepArmButton').disabled = true;
-            document.getElementById('cameraFollowGripperOn').disabled = true;
-        }
+    if (modeId == 'nav') {
+            
+        let checkbox = document.getElementById('cameraFollowGripperOn');
+        if (checkbox && checkbox.checked)
+            changeGripperFollow(false);
+        
+        setCameraView('nav');
+        modeButtonNav.classList.add('btn-info');
+        modeButtonManip.classList.remove('btn-info');
     }
     else if (modeId == 'manip') {
-        if (!gripperVideoControl.isActive) {
-            overheadVideoControl.setActive(false);
-            gripperVideoControl.setActive(true);
-            let checkbox = document.getElementById('cameraFollowGripperOn');
-            if (checkbox.checked)
-                changeGripperFollow(true);
-            
-            // turnModeOn('manip');
-            setCameraView('manip');
-            document.getElementById('lookUpNavButton').disabled = true;
-            document.getElementById('lookLeftNavButton').disabled = true;
-            document.getElementById('lookRightNavButton').disabled = true;
-            document.getElementById('lookDownNavButton').disabled = true;
-            document.getElementById('resetViewNavButton').disabled = true;
-
-            document.getElementById('lookUpManipButton').disabled = false;
-            document.getElementById('lookLeftManipButton').disabled = false;
-            document.getElementById('lookRightManipButton').disabled = false;
-            document.getElementById('lookDownManipButton').disabled = false;
-            document.getElementById('resetViewManipButton').disabled = false;
-            document.getElementById('stowArmButton').disabled = false;
-            document.getElementById('prepArmButton').disabled = false;
-            document.getElementById('cameraFollowGripperOn').disabled = false;
-        }
+        let checkbox = document.getElementById('cameraFollowGripperOn');
+        if (checkbox && checkbox.checked)
+            changeGripperFollow(true);
+        
+        setCameraView('manip');
+        modeButtonNav.classList.remove('btn-info');
+        modeButtonManip.classList.add('btn-info');
     }
     else {
         console.log('Invalid mode: ' + modeId);
     }
 }
 
-var navOverlay = new OverlaySVG('nav', videoDimensions.h, videoDimensions.w);
-var armOverlay = new OverlaySVG('manip', videoDimensions.h, videoDimensions.w);
-
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, 
     videoDimensions.h/videoDimensions.w, 0.1, 1000), videoDimensions.h, videoDimensions.w);
+
+var navOverlay = new OverlaySVG('nav', videoDimensions.h, videoDimensions.w);
+var navOverlayTHREE = new OverlayTHREE('nav', threeManager);
+var armOverlay = new OverlaySVG('manip', videoDimensions.h, videoDimensions.w);
 
 var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
 var panTiltVideoControl = new VideoControl('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w, true);
@@ -580,7 +605,6 @@ function createUiRegions() {
 
     /////////////// Reach visualization overlay ///////////
 
-    let navOverlayTHREE = new OverlayTHREE('nav', threeManager);
     navOverlayTHREE.addItem(new THREEObject(
         'reach_visualization_circle',
         new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
@@ -648,8 +672,11 @@ function createUiRegions() {
     //////////////////////////////////////////////
 
     panTiltVideoControl.addOverlay(navOverlay);
-    panTiltVideoControl.addOverlay(navOverlayTHREE, "threejs");
-    // panTiltVideoControl.addOverlay(armOverlay);
+    panTiltVideoControl.addOverlay(navOverlayTHREE);
+    panTiltVideoControl.addOverlay(armOverlay);
+
+    panTiltVideoControl.setMode('manip');
+    panTiltVideoControl.setActive(true);
 }
 
 /////// UTILITY FUNCTIONS //////////

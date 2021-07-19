@@ -22,13 +22,20 @@
   </head>
   <body onmouseup="stopAction()">
 
-  	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-center">
+  	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left">
 
 	    <div class="d-flex align-items-center">
 	      <div id="modeSwitch">
+			<div class="btn-group" role="group" aria-label="Basic example">
+			  <button id="modeButtonNav" type="button" onclick="setMode('nav')" class="btn btn-sm btn-secondary btn-info">Navigation</button>
+			  <button id="modeButtonManip" type="button" onclick="setMode('manip')" class="btn btn-sm btn-secondary">Manipulation</button>
+			</div>
 	      </div>
 	    </div>
+    </div>
 
+
+  	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left">
  		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
 		    
