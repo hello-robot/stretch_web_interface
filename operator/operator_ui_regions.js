@@ -8,11 +8,15 @@
 * visualization.
 */
 class VideoControl {
-    constructor(videoId, mode) {
+    constructor(videoId, mode, width, height, hasButtons=true) {
 
         this.currentMode = mode;
         this.overlays = {}; // key is mode id, values are the Overlay objects
         
+        let containerDiv = document.getElementById(videoId + "Holder");
+
+        ////////////////////////////////
+
         // Background div including the video element
         let bgDiv = document.createElement('div');
         bgDiv.setAttribute('class', 'background');
@@ -37,11 +41,109 @@ class VideoControl {
         this.videoDiv.appendChild(fgDiv);
         this.videoDiv.appendChild(bgDiv);
 
-        this.setDimensions(w, h);
+        ////////////////////////////////
+
+        // Top row
+        containerDiv.appendChild(document.createElement('div'));
+        if (hasButtons){
+            let upButtonDiv = document.createElement('div')
+            let upButton = document.createElement('button')
+            upButton.setAttribute('id', 'lookUpNavButton');
+            upButton.setAttribute('type', 'button');
+            upButton.setAttribute('class', 'btn btn-secondary btn-sm h-button');
+            upButton.setAttribute('onclick', 'lookUp()');
+            upButton.setAttribute('onmousedown', "startAction('lookUp')");
+            upButton.setAttribute('title', "Look up");
+            upButtonDiv.appendChild(upButton);
+            containerDiv.appendChild(upButtonDiv);
+        }
+        else {
+            containerDiv.appendChild(document.createElement('div'));
+        }
+        containerDiv.appendChild(document.createElement('div'));
+
+        // Middle row
+
+        if (hasButtons){
+            let leftButtonDiv = document.createElement('div')
+            leftButtonDiv.setAttribute('class', "d-flex justify-content-start");
+            let leftButton = document.createElement('button')
+            leftButton.setAttribute('id', 'lookLeftNavButton');
+            leftButton.setAttribute('type', 'button');
+            leftButton.setAttribute('class', 'btn btn-secondary btn-sm v-button');
+            leftButton.setAttribute('onclick', 'lookLeft()');
+            leftButton.setAttribute('onmousedown', "startAction('lookLeft')");
+            leftButton.setAttribute('title', "Look left");
+            leftButtonDiv.appendChild(leftButton);
+            containerDiv.appendChild(leftButtonDiv);
+        }
+        else {
+            containerDiv.appendChild(document.createElement('div'));
+        }
+
+        // Add the video at the center
+        containerDiv.appendChild(this.videoDiv);
+
+       if (hasButtons){
+            let rightButtonDiv = document.createElement('div')
+            rightButtonDiv.setAttribute('class', "d-flex justify-content-start");
+            let rightButton = document.createElement('button')
+            rightButton.setAttribute('id', 'lookRightNavButton');
+            rightButton.setAttribute('type', 'button');
+            rightButton.setAttribute('class', 'btn btn-secondary btn-sm v-button');
+            rightButton.setAttribute('onclick', 'lookRight()');
+            rightButton.setAttribute('onmousedown', "startAction('lookRight')");
+            rightButton.setAttribute('title', "Look right");
+            rightButtonDiv.appendChild(rightButton);
+            containerDiv.appendChild(rightButtonDiv);
+        }
+        else {
+            containerDiv.appendChild(document.createElement('div'));
+        }
+  
+        // Bottom row
+        containerDiv.appendChild(document.createElement('div'));
+        if (hasButtons){
+            let downButtonDiv = document.createElement('div')
+            let downButton = document.createElement('button')
+            downButton.setAttribute('id', 'lookDownNavButton');
+            downButton.setAttribute('type', 'button');
+            downButton.setAttribute('class', 'btn btn-secondary btn-sm h-button');
+            downButton.setAttribute('onclick', 'lookDown()');
+            downButton.setAttribute('onmousedown', "startAction('lookDown')");
+            downButton.setAttribute('title', "Look down");
+            downButtonDiv.appendChild(downButton);
+            containerDiv.appendChild(downButtonDiv);
+        }
+        else {
+            containerDiv.appendChild(document.createElement('div'));
+        }
+        containerDiv.appendChild(document.createElement('div'));
+
+
+      // Additional row
+        containerDiv.appendChild(document.createElement('div'));
+        if (hasButtons){
+            let resetButtonDiv = document.createElement('div')
+            let resetButton = document.createElement('button')
+            resetButton.setAttribute('id', 'resetViewNavButton');
+            resetButton.setAttribute('type', 'button');
+            resetButton.setAttribute('class', 'btn btn-info btn-sm h-button');
+            resetButton.setAttribute('onclick', "setCameraView('nav')");
+            resetButton.setAttribute('title', "Reset camera view");
+            resetButton.innerHTML = "Reset camera view";
+            resetButtonDiv.appendChild(resetButton);
+            containerDiv.appendChild(resetButtonDiv);
+        }
+        else {
+            containerDiv.appendChild(document.createElement('div'));
+        }
+        containerDiv.appendChild(document.createElement('div'));
+
+
+        this.setDimensions(width, height);
         this.isActive = false;
 
-        let containerDiv = document.getElementById(videoId + "DivHolder");
-        containerDiv.appendChild(this.videoDiv);
     }
 
     addRemoteStream(stream) {
@@ -49,8 +151,8 @@ class VideoControl {
     }
 
     setDimensions(w, h) {
-        this.video.setAttribute("height", h);
         this.video.setAttribute("width", w);        
+        this.video.setAttribute("height", h);
         this.combinedSVG.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     }
 
@@ -166,7 +268,7 @@ class Overlay {
 * Class for an SVG video overlay
 */
 class OverlaySVG extends Overlay {
-    constructor(modeId) {
+    constructor(modeId, width, height) {
         super(modeId);
         this.regions = [];
         this.type = 'control';
@@ -176,13 +278,13 @@ class OverlaySVG extends Overlay {
         this.svg.setAttribute('id', modeId + '_ui_overlay');
 
         ///////////////////////
-        let w = videoDimensions.h;
-        let h = videoDimensions.w;
-        let bigViewBox = String(0) + ' ' + String(0) + ' ' + String(w) + ' ' + String(h);
+        this.width = width;
+        this.height = height;
+        let bigViewBox = String(0) + ' ' + String(0) + ' ' + String(width) + ' ' + String(height);
         this.svg.setAttribute('viewBox', bigViewBox);
 
 
-        let bgRect = makeRectangle(0, 0, w, h);
+        let bgRect = makeRectangle(0, 0, width, height);
         this.curtain = new Region(modeId + '_curtain', null , 'curtain',
             rectToPoly(bgRect), 'white', null, this.svg, true, 0.5);
         
@@ -423,18 +525,15 @@ function setMode(modeId) {
     }
 }
 
-var w = videoDimensions.h;
-var h = videoDimensions.w;
+var navOverlay = new OverlaySVG('nav', videoDimensions.h, videoDimensions.w);
+var armOverlay = new OverlaySVG('manip', videoDimensions.h, videoDimensions.w);
 
-var navOverlay = new OverlaySVG('nav');
-var armOverlay = new OverlaySVG('manip');
+var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, 
+    videoDimensions.h/videoDimensions.w, 0.1, 1000), videoDimensions.h, videoDimensions.w);
 
-var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
-
-var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h);
-var gripperVideoControl = new VideoControl('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h);
-var panTiltNavVideoControl = new VideoControl('panTiltNavVideo', 'nav', videoDimensions.h, videoDimensions.w);
-var panTiltManipVideoControl = new VideoControl('panTiltManipVideo', 'manip', videoDimensions.h, videoDimensions.w);
+var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
+var panTiltVideoControl = new VideoControl('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w, true);
+var gripperVideoControl = new VideoControl('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h, false);
 
 
 function createUiRegions() {
@@ -442,6 +541,11 @@ function createUiRegions() {
     var regionPoly;
     var color = 'white';
     var cornerRectSize = 40;
+    
+    // FIRST PAN_TILT CAMERA OVERLAYS
+
+    let w = videoDimensions.h;
+    let h = videoDimensions.w;
     
     /////////////////////////
     // navigation
@@ -543,10 +647,9 @@ function createUiRegions() {
 
     //////////////////////////////////////////////
 
-    panTiltNavVideoControl.addOverlay(navOverlay);
-    panTiltNavVideoControl.addOverlay(navOverlayTHREE, "threejs");
-    panTiltManipVideoControl.addOverlay(armOverlay);
-
+    panTiltVideoControl.addOverlay(navOverlay);
+    panTiltVideoControl.addOverlay(navOverlayTHREE, "threejs");
+    // panTiltVideoControl.addOverlay(armOverlay);
 }
 
 /////// UTILITY FUNCTIONS //////////

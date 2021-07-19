@@ -31,43 +31,18 @@
 
  		<!-- TODO: Eventually this should be generated with code -->	
  		<div class="container-fluid d-flex flex-row justify-content-around">
-		    <div class="nav_mode_div">
-
-		    	<div class=""></div>
-		    	<div class="">
-		    		<button id="lookUpNavButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
-		    	</div>
-		    	<div class=""></div>
-		    	<div class="d-flex justify-content-end">
-		    		<button id="lookLeftNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
-		    	</div>
-
-		    	<div id="navigationVideoDivHolder">
-		    		<!-- add stuff here -->
-		    	</div>
-
-		    	<div class="d-flex justify-content-start">
-		    		<button id="lookRightNavButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
-		    	</div>
-
-		    	<div class=""></div>
-		    	<div class="">
-		    		<button id="lookDownNavButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look down" onclick="lookDown()" onmousedown="startAction('lookDown')">v</button>
-		    	</div>
-		    	<div class=""></div>
-
-		    	<div class=""></div>
-		    	<div class="">
-		    		<button  id="resetViewNavButton"type="button" class="btn btn-info btn-sm h-button" title="Reset camera view" onclick="setCameraView('nav')">
-		    			Reset camera view
-		    		</button>
-		    	</div>
-		    	<div class=""></div>
-
+		    
+		    <div class="nav_mode_div" id="overheadVideoHolder">
 		    </div>
 
-		    <div class="manip_mode_div">
-		    	<div class=""></div>
+
+		    <div class="nav_mode_div" id="pantiltVideoHolder">
+		    </div>
+
+
+		    <div class="nav_mode_div" id="gripperVideoHolder">
+		    	
+		    	<!-- <div class=""></div>
 		    	<div class="">
 		    		<button id="lookUpManipButton" type="button" class="btn btn-secondary btn-sm h-button" title="Look up" onclick="lookUp()" onmousedown="startAction('lookUp')")>^</button>
 		    	</div>
@@ -78,19 +53,8 @@
 		    		<button id="lookRightManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look left" onclick="lookLeft()" onmousedown="startAction('lookLeft')"><</button>
 		    	</div>
 			    
-		    	<div id="manipulationVideoDivHolder">
-		    		<!-- add stuff here -->
+		    	<div>
 		    	</div>
-
-<!-- 			    <div class="video_div" id="manipulationVideoDiv">
-			      <div class="background">
-			      	<video id="manipulationVideo" autoplay></video>
-			      </div>
-			      <div class="foreground" onclick="setMode('manip')">
-			      	<svg id="manipulationVideoOverlay" class="video_ui_overlay"></svg>
-			  	  </div>
-			    </div>
- -->
 
 		    	<div class="d-flex justify-content-start">
 		    		<button id="lookLeftManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
@@ -130,7 +94,7 @@
 					</div>
 		    	</div>
 		    	<div class=""></div>
-		    	<div class=""></div>
+		    	<div class=""></div> -->
 
 		    </div>
 		</div>
