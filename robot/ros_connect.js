@@ -270,11 +270,11 @@ function generatePoseGoal(pose){
             points : [
                 {
                     positions : jointPositions,
-                    // The following is causing the jumpiness in continuous motions!
-                    // time_from_start: {
-                    //     secs: 0,
-                    //     nsecs: 1
-                    // }
+                    // The following might causing the jumpiness in continuous motions
+                    time_from_start: {
+                        secs: 0,
+                        nsecs: 1
+                    }
                 }
             ]
             }
@@ -284,11 +284,15 @@ function generatePoseGoal(pose){
     console.log('newGoal created =' + newGoal)
     
     newGoal.on('feedback', function(feedback) {
-    	console.log('Feedback: ', feedback);
+    	console.log('Feedback: ');
+        if (feedback)
+            console.log(feedback);
     });
     
     newGoal.on('result', function(result) {
-    	console.log('Final Result: ', feedback);
+    	console.log('Final Result: ', );
+        if (result)
+            console.log(result);
     });
     
     return newGoal

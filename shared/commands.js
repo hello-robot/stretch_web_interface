@@ -31,15 +31,12 @@ function stopAction() {
   activeAction = null;
 }
 
-var updateFrequency = 200; //milliseconds
+var updateFrequency = 400; //milliseconds
 function updateInterface() {
   if (activeAction != null) {
     console.log("activeAction: " + activeAction);
     window[activeAction]();
   }
-  // if (cameraFollowGripper) {
-  //   lookAtGripper();
-  // }
 }
 window.setInterval(updateInterface, updateFrequency);
 

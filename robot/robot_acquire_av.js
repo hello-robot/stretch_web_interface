@@ -32,15 +32,6 @@ function startStreams() {
     overheadStream.start();
     gripperStream.start();
 
-    // displayStream = new MediaStream(editedVideoStream); // make a copy of the stream for local display
-    // remove audio tracks from displayStream
-    // for (let a of displayStream.getAudioTracks()) {
-        // displayStream.removeTrack(a);
-    // }
-    // localStream = new MediaStream(editedVideoStream);
-    // videoDisplayElement.srcObject = displayStream; // display the stream    
-    
-
     // Audio stuff
 
     if(audioOutId) {
@@ -142,7 +133,7 @@ class VideoStream {
 class PanTiltVideoStream extends VideoStream {
     constructor(videoId, topicName) {
         let camDim = {w:videoDimensions.w, h:videoDimensions.h};
-        let editedDim = {w:camDim.h, h:camDim.w}
+        let editedDim = {w:camDim.h, h:camDim.w};
         super(videoId, camDim, editedDim, topicName);
         this.topic.subscribe(pantiltImageCallback);
     }
