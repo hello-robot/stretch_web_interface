@@ -71,12 +71,19 @@ if (use_content_security_policy) {
                 'code.jquery.com',
                 'cdnjs.cloudflare.com',
                 'stackpath.bootstrapcdn.com',
-                'cdn.jsdelivr.net'],
-            connectSrc:["'self'", 'ws://localhost:9090', 'https://securetoken.googleapis.com', 'https://www.googleapis.com'],
+                'cdn.jsdelivr.net',
+                '*.firebaseio.com',
+                'https://apis.google.com/'],
+            connectSrc:["'self'",
+                'ws://localhost:9090',
+                'https://securetoken.googleapis.com',
+                'https://www.googleapis.com',
+                'wss:\/\/*.firebaseio.com'],
             imgSrc: ["'self'", 'data:'],
             styleSrc:["'self'", 
                 'stackpath.bootstrapcdn.com'],
-            fontSrc:["'self'"]}
+            fontSrc:["'self'"],
+            frameSrc: ['*.firebaseio.com', 'https://stretchteleop.firebaseapp.com/']}
         })
     );
 } else {

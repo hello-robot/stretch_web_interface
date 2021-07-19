@@ -3,10 +3,11 @@ var peer_name = "OPERATOR";
 var velocityControlOn = false;
 var noWristOn = true;
 
+let db;
 function initializeOperatorInterface() {
-  var db = new Database(config, runOnOpenDataChannel);
-  // createModeSwitch();
-  setMode("nav");
+	db = new Database(config, runOnOpenDataChannel);
+	// createModeSwitch();
+	setMode("nav");
 }
 
 function runOnOpenDataChannel() {
