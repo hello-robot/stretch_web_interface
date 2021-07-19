@@ -24,14 +24,33 @@
 
   	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left">
 
-	    <div class="d-flex align-items-center">
 	      <div id="modeSwitch">
-			<div class="btn-group" role="group" aria-label="Basic example">
-			  <button id="modeButtonNav" type="button" onclick="setMode('nav')" class="btn btn-sm btn-secondary btn-info">Navigation</button>
-			  <button id="modeButtonManip" type="button" onclick="setMode('manip')" class="btn btn-sm btn-secondary">Manipulation</button>
-			</div>
+					<div class="btn-group" role="group" aria-label="Basic example">
+					  <button id="modeButtonNav" type="button" onclick="setMode('nav')" class="btn btn-sm btn-secondary btn-info">Navigation</button>
+					  <button id="modeButtonManip" type="button" onclick="setMode('manip')" class="btn btn-sm btn-secondary">Manipulation</button>
+					</div>
 	      </div>
-	    </div>
+
+		  <div class="d-flex flex-fill justify-content-end mb-4">
+			  <div class="switch-2">
+				        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
+				        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
+				        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
+				        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
+				        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
+				        
+				        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
+				        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
+				        <span class="switch-selection switch-selection-sm"></span>
+			    </div>
+    	</div>
+
     </div>
 
 
@@ -176,33 +195,6 @@
 			  		<label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
 			    </div>
 	      	</div>
-
-  			<div class="d-flex flex-row">
-			    <div class="ml-2 my-3">
-			  		<label>Movement speed</label>
-			    </div>
-			    <div class="ml-2 my-3">
-				  <div class="switch-2">
-				        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
-				        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-				        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
-				        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-				        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-				        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-				        <span class="switch-selection switch-selection-sm"></span>
-				    </div>
-			    </div>
-	      	</div>
-
-	      </div>
 
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

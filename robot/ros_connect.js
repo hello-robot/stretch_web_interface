@@ -269,11 +269,12 @@ function generatePoseGoal(pose){
             joint_names : jointNames,
             points : [
                 {
-                positions : jointPositions,
-                // time_from_start: {
-                //     secs: 0,
-                //     nsecs: 1
-                // }
+                    positions : jointPositions,
+                    // The following is causing the jumpiness in continuous motions!
+                    // time_from_start: {
+                    //     secs: 0,
+                    //     nsecs: 1
+                    // }
                 }
             ]
             }
