@@ -78,11 +78,13 @@ class THREEManager {
         this.overlays[modeId].overlay.render();
     }
 
-    animate() {
+    animate(doonce = false) {
         // TODO: Figure out how to properly pass self into a callback function
-        requestAnimationFrame(() => {
-            this.animate();
-        });
+        if (!doonce) {
+            requestAnimationFrame(() => {
+                this.animate();
+            });
+        }
 
         for (const overlay in this.overlays) {
             if (this.overlays[overlay].render) {
@@ -176,6 +178,8 @@ class OverlayTHREE extends Overlay {
         this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
     
         this.threeManager.addOverlay(this);
+
+        this.enabled = true;
     }
 
     addRenderPass(renderPass) {
@@ -195,14 +199,26 @@ class OverlayTHREE extends Overlay {
     }
 
     show() {
-        for (const obj in this.objs) {
-            this.objs[obj].show();
+        if (this.enabled) {
+            for (const obj in this.objs) {
+                this.objs[obj].show();
+            }
+            this.threeManager.resumeOverlayRender(this.modeId);
         }
-        this.threeManager.resumeOverlayRender(this.modeId);
     }
 
     render() {
         this.composer.render();
+    }
+
+    disable() {
+        this.enabled = false;
+        this.hide();
+    }
+
+    enable() {
+        this.enabled = true;
+        this.threeManager.animate(doonce=true);
     }
 }
 
@@ -231,6 +247,9 @@ class Region {
     }
 }
 
+/*
+* Class for a THREE.js object
+*/
 class THREEObject {
     constructor(name, geo, mat) {
         this.name = name;
@@ -309,6 +328,17 @@ function setMode(modeId) {
     }
 }
 
+// TODO: Update later when settings are synced to firebase
+function updateReachVisualizationDisplay() {
+    var checkbox = document.getElementById('reachVisualization');
+    if (checkbox.checked) {
+        reachOverlayTHREE.enable();
+    } else {
+        reachOverlayTHREE.disable();
+    }
+}
+
+
 // TODO: This might be redundant with 'interfaceMode' remove after checking
 var strokeOpacity = 0.0;
 var w = videoDimensions.h;
@@ -324,7 +354,7 @@ var navigationVideoControl = new VideoControl('navigationVideo', 'nav');
 var manipulationVideoControl = new VideoControl('manipulationVideo', 'manip');
 
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
-
+let reachOverlayTHREE;
 
 function createUiRegions(debug) {
 
@@ -362,25 +392,24 @@ function createUiRegions(debug) {
         rectToPoly(rightRect), color, navOverlay.svg, false));
     navigationVideoControl.addOverlay(navOverlay);
 
-    let navOverlayTHREE = new OverlayTHREE('nav', threeManager);
-
-    navOverlayTHREE.addItem(new THREEObject(
+    reachOverlayTHREE = new OverlayTHREE('nav', threeManager);
+    reachOverlayTHREE.addItem(new THREEObject(
         'reach_visualization_circle',
         new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
         new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
     ));
     var outlineEffect = new POSTPROCESSING.OutlineEffect(
-        navOverlayTHREE.scene,
-        navOverlayTHREE.threeManager.camera,
+        reachOverlayTHREE.scene,
+        reachOverlayTHREE.threeManager.camera,
         {visibleEdgeColor: 0xff9900});
     var outlineEffectPass = new POSTPROCESSING.EffectPass(
-        navOverlayTHREE.threeManager.camera,
+        reachOverlayTHREE.threeManager.camera,
         outlineEffect
     );
     outlineEffectPass.renderToScreen = true;
-    outlineEffect.selectObject(navOverlayTHREE.objs.reach_visualization_circle.mesh);
-    navOverlayTHREE.addRenderPass(outlineEffectPass);
-    navigationVideoControl.addOverlay(navOverlayTHREE, "threejs");
+    outlineEffect.selectObject(reachOverlayTHREE.objs.reach_visualization_circle.mesh);
+    reachOverlayTHREE.addRenderPass(outlineEffectPass);
+    navigationVideoControl.addOverlay(reachOverlayTHREE, "threejs");
 
     
     /////////////////////////
