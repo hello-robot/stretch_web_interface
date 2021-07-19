@@ -72,7 +72,7 @@ if (use_content_security_policy) {
                 'cdnjs.cloudflare.com',
                 'stackpath.bootstrapcdn.com',
                 'cdn.jsdelivr.net'],
-            connectSrc:["'self'", 'ws://localhost:9090'],
+            connectSrc:["'self'", 'ws://localhost:9090', 'https://securetoken.googleapis.com', 'https://www.googleapis.com'],
             imgSrc: ["'self'", 'data:'],
             styleSrc:["'self'", 
                 'stackpath.bootstrapcdn.com'],
