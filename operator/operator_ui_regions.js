@@ -304,7 +304,7 @@ class Overlay {
 * Class for an SVG video overlay
 */
 class OverlaySVG extends Overlay {
-    constructor(modeId, width, height, hasCurtain=true) {
+    constructor(modeId, width, height, hasCurtain=false) {
         super(modeId);
         this.regions = [];
         this.type = 'control';

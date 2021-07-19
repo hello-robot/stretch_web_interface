@@ -204,8 +204,8 @@ function generatePoseGoal(pose){
     var jointNames = []
     var jointPositions = []
     for (var key in pose) {
-	jointNames.push(key)
-	jointPositions.push(pose[key])
+    	jointNames.push(key)
+    	jointPositions.push(pose[key])
     }
 
     if (!inSim) {
@@ -270,25 +270,24 @@ function generatePoseGoal(pose){
             points : [
                 {
                 positions : jointPositions,
-                time_from_start: {
-                    secs: 0,
-                    nsecs: 1
-                }
+                // time_from_start: {
+                //     secs: 0,
+                //     nsecs: 1
+                // }
                 }
             ]
             }
         }
     });
 
-
     console.log('newGoal created =' + newGoal)
     
     newGoal.on('feedback', function(feedback) {
-    	console.log('Feedback: ' + feedback.sequence);
+    	console.log('Feedback: ', feedback);
     });
     
     newGoal.on('result', function(result) {
-    	console.log('Final Result: ' + result.sequence);
+    	console.log('Final Result: ', feedback);
     });
     
     return newGoal
@@ -444,9 +443,9 @@ function sendIncrementalMove(jointName, jointValueInc) {
 	var pose = {[jointName]: newJointValue}
 	var poseGoal = generatePoseGoal(pose)
 	poseGoal.send()
-	return true
+	return true;
     }
-    return false
+    return false;
 }
 
 function headLookAtGripper(isStarting) {
@@ -502,7 +501,6 @@ function updateBackend() {
     updateHead();
 }
 window.setInterval(updateBackend, backendUpdateFrequency);
-
 
 function armMove(dist, timeout, vel) {
     console.log('attempting to sendarmMove command')
