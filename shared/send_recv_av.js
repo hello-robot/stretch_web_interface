@@ -281,7 +281,7 @@ function displayRemoteStream(track, stream) {
     
     // This is where we would change which view displays which camera stream
     if (thisTrackContent=="pantiltStream" && panTiltCameraVideo) {
-        panTiltCameraVideo.addRemoteStream(stream);
+        panTiltVideoControl.addRemoteStream(stream);
     }
     if (thisTrackContent=="overheadStream" && overheadVideoControl) {
         overheadVideoControl.addRemoteStream(stream);
@@ -297,7 +297,7 @@ function handleRemoteStreamAdded(event) {
         console.log('OPERATOR: starting to display remote stream');
 
         if (panTiltCameraVideo)
-            panTiltCameraVideo.addRemoteStream(event.stream);
+            panTiltVideoControl.addRemoteStream(event.stream);
         if (overheadVideoControl)
             overheadVideoControl.addRemoteStream(event.stream);
         if (gripperVideoControl)
