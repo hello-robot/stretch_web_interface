@@ -330,39 +330,9 @@ function wristRollLeft() {
     sendData(cmd);
 }
 
-
 //var cameraToVideoMapping = {nav: 'big', arm: 'smallTop', hand: 'smallBot'};
 var interfaceMode = 'nav';
 var interfaceModifier = 'no_wrist';
-
-/**
-* modekey in {'nav', 'low_arm', 'high_arm', 'hand', 'look' }
-*/
-function turnModeOn(modeKey) {
-    console.log('turnModeOn: modeKey = ' + modeKey)
-
-  let autoViewOn = false;
-  let onoffButton = document.getElementById("autoViewOn");
-  if (onoffButton != undefined)
-    autoViewOn = onoffButton.checked;
-  console.log("autoViewOn: " + autoViewOn);
-
-  // Send command to back-end to change the camera view based on mode
-  if (autoViewOn) {
-      setCameraView(modeKey);
-  }
-  else {
-      console.log("Not changing view automatically on control mode change.");
-  }
-
-  // Update the front-end for the new mode
-  panTiltCameraVideoControl.setMode(modeKey)
-  Database.logEvent("ModeChange", modeKey);
-}
-
-/**
-* Preset views only available for modeKey in {'nav', 'low_arm', 'high_arm'}
-*/
 
 function setCameraView(modeKey) {
   var cmd;

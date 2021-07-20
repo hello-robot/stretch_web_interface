@@ -66,7 +66,7 @@ var degToRad = (2.0* Math.PI)/360.0;
 var overheadStream, gripperStream, pantiltStream;
 
 class VideoStream {
-    constructor(videoId, camDim, editedDim, topicName) {
+    constructor(videoId, camDim, editedDim, topicName, isRotated) {
         this.videoId = videoId;
         this.canvas = document.createElement('canvas');
         this.displayElement = document.getElementById(videoId);
@@ -77,7 +77,7 @@ class VideoStream {
         this.context = this.canvas.getContext('2d');
         this.context.fillStyle="black";
         this.context.fillRect(0, 0, editedDim.w, editedDim.h);
-        this.isRotated = true;
+        this.isRotated = isRotated;
         this.isZoomed = false;
 
         this.localStream = null;
@@ -134,7 +134,7 @@ class PanTiltVideoStream extends VideoStream {
     constructor(videoId, topicName) {
         let camDim = {w:videoDimensions.w, h:videoDimensions.h};
         let editedDim = {w:camDim.h, h:camDim.w};
-        super(videoId, camDim, editedDim, topicName);
+        super(videoId, camDim, editedDim, topicName, true);
         this.topic.subscribe(pantiltImageCallback);
     }
 
@@ -150,7 +150,7 @@ class WideAngleVideoStream extends VideoStream {
             h:wideVideoDimensions.camH};
         let wideEditedDim = {w:wideVideoDimensions.camW, 
             h:wideVideoDimensions.camH};
-        super(videoId, wideCamDim, wideEditedDim, topicName);
+        super(videoId, wideCamDim, wideEditedDim, topicName, false);
 
         if (this.videoId == "gripperVideo") {
             this.topic.subscribe(gripperImageCallback);
