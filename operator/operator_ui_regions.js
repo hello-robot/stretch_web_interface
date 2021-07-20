@@ -44,8 +44,8 @@ class VideoControl {
         ////////////////////////////////
 
         // Top row
-        containerDiv.appendChild(document.createElement('div'));
         if (hasButtons){
+            containerDiv.appendChild(document.createElement('div'));
             let upButtonDiv = document.createElement('div')
             let upButton = document.createElement('button')
             upButton.setAttribute('id', 'lookUpNavButton');
@@ -57,11 +57,11 @@ class VideoControl {
             upButton.innerHTML = "^";
             upButtonDiv.appendChild(upButton);
             containerDiv.appendChild(upButtonDiv);
-        }
-        else {
             containerDiv.appendChild(document.createElement('div'));
         }
-        containerDiv.appendChild(document.createElement('div'));
+        // else {
+        //     containerDiv.appendChild(document.createElement('div'));
+        // }
 
         // Middle row
 
@@ -79,9 +79,9 @@ class VideoControl {
             leftButtonDiv.appendChild(leftButton);
             containerDiv.appendChild(leftButtonDiv);
         }
-        else {
-            containerDiv.appendChild(document.createElement('div'));
-        }
+        // else {
+        //     containerDiv.appendChild(document.createElement('div'));
+        // }
 
         // Add the video at the center
         containerDiv.appendChild(this.videoDiv);
@@ -100,13 +100,13 @@ class VideoControl {
             rightButtonDiv.appendChild(rightButton);
             containerDiv.appendChild(rightButtonDiv);
         }
-        else {
-            containerDiv.appendChild(document.createElement('div'));
-        }
+        // else {
+        //     containerDiv.appendChild(document.createElement('div'));
+        // }
   
         // Bottom row
-        containerDiv.appendChild(document.createElement('div'));
         if (hasButtons){
+            containerDiv.appendChild(document.createElement('div'));
             let downButtonDiv = document.createElement('div')
             let downButton = document.createElement('button')
             downButton.setAttribute('id', 'lookDownNavButton');
@@ -119,15 +119,12 @@ class VideoControl {
             downButtonDiv.appendChild(downButton);
             containerDiv.appendChild(downButtonDiv);
         }
-        else {
-            containerDiv.appendChild(document.createElement('div'));
-        }
         containerDiv.appendChild(document.createElement('div'));
 
 
       // Additional row
-        containerDiv.appendChild(document.createElement('div'));
         if (hasButtons){
+           containerDiv.appendChild(document.createElement('div'));
             let resetButtonDiv = document.createElement('div')
             let resetButton = document.createElement('button')
             resetButton.setAttribute('id', 'resetViewNavButton');
@@ -138,11 +135,8 @@ class VideoControl {
             resetButton.innerHTML = "Reset camera view";
             resetButtonDiv.appendChild(resetButton);
             containerDiv.appendChild(resetButtonDiv);
-        }
-        else {
             containerDiv.appendChild(document.createElement('div'));
         }
-        containerDiv.appendChild(document.createElement('div'));
 
         this.setDimensions(width, height);
         this.isActive = false;

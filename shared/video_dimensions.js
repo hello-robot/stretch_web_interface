@@ -7,6 +7,9 @@ var realsenseW = 640;
 var realsenseH = 360;
 var wideangleW = 1024;
 var wideangleH = 768;
+var bufferFactorX = 0.9;
+var bufferFactorY = 0.9;
+var buttonHeight = 18;
 
 class RealsenseVideoDimensions {
     // D435i 1280x720 for now. Could be 1920 x 1080 if launch file
@@ -15,7 +18,7 @@ class RealsenseVideoDimensions {
     // 360x640.
 
     constructor() {
-	    this.setWidth(wHeight*0.8);
+	    this.setWidth(wHeight*bufferFactorY);
 	    this.cameraFpsIdeal = 15.0;
 		this.camW = realsenseW;
 		this.camH = realsenseH;
@@ -50,7 +53,7 @@ class WideangleVideoDimensions {
     constructor(){
 		this.camW = wideangleW;
 		this.camH = wideangleH;
-	    this.setHeight(wHeight*0.8);
+	    this.setHeight(wHeight*bufferFactorY);
 	    this.cameraFpsIdeal = 20.0;
 	    this.computeDimensions();
     }
@@ -96,12 +99,10 @@ class WideangleVideoDimensions {
 var wideVideoDimensions = new WideangleVideoDimensions();
 var videoDimensions = new RealsenseVideoDimensions();
 
-var bufferFactor = 0.9;
-
 function computeDimensions() {
 
 	var totalWidth = wideVideoDimensions.w * 2.0 + videoDimensions.h;
-	let targetWidth = bufferFactor*wWidth;
+	let targetWidth = bufferFactorX*wWidth;
 
 	console.log("Aimed for height: ", videoDimensions.w, wideVideoDimensions.h);
 	console.log('window.innerWidth', window.innerWidth);
@@ -117,9 +118,10 @@ function computeDimensions() {
 		console.log('newWideWidth', newWideWidth);
 
 		videoDimensions.setHeight(newPantiltHeight);
+		let newH = videoDimensions.h - 2 * buttonHeight; // Trick to account for buttons to maximiza height
+		videoDimensions.setHeight(newH);
 		wideVideoDimensions.setWidth(newWideWidth);
 		wideVideoDimensions.computeDimensions();
-		
 	}
 }
 
