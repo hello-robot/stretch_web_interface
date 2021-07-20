@@ -220,7 +220,7 @@ function drawOverheadStream() {
     overheadStream.drawVideo();
 }
 
-var debug = true;
+var debug = false;
 function pantiltImageCallback(message) {
     if (debug)
         pantiltStream.img.src = 'dummy_pantilt.png';    
