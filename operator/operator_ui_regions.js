@@ -54,6 +54,7 @@ class VideoControl {
             upButton.setAttribute('onclick', 'lookUp()');
             upButton.setAttribute('onmousedown', "startAction('lookUp')");
             upButton.setAttribute('title', "Look up");
+            upButton.innerHTML = "^";
             upButtonDiv.appendChild(upButton);
             containerDiv.appendChild(upButtonDiv);
         }
@@ -74,6 +75,7 @@ class VideoControl {
             leftButton.setAttribute('onclick', 'lookLeft()');
             leftButton.setAttribute('onmousedown', "startAction('lookLeft')");
             leftButton.setAttribute('title', "Look left");
+            leftButton.innerHTML = "<"
             leftButtonDiv.appendChild(leftButton);
             containerDiv.appendChild(leftButtonDiv);
         }
@@ -94,6 +96,7 @@ class VideoControl {
             rightButton.setAttribute('onclick', 'lookRight()');
             rightButton.setAttribute('onmousedown', "startAction('lookRight')");
             rightButton.setAttribute('title', "Look right");
+            rightButton.innerHTML = ">"
             rightButtonDiv.appendChild(rightButton);
             containerDiv.appendChild(rightButtonDiv);
         }
@@ -112,6 +115,7 @@ class VideoControl {
             downButton.setAttribute('onclick', 'lookDown()');
             downButton.setAttribute('onmousedown', "startAction('lookDown')");
             downButton.setAttribute('title', "Look down");
+            downButton.innerHTML = "v"
             downButtonDiv.appendChild(downButton);
             containerDiv.appendChild(downButtonDiv);
         }
