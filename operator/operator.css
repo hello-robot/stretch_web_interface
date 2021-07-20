@@ -132,19 +132,19 @@ video {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
-#manip_extend_region, #gripper_manip_arm_extend_region {
+#manip_extend_region, #overhead_manip_arm_extend_region {
     cursor: url('out_arrow.png'), auto;
 }
 
-#manip_retract_region, #gripper_manip_arm_retract_region {
+#manip_retract_region, #overhead_manip_arm_retract_region {
     cursor: url('in_arrow.png'), auto;
 }
 
-#manip_base_forward_region, #gripper_manip_base_forward_region {
+#manip_base_forward_region, #overhead_manip_base_forward_region {
     cursor: url('left_arrow_medium.png'), auto; 
 }
 
-#manip_base_backward_region, #gripper_manip_base_backward_region {
+#manip_base_backward_region, #overhead_manip_base_backward_region {
     cursor: url('right_arrow_medium.png'), auto;
 }
 
@@ -164,11 +164,11 @@ video {
     cursor: url('gripper_close_medium.png'), auto;
 }
 
-#manip_in_region, #gripper_manip_in_region, #gripper_nav_in_region, #gripper_manip_turn_left_region {
+#manip_in_region, #gripper_manip_in_region, #gripper_nav_in_region, #overhead_manip_turn_left_region {
     cursor: url('left_turn_medium.png'), auto;
 }
 
-#manip_out_region, #gripper_manip_out_region, #gripper_nav_out_region, #gripper_manip_turn_right_region {
+#manip_out_region, #gripper_manip_out_region, #gripper_nav_out_region, #overhead_manip_turn_right_region {
     cursor: url('right_turn_medium.png'), auto;
 }
 

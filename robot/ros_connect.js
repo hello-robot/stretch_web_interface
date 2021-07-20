@@ -331,11 +331,13 @@ function sendCommandBody(cmd) {
 
 //Called from mode switch
 
+var backendRobotMode = 'nav';
 function robotModeOn(modeKey) {
     console.log('robotModeOn called with modeKey = ' + modeKey)
 
     let debugDiv = document.getElementById("debug-text");
     debugDiv.innerHTML = "Robot mode: " + modeKey;
+    backendRobotMode = modeKey;
     
     // This is where the head pose gets set when mode is switched.
 

@@ -702,7 +702,7 @@ function createUiRegions() {
     
     // small rectangle around the mobile base
     let baseRect = makeSquare((camW/2.0) - (mobile_base_width/2.0),
-                  (camH/2.0) - (mobile_base_height/2.0),
+                  (3*camH/4.0) - (mobile_base_height/2.0),
                   mobile_base_width, mobile_base_height); 
 
     navOverheadOverlay.addRegion(new Region('overhead_nav_do_nothing_region', 
@@ -718,11 +718,11 @@ function createUiRegions() {
         color, 'down_arrow_medium', navOverheadOverlay.svg));
 
     navOverheadOverlay.addRegion(new Region('overhead_nav_turn_left_region', 
-        'turnRight' , 'turn left', [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
+        'turnLeft' , 'turn left', [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
         color, 'left_turn_medium', navOverheadOverlay.svg));
 
     navOverheadOverlay.addRegion(new Region('overhead_nav_turn_right_region', 
-        'turnLeft' , 'turn left', [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
+        'turnRight' , 'turn right', [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
         color, 'right_turn_medium', navOverheadOverlay.svg));
 
     navOverheadOverlay.addRegion(new Region('overhead_nav_arm_retract_region', 
@@ -757,13 +757,13 @@ function createUiRegions() {
                      wrist_region_width, camH - (2.0*lift_region_height));
 
     navGripperOverlay.addRegion(new Region('gripper_nav_close_region', 
-        'closeHand' , 'close hand', rectToPoly(fingertipRect), 
+        'gripperClose' , 'close hand', rectToPoly(fingertipRect), 
         color, 'gripper_close_medium', navGripperOverlay.svg));
     regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
           fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
           wristOutRect.ll, wristInRect.lr];
     navGripperOverlay.addRegion(new Region('gripper_nav_open_region', 
-        'openHand' , 'open hand', regionPoly, 
+        'gripperOpen' , 'open hand', regionPoly, 
         color, 'gripper_open_medium', navGripperOverlay.svg, true, false)); //concave region
     navGripperOverlay.addRegion(new Region('gripper_nav_in_region', 
         'wristIn' , 'turn wrist in', rectToPoly(wristInRect), 
@@ -779,13 +779,13 @@ function createUiRegions() {
         color, 'down_arrow_medium', navGripperOverlay.svg));
 
     armGripperOverlay.addRegion(new Region('gripper_manip_close_region', 
-        'closeHand' , 'close hand', rectToPoly(fingertipRect), 
+        'gripperClose' , 'close hand', rectToPoly(fingertipRect), 
         color, 'gripper_close_medium', armGripperOverlay.svg));
     regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
           fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
           wristOutRect.ll, wristInRect.lr];
     armGripperOverlay.addRegion(new Region('gripper_manip_open_region', 
-        'openHand' , 'open hand', regionPoly, 
+        'gripperOpen' , 'open hand', regionPoly, 
         color, 'gripper_open_medium', armGripperOverlay.svg, true, false)); //concave region
     armGripperOverlay.addRegion(new Region('gripper_manip_in_region', 
         'wristIn' , 'turn wrist in', rectToPoly(wristInRect), 
@@ -836,26 +836,26 @@ function createUiRegions() {
                      base_region_width, camH-(2.0*arm_region_height));
     
     armOverheadOverlay.addRegion(new Region('overhead_manip_turn_left_region', 
-        'wristIn' , 'close hand', rectToPoly(turnLeftRect), 
+        'wristIn' , 'turn wrist in', rectToPoly(turnLeftRect), 
         color, 'left_turn_medium', armOverheadOverlay.svg));
     
-    armOverheadOverlay.addRegion(new Region('gripper_manip_turn_right_region', 
-        'wristOut' , 'close hand', rectToPoly(turnRightRect), 
+    armOverheadOverlay.addRegion(new Region('overhead_manip_turn_right_region', 
+        'wristOut' , 'turn wrist out', rectToPoly(turnRightRect), 
         color, 'right_turn_medium', armOverheadOverlay.svg));
 
-    armOverheadOverlay.addRegion(new Region('gripper_manip_base_forward_region', 
+    armOverheadOverlay.addRegion(new Region('overhead_manip_base_forward_region', 
         'moveForward' , 'move base forward', rectToPoly(baseForwardRect), 
         color, 'left_arrow_medium', armOverheadOverlay.svg));
 
-    armOverheadOverlay.addRegion(new Region('gripper_manip_base_backward_region', 
+    armOverheadOverlay.addRegion(new Region('overhead_manip_base_backward_region', 
         'moveBackward' , 'move base forward', rectToPoly(baseBackwardRect), 
         color, 'right_arrow_medium', armOverheadOverlay.svg));
 
-    armOverheadOverlay.addRegion(new Region('gripper_manip_arm_retract_region', 
+    armOverheadOverlay.addRegion(new Region('overhead_manip_arm_retract_region', 
         'armRetract' , 'retract arm', rectToPoly(armRetractRect), 
         color, 'in_arrow', armOverheadOverlay.svg));
 
-    armOverheadOverlay.addRegion(new Region('gripper_manip_arm_extend_region', 
+    armOverheadOverlay.addRegion(new Region('overhead_manip_arm_extend_region', 
         'armExtend' , 'extend arm', rectToPoly(armExtendRect), 
         color, 'out_arrow', armOverheadOverlay.svg));
 

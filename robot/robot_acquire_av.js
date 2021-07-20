@@ -73,14 +73,10 @@ var degToRad = (2.0* Math.PI)/360.0;
 var overheadStream, gripperStream, pantiltStream;
 
 class VideoStream {
-    constructor(videoId, camDim, editedDim, topicName, 
-        isRotated, isZoomed, isCropped) {
+    constructor(videoId, camDim, editedDim, topicName) {
         this.videoId = videoId;
         this.camDim = camDim;
         this.editedDim = editedDim;
-        this.isRotated = isRotated;
-        this.isZoomed = isZoomed;
-        this.isCropped = isCropped;
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute("class", 'border border-warning');        
         this.canvas.width = this.editedDim.w;
@@ -117,7 +113,8 @@ class VideoStream {
 
     renderVideo() {
         if (this.imageReceived == true) {
-            if (this.isRotated) {
+            if (this.videoId == "pantiltVideo") {
+                // Just rotate
                 const rotation = 90.0 * degToRad;
                 this.context.fillStyle="black";
                 this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
@@ -129,23 +126,42 @@ class VideoStream {
                 this.context.rotate(-rotation);
                 this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
             }
+            else if (this.videoId == "overheadVideo") {
+
+                if (backendRobotMode == 'nav'){
+                    let dim = wideVideoDimensions.overheadNavCropDim;
+                    this.context.drawImage(this.img, 
+                        dim.sx, dim.sy, dim.sw, dim.sh,
+                        dim.dx, dim.dy, dim.dw, dim.dh);
+                }
+                else if (backendRobotMode == 'manip') {
+                    const rotation = -90.0 * degToRad;
+                    this.context.fillStyle="black";
+                    this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
+                    this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
+                    this.context.rotate(rotation);
+                    this.context.drawImage(this.img, 
+                        -this.camDim.w/2, -this.camDim.h/2, 
+                        this.camDim.w, this.camDim.h);
+                    this.context.rotate(-rotation);
+                    this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
+                    //dim = wideVideoDimensions.overheadManipCropDim;
+                }
+                else
+                    console.log('Unknown mode:',  backendRobotMode);
+            }
+            else if (this.videoId == "gripperVideo") {
+
+                let dim = wideVideoDimensions.gripperCropDim;
+                this.context.drawImage(this.img, 
+                    dim.sx, dim.sy, dim.sw, dim.sh,
+                    dim.dx, dim.dy, dim.dw, dim.dh);
+
+            }
             else {
-                if (this.isZoomed) {
-                    let dim = wideVideoDimensions.zoomDim;
-                    this.context.drawImage(this.img, 
-                        dim.sx, dim.sy, dim.sw, dim.sh,
-                        dim.dx, dim.dy, dim.dw, dim.dh);
-                }
-                else if (this.isCropped) {
-                    let dim = wideVideoDimensions.cropDim;
-                    this.context.drawImage(this.img, 
-                        dim.sx, dim.sy, dim.sw, dim.sh,
-                        dim.dx, dim.dy, dim.dw, dim.dh);
-                }
-                else {
-                    this.context.drawImage(this.img, 
-                        0, 0, this.editedDim.w, this.editedDim.h);
-                }
+                console.log('Unknown video id:' + this.videoId);
+                this.context.drawImage(this.img, 
+                    0, 0, this.editedDim.w, this.editedDim.h);
             }
         }
     }
@@ -168,7 +184,7 @@ class PanTiltVideoStream extends VideoStream {
     constructor(videoId, topicName) {
         let camDim = {w:videoDimensions.w, h:videoDimensions.h};
         let editedDim = {w:camDim.h, h:camDim.w};
-        super(videoId, camDim, editedDim, topicName, true, false, false);
+        super(videoId, camDim, editedDim, topicName);
         this.topic.subscribe(pantiltImageCallback);
     }
 
@@ -186,13 +202,11 @@ class WideAngleVideoStream extends VideoStream {
             h:wideVideoDimensions.h};
 
         if (videoId == "gripperVideo"){
-            super(videoId, wideCamDim, wideCamDim, topicName, 
-                false, false, false);
+            super(videoId, wideCamDim, wideCamDim, topicName);
             this.topic.subscribe(gripperImageCallback);
         }
         else if (videoId == "overheadVideo") {
-            super(videoId, wideCamDim, wideCamDim, topicName, 
-                false, true, false);
+            super(videoId, wideCamDim, wideCamDim, topicName);
             this.topic.subscribe(overheadImageCallback);
         }
     }

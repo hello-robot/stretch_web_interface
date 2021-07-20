@@ -73,9 +73,9 @@ class WideangleVideoDimensions {
     }
 
     computeDimensions() {
-    	this.cropX = 0.6;
+    	this.cropX = 0.8;
     	this.cropY = 1.0;
-	    this.cropDim = {sx: this.camW * (1.0-this.cropX) / 2.0,
+	    this.gripperCropDim = {sx: this.camW * (1.0-this.cropX) / 2.0,
 			    sy: this.camH * (1.0-this.cropY) / 2.0,
 			    sw: this.camW * this.cropX,
 			    sh: this.camH * this.cropY,
@@ -83,6 +83,26 @@ class WideangleVideoDimensions {
 			    dy: 0,
 			    dw: this.w * this.cropX,
 			    dh: this.h * this.cropY};
+
+    	this.overheadCropX = 0.7;
+    	this.overheadCropY = 0.8;
+	    this.overheadNavCropDim = {sx: this.camW * (1.0-this.overheadCropX) / 2.0,
+			    sy: 0, // get more from the top
+			    sw: this.camW * this.overheadCropX,
+			    sh: this.camH * this.overheadCropY,
+			    dx: 0,
+			    dy: 0,
+			    dw: this.w,
+			    dh: this.h};
+
+	    this.overheadManipCropDim = {sx: this.camW * (1.0-this.overheadCropX) / 2.0,
+			    sy: 0, // get more from the top
+			    sw: this.camW * this.overheadCropX,
+			    sh: this.camH * this.overheadCropY,
+			    dx: 0,
+			    dy: 0,
+			    dw: this.w,
+			    dh: this.h};
 
 	    this.zoom = 1.5;
 	    this.zoomDim = {sx: this.camW * (1.0-1.0/this.zoom) / 2.0,
