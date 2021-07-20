@@ -173,9 +173,6 @@ socket.on('webrtc message', function(message) {
 
 ////////////////////////////////////////////////////
 
-
-var panTiltCameraVideo = document.querySelector('#panTiltCameraVideo');
-
 function maybeStart() {
     console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
     if (!isStarted && isChannelReady) {
@@ -296,7 +293,7 @@ function handleRemoteStreamAdded(event) {
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: starting to display remote stream');
 
-        if (panTiltCameraVideo)
+        if (panTiltVideoControl)
             panTiltVideoControl.addRemoteStream(event.stream);
         if (overheadVideoControl)
             overheadVideoControl.addRemoteStream(event.stream);

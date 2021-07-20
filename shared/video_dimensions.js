@@ -1,39 +1,41 @@
 'use strict';
 
 
-var iwDefault = 640;
-var ihDefault = 360;
 var wHeight = window.innerHeight;
+var wWidth = window.innerWidth;
+var realsenseW = 640;
+var realsenseH = 360;
+var wideangleW = 1024;
+var wideangleH = 768;
 
-function generateVideoDimensions() {
-    
-    
+class RealsenseVideoDimensions {
     // D435i 1280x720 for now. Could be 1920 x 1080 if launch file
     // were changed. The camera is rotated -90 on our robots. For
     // efficiency for now render as small images for video transport
     // 360x640.
 
-    // Rescaling the video based on window height
-    var iw = wHeight*0.8;
-    if (iw < 300)
-    	iw = 300;
+    constructor() {
+	    this.setWidth(realsenseH*0.8);
+	    this.cameraFpsIdeal = 15.0;
+		this.camW = realsenseW;
+		this.camH = realsenseH;
+    }
 
-    var ih = iw*ihDefault*1.0/iwDefault;
+    setWidth(width) {
+    	this.w = width;
+	    if (this.w < 300)
+	    	this.w = 300;
+	    this.h = this.w*realsenseH*1.0/realsenseW;
+    }
 
-    var cameraFpsIdeal = 15.0;
-    var ix = (iw - ih)/2.0;
-    var oneUnit = ih/2.0;
-    var dExtra = iw - (3.0*oneUnit);
-    var aspectRatio = (oneUnit + (dExtra/2.0))/oneUnit;
-    
-    return {w:iw, h:ih, cameraFpsIdeal:cameraFpsIdeal};
+    setHeight(height) {
+    	this.h = height;
+	    this.w = this.h*realsenseW*1.0/realsenseH;
+    }
+
 }
 
-
-var camW = 1024;
-var camH = 768;
-
-function generateWideVideoDimensions() {
+class WideangleVideoDimensions {
 
     // Full dimensions of the WebRTC video transmitted from the robot
     // to the operator. Use only the navigation camera and the gripper
@@ -45,78 +47,77 @@ function generateWideVideoDimensions() {
     // cameras)
 
     // Rescaling the video based on window height
-    var ih = wHeight*0.8;
-    if (ih < 300)
-    	ih = 300;
+    constructor(){
+		this.camW = wideangleW;
+		this.camH = wideangleH;
+	    this.setHeight(wHeight*0.8);
+	    this.cameraFpsIdeal = 20.0;
+	    this.computeDimensions();
+    }
 
-    var iw = ih*camW*1.0/camH;
-    
-    var aspectRatio = camW/camH;
+    setWidth(width) {
+    	this.w = width;
+	    if (this.w < 300)
+	    	this.w = 300;
+	    this.h = this.w*wideangleH*1.0/wideangleW;
+    }
 
-    var cameraFpsIdeal = 20.0;
-    // var cameraFpsIdeal = 15.0;
-    // var cameraFpsIdeal = 30.0;
+    setHeight(height) {
+    	this.h = height;
+	    if (this.h < 300)
+	    	this.h = 300;
+	    this.w = this.h*wideangleW*1.0/wideangleH;
+    }
 
-    //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+    computeDimensions() {
+    	this.cropX = 0.6;
+    	this.cropY = 1.0;
+	    this.cropDim = {sx: this.camW * (1.0-this.cropX) / 2.0,
+			    sy: this.camH * (1.0-this.cropY) / 2.0,
+			    sw: this.camW * this.cropX,
+			    sh: this.camH * this.cropY,
+			    dx: 0,
+			    dy: 0,
+			    dw: this.w,
+			    dh: this.h};
 
-    var leftDim = {sx: 0,
-		   sy: 0,
-		   sw: camW,
-		   sh: camH,
-		   dx: 0,
-		   dy: 0,
-		   dw: camW,
-		   dh: camH};
-
-    
-    var rightDim = {sx: 0,
-		    sy: 0,
-		    sw: camW,
-		    sh: camH,
-		    dx: camW,
-		    dy: 0,
-		    dw: camW,
-		    dh: camH};
-
-    var zoom = 1.5
-    var rightZoomDim = {sx: camW / 5.0,
-			sy: 0,
-			sw: camW / zoom,
-			sh: camH / zoom,
-			dx: camW,
-			dy: 0,
-			dw: camW,
-			dh: camH};
-    
-    return {w:iw, h:ih,
-	    camW:camW, camH:camH,
-	    cameraFpsIdeal:cameraFpsIdeal,
-	    leftDim:leftDim, rightDim:rightDim, rightZoomDim:rightZoomDim};
+	    this.zoom = 2.0;
+	    this.zoomDim = {sx: this.camW * (1.0-1.0/this.zoom) / 2.0,
+				sy: this.camH * (1.0-1.0/this.zoom) / 2.0,
+				sw: this.camW / this.zoom,
+				sh: this.camH / this.zoom,
+				dx: 0,
+				dy: 0,
+				dw: this.w,
+				dh: this.h};
+    }
 }
 
-var wideVideoDimensions = generateWideVideoDimensions();
-var videoDimensions = generateVideoDimensions();
+var wideVideoDimensions = new WideangleVideoDimensions();
+var videoDimensions = new RealsenseVideoDimensions();
 
-// Check if width will fit, if not readjust.
+var bufferFactor = 0.9;
 
-var wWidth = 0.9*window.innerWidth;
-var totalWidth = wideVideoDimensions.w * 2.0 + videoDimensions.h;
+function computeDimensions() {
+	console.log('window.innerWidth', window.innerWidth);
+	console.log('totalWidth', totalWidth);
 
-console.log('window.innerWidth', window.innerWidth);
-console.log('totalWidth', totalWidth);
+	var totalWidth = wideVideoDimensions.w * 2.0 + videoDimensions.h;
+	let targetWidth = bufferFactor*wWidth;
 
-if (totalWidth > wWidth) {
-	console.log("Need to readjust video widths based on the window width.");
+	if (totalWidth > targetWidth) {
+		console.log("Need to readjust video widths based on the window width.");
 
-	let newPantiltHeight = wWidth*videoDimensions.h*1.0/totalWidth;
-	let newWideWidth = wWidth*wideVideoDimensions.w*1.0/totalWidth;
+		let newPantiltHeight = targetWidth*videoDimensions.h*1.0/totalWidth;
+		let newWideWidth = targetWidth*wideVideoDimensions.w*1.0/totalWidth;
 
-	videoDimensions.h = newPantiltHeight;
-	videoDimensions.w = videoDimensions.h*iwDefault*1.0/ihDefault;
-
-	wideVideoDimensions.w = newWideWidth;
-	wideVideoDimensions.h = wideVideoDimensions.w*camH*1.0/camW;
+		videoDimensions.setHeight(newPantiltHeight);
+		wideVideoDimensions.setWidth(newWideWidth);
+		wideVideoDimensions.computeDimensions();
+		
+	}
 }
 
+computeDimensions();
 
 

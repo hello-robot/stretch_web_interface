@@ -32,6 +32,13 @@ function startStreams() {
     overheadStream.start();
     gripperStream.start();
 
+    // For debugging
+    if (debug){
+        window.setInterval(pantiltImageCallback, 1000);
+        window.setInterval(overheadImageCallback, 1000);
+        window.setInterval(gripperImageCallback, 1000);
+    }
+
     // Audio stuff
 
     if(audioOutId) {
@@ -66,19 +73,22 @@ var degToRad = (2.0* Math.PI)/360.0;
 var overheadStream, gripperStream, pantiltStream;
 
 class VideoStream {
-    constructor(videoId, camDim, editedDim, topicName, isRotated) {
+    constructor(videoId, camDim, editedDim, topicName, isRotated, isZoomed) {
         this.videoId = videoId;
-        this.canvas = document.createElement('canvas');
-        this.displayElement = document.getElementById(videoId);
         this.camDim = camDim;
         this.editedDim = editedDim;
+        this.isRotated = isRotated;
+        this.isZoomed = isZoomed;
+        this.canvas = document.createElement('canvas');
+        this.canvas.setAttribute("class", 'border border-warning');        
         this.canvas.width = this.editedDim.w;
         this.canvas.height = this.editedDim.h;
+        this.displayElement = document.getElementById(videoId);
+        this.displayElement.setAttribute("width", camDim.w);        
+        this.displayElement.setAttribute("height", camDim.h);
         this.context = this.canvas.getContext('2d');
-        this.context.fillStyle="black";
+        this.context.fillStyle="pink";
         this.context.fillRect(0, 0, editedDim.w, editedDim.h);
-        this.isRotated = isRotated;
-        this.isZoomed = false;
 
         this.localStream = null;
         this.displayStream = null;
@@ -91,8 +101,11 @@ class VideoStream {
             messageType : 'sensor_msgs/CompressedImage'
         });
         this.img = document.createElement("IMG");
-        this.img.style.visibility = 'hidden';
+        // this.img.style.visibility = 'hidden';
 
+        let canvasDisplay = document.getElementById(videoId + 'Canvas');
+        if (canvasDisplay)
+            canvasDisplay.appendChild(this.canvas);
     }
 
     drawVideo() {
@@ -100,7 +113,7 @@ class VideoStream {
     }
 
     renderVideo() {
-        if (this.imageReceived === true) {
+        if (this.imageReceived == true) {
             if (this.isRotated) {
                 const rotation = 90.0 * degToRad;
                 this.context.fillStyle="black";
@@ -112,6 +125,18 @@ class VideoStream {
                     this.camDim.w, this.camDim.h);
                 this.context.rotate(-rotation);
                 this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
+            }
+            else {
+                if (this.isZoomed) {
+                    let dim = wideVideoDimensions.zoomDim;
+                    this.context.drawImage(this.img, 
+                        dim.sx, dim.sy, dim.sw, dim.sh,
+                        dim.dx, dim.dy, dim.dw, dim.dh);
+                }
+                else {
+                    this.context.drawImage(this.img, 
+                        0, 0, this.editedDim.w, this.editedDim.h);
+                }
             }
         }
     }
@@ -140,34 +165,34 @@ class PanTiltVideoStream extends VideoStream {
 
     drawVideo() {
         this.renderVideo();
-        requestAnimationFrame(drawPantiltStream); // EEH will this work?
+        requestAnimationFrame(drawPantiltStream);
     }
 }
 
 class WideAngleVideoStream extends VideoStream {
     constructor(videoId, topicName) {
-        let wideCamDim = {w:wideVideoDimensions.camW, 
-            h:wideVideoDimensions.camH};
-        let wideEditedDim = {w:wideVideoDimensions.camW, 
-            h:wideVideoDimensions.camH};
+        let wideCamDim = {w:wideVideoDimensions.w, 
+            h:wideVideoDimensions.h};
+        let wideEditedDim = {w:wideVideoDimensions.w, 
+            h:wideVideoDimensions.h};
         super(videoId, wideCamDim, wideEditedDim, topicName, false);
 
         if (this.videoId == "gripperVideo") {
             this.topic.subscribe(gripperImageCallback);
         }
         else if (this.videoId == "overheadVideo") {
+            this.isZoomed = true;
             this.topic.subscribe(overheadImageCallback);
         }
-
     }
 
     drawVideo() {
         this.renderVideo();
         if (this.videoId == "gripperVideo") {
-            requestAnimationFrame(drawGripperStream); // EEH will this work?
+            requestAnimationFrame(drawGripperStream);
         }
         else if (this.videoId == "overheadVideo") {
-            requestAnimationFrame(drawOverheadStream); // EEH will this work?
+            requestAnimationFrame(drawOverheadStream);
         }
     }
 }
@@ -184,8 +209,12 @@ function drawOverheadStream() {
     overheadStream.drawVideo();
 }
 
+var debug = true;
 function pantiltImageCallback(message) {
-    pantiltStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (debug)
+        pantiltStream.img.src = 'dummy_pantilt.png';    
+    else
+        pantiltStream.img.src = 'data:image/jpg;base64,' + message.data;
     if (pantiltStream.imageReceived === false) {
         console.log('Received first compressed image from ROS topic ' + pantiltStream.topic.name);
         pantiltStream.imageReceived = true;
@@ -193,7 +222,10 @@ function pantiltImageCallback(message) {
 }
 
 function gripperImageCallback(message) {
-    gripperStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (debug)
+        gripperStream.img.src = 'dummy_gripper.png';
+    else
+        gripperStream.img.src = 'data:image/jpg;base64,' + message.data;
     if (gripperStream.imageReceived === false) {
         console.log('Received first compressed image from ROS topic ' + gripperStream.topic.name);
         gripperStream.imageReceived = true;
@@ -201,7 +233,10 @@ function gripperImageCallback(message) {
 }
 
 function overheadImageCallback(message) {
-    overheadStream.img.src = 'data:image/jpg;base64,' + message.data;
+    if (debug)
+        overheadStream.img.src = 'dummy_overhead.png';
+    else
+        overheadStream.img.src = 'data:image/jpg;base64,' + message.data;
     if (overheadStream.imageReceived === false) {
         console.log('Received first compressed image from ROS topic ' + overheadStream.topic.name);
         overheadStream.imageReceived = true;
