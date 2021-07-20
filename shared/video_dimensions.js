@@ -15,7 +15,7 @@ class RealsenseVideoDimensions {
     // 360x640.
 
     constructor() {
-	    this.setWidth(realsenseH*0.8);
+	    this.setWidth(wHeight*0.8);
 	    this.cameraFpsIdeal = 15.0;
 		this.camW = realsenseW;
 		this.camH = realsenseH;
@@ -99,17 +99,22 @@ var videoDimensions = new RealsenseVideoDimensions();
 var bufferFactor = 0.9;
 
 function computeDimensions() {
-	console.log('window.innerWidth', window.innerWidth);
-	console.log('totalWidth', totalWidth);
 
 	var totalWidth = wideVideoDimensions.w * 2.0 + videoDimensions.h;
 	let targetWidth = bufferFactor*wWidth;
+
+	console.log("Aimed for height: ", videoDimensions.w, wideVideoDimensions.h);
+	console.log('window.innerWidth', window.innerWidth);
+	console.log('totalWidth', totalWidth);
 
 	if (totalWidth > targetWidth) {
 		console.log("Need to readjust video widths based on the window width.");
 
 		let newPantiltHeight = targetWidth*videoDimensions.h*1.0/totalWidth;
 		let newWideWidth = targetWidth*wideVideoDimensions.w*1.0/totalWidth;
+
+		console.log('newPantiltHeight', newPantiltHeight);
+		console.log('newWideWidth', newWideWidth);
 
 		videoDimensions.setHeight(newPantiltHeight);
 		wideVideoDimensions.setWidth(newWideWidth);
