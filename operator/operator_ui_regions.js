@@ -559,6 +559,13 @@ var navOverlay = new OverlaySVG('nav', videoDimensions.h, videoDimensions.w);
 var navOverlayTHREE = new OverlayTHREE('nav', threeManager);
 var armOverlay = new OverlaySVG('manip', videoDimensions.h, videoDimensions.w);
 
+var navOverheadOverlay = new OverlaySVG('nav', wideVideoDimensions.w, wideVideoDimensions.h);
+var armOverheadOverlay = new OverlaySVG('manip', wideVideoDimensions.w, wideVideoDimensions.h);
+
+var navGripperOverlay = new OverlaySVG('nav', wideVideoDimensions.w, wideVideoDimensions.h);
+var armGripperOverlay = new OverlaySVG('manip', wideVideoDimensions.w, wideVideoDimensions.h);
+
+
 var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
 var panTiltVideoControl = new VideoControl('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w, true);
 var gripperVideoControl = new VideoControl('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h, false);
@@ -677,9 +684,63 @@ function createUiRegions() {
     panTiltVideoControl.addOverlay(navOverlay);
     panTiltVideoControl.addOverlay(navOverlayTHREE);
     panTiltVideoControl.addOverlay(armOverlay);
-
     panTiltVideoControl.setMode('manip');
     panTiltVideoControl.setActive(true);
+
+    //////////////////////////////////////////////
+
+    // navigation
+
+    // big rectangle at the borders of the video
+    let camW = wideVideoDimensions.w;
+    let camH = wideVideoDimensions.h;
+    bgRect = makeRectangle(0, 0, camW, camH);
+    let arm_region_width = camW/5.0;
+    let navRect = makeRectangle(0, 0,camW, camH);
+    let mobile_base_width = camW/10.0;
+    let mobile_base_height = camH/10.0;
+    
+    // small rectangle around the mobile base
+    let baseRect = makeSquare((camW/2.0) - (mobile_base_width/2.0),
+                  (camH/2.0) - (mobile_base_height/2.0),
+                  mobile_base_width, mobile_base_height); 
+
+    navOverheadOverlay.addRegion(new Region('nav_do_nothing_region', 
+        '' , 'do nothing', rectToPoly(baseRect), 
+        color, '', navOverheadOverlay.svg));
+
+    navOverheadOverlay.addRegion(new Region('nav_forward_region', 
+        '' , 'move forward', [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul], 
+        color, 'up_arrow_medium', navOverheadOverlay.svg));
+
+    navOverheadOverlay.addRegion(new Region('nav_backward_region', 
+        '' , 'move back', [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],    
+        color, 'down_arrow_medium', navOverheadOverlay.svg));
+
+    navOverheadOverlay.addRegion(new Region('nav_turn_left_region', 
+        '' , 'turn left', [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
+        color, 'left_turn_medium', navOverheadOverlay.svg));
+
+    navOverheadOverlay.addRegion(new Region('nav_turn_right_region', 
+        '' , 'turn left', [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
+        color, 'right_turn_medium', navOverheadOverlay.svg));
+
+    // regionPoly = [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll];
+    // setRegionPoly('nav_arm_retract_region', regionPoly, color);
+
+    // regionPoly = [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr];
+    // setRegionPoly('nav_arm_extend_region', regionPoly, color);
+
+
+    // manipulation
+
+    armOverheadOverlay.addRegion();
+
+    overheadVideoControl.addOverlay(navOverheadOverlay);
+    overheadVideoControl.addOverlay(armOverheadOverlay);
+    overheadVideoControl.setMode('manip');
+    overheadVideoControl.setActive(true);
+
 }
 
 /////// UTILITY FUNCTIONS //////////

@@ -78,10 +78,10 @@ class WideangleVideoDimensions {
 			    sh: this.camH * this.cropY,
 			    dx: 0,
 			    dy: 0,
-			    dw: this.w,
-			    dh: this.h};
+			    dw: this.w * this.cropX,
+			    dh: this.h * this.cropY};
 
-	    this.zoom = 2.0;
+	    this.zoom = 1.5;
 	    this.zoomDim = {sx: this.camW * (1.0-1.0/this.zoom) / 2.0,
 				sy: this.camH * (1.0-1.0/this.zoom) / 2.0,
 				sw: this.camW / this.zoom,
