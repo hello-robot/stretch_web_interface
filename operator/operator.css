@@ -20,7 +20,7 @@ video {
   grid-template-rows: 1fr auto 1fr 1fr 1fr;
   height: auto;
   grid-gap: 2px;
-  border: 2px red solid;
+  border: 0px red solid;
 }
 
 .wide_div {
@@ -29,7 +29,7 @@ video {
   grid-template-rows: auto 1fr 1fr 1fr;
   height: auto;
   grid-gap: 2px;
-  border: 2px red solid;
+  border: 0px red solid;
 }
 
 .manip_mode_div {
@@ -96,23 +96,23 @@ video {
   height: 30px;
 }
 
-#nav_do_nothing_region {
+#nav_do_nothing_region, #overhead_nav_do_nothing_region {
     cursor: not-allowed; 
 }
 
-#nav_forward_region {
+#nav_forward_region, #overhead_nav_forward_region {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
-#nav_backward_region {
+#nav_backward_region, #overhead_nav_backward_region {
     cursor: url('down_arrow_medium.png'), auto;
 }
 
-#nav_turn_left_region {
+#nav_turn_left_region, #overhead_nav_turn_left_region {
     cursor: url('left_turn_medium.png'), auto;
 }
 
-#nav_turn_right_region {
+#nav_turn_right_region, #overhead_nav_turn_right_region {
     cursor: url('right_turn_medium.png'), auto;
 }
 
@@ -124,11 +124,11 @@ video {
     cursor: url('rotate_cw.png'), auto;
 }
 
-#manip_down_region {
+#manip_down_region, #gripper_manip_down_region {
     cursor: url('down_arrow_medium.png'), auto;
 }
 
-#manip_up_region {
+#manip_up_region, #gripper_manip_up_region {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
@@ -148,6 +148,32 @@ video {
     cursor: url('right_arrow_medium.png'), auto;
 }
 
+#overhead_nav_arm_retract_region {
+    cursor: url('left_arrow_medium.png'), auto;  
+}
+
+#overhead_nav_arm_extend_region {
+    cursor: url('right_arrow_medium.png'), auto;  
+}
+
+#manip_open_region, #gripper_nav_open_region, #gripper_manip_open_region {
+    cursor: url('gripper_open_medium.png'), auto;
+}
+
+#manip_close_region, #gripper_nav_close_region, #gripper_manip_close_region {
+    cursor: url('gripper_close_medium.png'), auto;
+}
+
+#manip_in_region, #gripper_manip_in_region {
+    cursor: url('left_turn_medium.png'), auto;
+}
+
+#manip_out_region, #gripper_manip_out_region {
+    cursor: url('right_turn_medium.png'), auto;
+}
+
+
+/*/////////////////*/
 
 #high_arm_up_region {
     cursor: url('up_arrow_medium.png'), auto;
@@ -171,23 +197,6 @@ video {
 
 #high_arm_base_backward_region {
     cursor: url('right_arrow_medium.png'), auto;
-}
-
-
-#manip_open_region {
-    cursor: url('gripper_open_medium.png'), auto;
-}
-
-#manip_close_region {
-    cursor: url('gripper_close_medium.png'), auto;
-}
-
-#manip_in_region {
-    cursor: url('left_turn_medium.png'), auto;
-}
-
-#manip_out_region {
-    cursor: url('right_turn_medium.png'), auto;
 }
 
 

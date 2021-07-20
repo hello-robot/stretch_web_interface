@@ -281,8 +281,9 @@ class THREEManager {
 * Base class for a video overlay
 */
 class Overlay {
-    constructor(modeId) {
+    constructor(videoId, modeId) {
         this.modeId = modeId;
+        this.videoId = videoId;
     }
 
     addItem() {
@@ -302,15 +303,15 @@ class Overlay {
 * Class for an SVG video overlay
 */
 class OverlaySVG extends Overlay {
-    constructor(modeId, width, height, hasCurtain=false) {
-        super(modeId);
+    constructor(videoId, modeId, width, height, hasCurtain=false) {
+        super(videoId, modeId);
         this.regions = [];
         this.type = 'control';
         this.isActive = true;
 
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
-        this.svg.setAttribute('id', modeId + '_ui_overlay');
+        this.svg.setAttribute('id', videoId + '_' + modeId + '_ui_overlay');
 
         ///////////////////////
         this.width = width;
@@ -377,15 +378,15 @@ class OverlaySVG extends Overlay {
 * Class for an THREE.js video overlay
 */
 class OverlayTHREE extends Overlay {
-    constructor(modeId, threeManager) {
-        super(modeId);
+    constructor(videoId, modeId, threeManager) {
+        super(videoId, modeId);
         this.objs = {};
         this.type = 'viz';
         this.threeManager = threeManager;
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.threeManager.width, this.threeManager.height);
-        $(`#${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
+        $(`#${videoId}_${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
 
         this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
         this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
@@ -425,7 +426,7 @@ class OverlayTHREE extends Overlay {
 * Class for an overlay region
 */
 class Region {
-    constructor(regionId, fname, label, poly, color, iconName, parentSVG, isContinuous=true, fillOpacity=0.0) {
+    constructor(regionId, fname, label, poly, color, iconName, parentSVG, isContinuous=true, isConvex=true, fillOpacity=0.0) {
         this.regionId = regionId;
         this.fname = fname;
         this.label = label;
@@ -434,7 +435,7 @@ class Region {
         this.parentSVG = parentSVG;
         this.iconName = iconName;
 
-        this.addIcon();
+        this.addIcon(isConvex);
         createRegionSVG(this.parentSVG, this.regionId, this.fname, this.label, 
             this.poly, color, this.isContinuous, fillOpacity);
     }
@@ -464,7 +465,7 @@ class Region {
             this.parentSVG.removeChild(icon);               
     }
 
-    addIcon() {
+    addIcon(isConvex) {
         const width = 30;
         let id = this.regionId + "Icon";
         if (this.iconName) {
@@ -473,7 +474,7 @@ class Region {
             icon.setAttributeNS(null,'width', width);
             icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
                 this.iconName + '.png');
-            let center = getPolyCenter(this.poly)
+            let center = getPolyCenter(this.poly, isConvex)
             icon.setAttributeNS(null,'x', center.x-width/2);
             icon.setAttributeNS(null,'y', center.y-width/2);
             icon.setAttributeNS(null, 'visibility', 'visible');
@@ -484,9 +485,13 @@ class Region {
 }
 
 
-function getPolyCenter(points) {
+function getPolyCenter(points, isConvex) {
     let avgX = 0;
     let avgY = 0;
+
+    if (!isConvex)
+        points = points.slice(1,5);
+
     for (let p of points) {
         avgX += p.x;
         avgY += p.y;
@@ -549,20 +554,20 @@ function setMode(modeId) {
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, 
     videoDimensions.h/videoDimensions.w, 0.1, 1000), videoDimensions.h, videoDimensions.w);
 
-var navOverlay = new OverlaySVG('nav', videoDimensions.h, videoDimensions.w);
-var navOverlayTHREE = new OverlayTHREE('nav', threeManager);
-var armOverlay = new OverlaySVG('manip', videoDimensions.h, videoDimensions.w);
+var navOverlay = new OverlaySVG('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w);
+var navOverlayTHREE = new OverlayTHREE('pantiltVideo', 'nav', threeManager);
+var armOverlay = new OverlaySVG('pantiltVideo', 'manip', videoDimensions.h, videoDimensions.w);
 
-var navOverheadOverlay = new OverlaySVG('nav', wideVideoDimensions.w, wideVideoDimensions.h);
-var armOverheadOverlay = new OverlaySVG('manip', wideVideoDimensions.w, wideVideoDimensions.h);
+var navOverheadOverlay = new OverlaySVG('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h);
+var armOverheadOverlay = new OverlaySVG('overheadVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h);
 
-var navGripperOverlay = new OverlaySVG('nav', wideVideoDimensions.w, wideVideoDimensions.h);
-var armGripperOverlay = new OverlaySVG('manip', wideVideoDimensions.w, wideVideoDimensions.h);
+var navGripperOverlay = new OverlaySVG('gripperVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h);
+var armGripperOverlay = new OverlaySVG('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h);
 
 
 var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
 var panTiltVideoControl = new VideoControl('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w, true);
-var gripperVideoControl = new VideoControl('gripperVideo', 'manip', wideVideoDimensions.w, wideVideoDimensions.h, false);
+var gripperVideoControl = new VideoControl('gripperVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
 
 
 function createUiRegions() {
@@ -689,8 +694,9 @@ function createUiRegions() {
     let camW = wideVideoDimensions.w;
     let camH = wideVideoDimensions.h;
     bgRect = makeRectangle(0, 0, camW, camH);
-    let arm_region_width = camW/5.0;
-    let navRect = makeRectangle(0, 0,camW, camH);
+    let arm_region_width = camW/6.0;
+    let navRect = makeRectangle(arm_region_width, 0, 
+        camW - 2.0 * arm_region_width, camH);
     let mobile_base_width = camW/10.0;
     let mobile_base_height = camH/10.0;
     
@@ -699,41 +705,154 @@ function createUiRegions() {
                   (camH/2.0) - (mobile_base_height/2.0),
                   mobile_base_width, mobile_base_height); 
 
-    navOverheadOverlay.addRegion(new Region('nav_do_nothing_region', 
+    navOverheadOverlay.addRegion(new Region('overhead_nav_do_nothing_region', 
         '' , 'do nothing', rectToPoly(baseRect), 
         color, '', navOverheadOverlay.svg));
 
-    navOverheadOverlay.addRegion(new Region('nav_forward_region', 
-        '' , 'move forward', [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul], 
+    navOverheadOverlay.addRegion(new Region('overhead_nav_forward_region', 
+        'moveForward' , 'move forward', [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul], 
         color, 'up_arrow_medium', navOverheadOverlay.svg));
 
-    navOverheadOverlay.addRegion(new Region('nav_backward_region', 
-        '' , 'move back', [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],    
+    navOverheadOverlay.addRegion(new Region('overhead_nav_backward_region', 
+        'moveBackward' , 'move back', [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],    
         color, 'down_arrow_medium', navOverheadOverlay.svg));
 
-    navOverheadOverlay.addRegion(new Region('nav_turn_left_region', 
-        '' , 'turn left', [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
+    navOverheadOverlay.addRegion(new Region('overhead_nav_turn_left_region', 
+        'turnRight' , 'turn left', [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
         color, 'left_turn_medium', navOverheadOverlay.svg));
 
-    navOverheadOverlay.addRegion(new Region('nav_turn_right_region', 
-        '' , 'turn left', [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
+    navOverheadOverlay.addRegion(new Region('overhead_nav_turn_right_region', 
+        'turnLeft' , 'turn left', [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
         color, 'right_turn_medium', navOverheadOverlay.svg));
 
-    // regionPoly = [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll];
-    // setRegionPoly('nav_arm_retract_region', regionPoly, color);
+    navOverheadOverlay.addRegion(new Region('overhead_nav_arm_retract_region', 
+        'armRetract' , 'retract arm', [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
+        color, 'left_arrow_medium', navOverheadOverlay.svg));
 
-    // regionPoly = [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr];
-    // setRegionPoly('nav_arm_extend_region', regionPoly, color);
+    navOverheadOverlay.addRegion(new Region('overhead_nav_arm_extend_region', 
+        'armExtend' , 'extend arm', [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
+        color, 'right_arrow_medium', navOverheadOverlay.svg));
 
+    var wrist_region_width = camW/5.0;
+    var lift_region_height = camH/5.0;
+    var handRect = makeRectangle(wrist_region_width, lift_region_height,
+                 camW - (2.0*wrist_region_width),
+                 camH - (2.0*lift_region_height));
+    
+    var fingertip_width = camW/5.0;
+    var fingertip_height = camH/5.0;
+    
+    var fingertipRect = makeRectangle((camW/2.0) - (fingertip_width/2.0),
+                      (camH/2.0) - (fingertip_height/2.0),
+                      fingertip_width, fingertip_height);
+
+    var liftUpRect = makeRectangle(0, 0,
+                   camW, lift_region_height);
+    var liftDownRect = makeRectangle(0, camH - lift_region_height,
+                     camW, lift_region_height);
+    
+    var wristInRect = makeRectangle(0, lift_region_height,
+                    wrist_region_width, camH - (2.0*lift_region_height));
+    var wristOutRect = makeRectangle(camW - wrist_region_width, lift_region_height,
+                     wrist_region_width, camH - (2.0*lift_region_height));
+
+    navGripperOverlay.addRegion(new Region('gripper_manip_close_region', 
+        'closeHand' , 'close hand', rectToPoly(fingertipRect), 
+        color, 'gripper_close_medium', navGripperOverlay.svg));
+    regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
+          fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
+          wristOutRect.ll, wristInRect.lr];
+    navGripperOverlay.addRegion(new Region('gripper_manip_open_region', 
+        'openHand' , 'open hand', regionPoly, 
+        color, 'gripper_open_medium', navGripperOverlay.svg, true, false)); //concave region
+    navGripperOverlay.addRegion(new Region('gripper_manip_in_region', 
+        'wristIn' , 'turn wrist in', rectToPoly(wristInRect), 
+        color, 'left_turn_medium', navGripperOverlay.svg));
+    navGripperOverlay.addRegion(new Region('gripper_manip_out_region', 
+        'wristOut' , 'turn wrist out', rectToPoly(wristOutRect), 
+        color, 'right_turn_medium', navGripperOverlay.svg));
+    navGripperOverlay.addRegion(new Region('gripper_manip_up_region', 
+        'liftUp' , 'lift arm up', rectToPoly(liftUpRect), 
+        color, 'up_arrow_medium', navGripperOverlay.svg));
+    navGripperOverlay.addRegion(new Region('gripper_manip_down_region', 
+        'liftDown' , 'lower arm down', rectToPoly(liftDownRect), 
+        color, 'down_arrow_medium', navGripperOverlay.svg));
+
+    
+    // /////// MANIPULATION MODE NAVIGATION VIDEO ////////
+    color = 'white'
+
+    // big rectangle at the borders of the video
+    bgRect = makeRectangle(0, 0, camW, camH);
+
+    var turn_region_width = camW/5.0;
+    var arm_region_height = camH/3.0;
+    
+    navRect = makeRectangle(turn_region_width, 0,
+                camW - (2.0*turn_region_width), camH);
+
+    mobile_base_width = camW/10.0;
+    mobile_base_height = camH/10.0;
+    
+    // small rectangle around the mobile base
+    baseRect = makeSquare((camW/2.0) - (mobile_base_width/2.0),
+              (2.0*(camH/3.0)) - (mobile_base_height/2.0),
+              mobile_base_width, mobile_base_height);
+
+    var turnLeftRect = makeRectangle(0, 0, turn_region_width, camH);
+    var turnRightRect = makeRectangle(camW-turn_region_width, 0, turn_region_width, camH);
+    
+    var armExtendRect = makeRectangle(turn_region_width, 0,
+                      camW - (2.0*turn_region_width), arm_region_height);
+    var armRetractRect = makeRectangle(turn_region_width, camH - arm_region_height,
+                       camW - (2.0*turn_region_width), arm_region_height);
+
+    var base_region_width = (camW/2.0)-turn_region_width;
+    
+    var baseForwardRect = makeRectangle(turn_region_width, arm_region_height,
+                    base_region_width, camH-(2.0*arm_region_height));
+    var baseBackwardRect = makeRectangle(turn_region_width + base_region_width, arm_region_height,
+                     base_region_width, camH-(2.0*arm_region_height));
+    
+    armGripperOverlay.addRegion(new Region('gripper_nav_turn_left_region', 
+        'wristIn' , 'close hand', rectToPoly(turnLeftRect), 
+        color, 'left_turn_medium', armGripperOverlay.svg));
+    
+    armGripperOverlay.addRegion(new Region('gripper_nav_turn_right_region', 
+        'wristOut' , 'close hand', rectToPoly(turnRightRect), 
+        color, 'right_turn_medium', armGripperOverlay.svg));
+
+    // regionPoly = ;
+    // setRegionPoly('hand_nav_turn_right_region', regionPoly, color);
+    
+    // regionPoly = rectToPoly(baseForwardRect);
+    // setRegionPoly('hand_nav_forward_region', regionPoly, color);
+
+    // regionPoly = rectToPoly(baseBackwardRect);
+    // setRegionPoly('hand_nav_backward_region', regionPoly, color);
+
+    // regionPoly = rectToPoly(armRetractRect);
+    // setRegionPoly('hand_nav_arm_retract_region', regionPoly, color);
+
+    // regionPoly = rectToPoly(armExtendRect);
+    // setRegionPoly('hand_nav_arm_extend_region', regionPoly, color);
 
     // manipulation
 
-    armOverheadOverlay.addRegion();
+    // armOverheadOverlay.addRegion();
 
     overheadVideoControl.addOverlay(navOverheadOverlay);
     overheadVideoControl.addOverlay(armOverheadOverlay);
-    overheadVideoControl.setMode('manip');
+
+    gripperVideoControl.addOverlay(navGripperOverlay);
+    gripperVideoControl.addOverlay(armGripperOverlay);
+
+
+    overheadVideoControl.setMode('nav');
     overheadVideoControl.setActive(true);
+
+    gripperVideoControl.setMode('nav');
+    gripperVideoControl.setActive(true);
 
 }
 
