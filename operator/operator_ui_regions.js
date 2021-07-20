@@ -30,7 +30,7 @@ class VideoControl {
         fgDiv.setAttribute('class', 'foreground');
         //fgDiv.setAttribute('onclick', "setMode('" + mode + "')");
         this.combinedSVG = document.createElement('svg');
-        this.combinedSVG.setAttribute('id', videoId + 'Overlay');
+        this.combinedSVG.setAttribute('id', mode + '_' + videoId + 'Overlay');
         this.combinedSVG.setAttribute('class', 'video_ui_overlay');
         fgDiv.appendChild(this.combinedSVG);
 
@@ -176,6 +176,8 @@ class VideoControl {
                 if (m == modeId) {
                     if (o.type === 'control')
                         this.combinedSVG.appendChild(o.svg);
+                    else if (o.type === 'viz')
+                        this.combinedSVG.parentElement.appendChild(o.getSVG());
                     o.show();
                 }
                 else {
@@ -386,12 +388,19 @@ class OverlayTHREE extends Overlay {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.threeManager.width, this.threeManager.height);
-        $(`#${videoId}_${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
+
+        //$(`#${videoId}_${modeId}_ui_overlay`).parent().parent().prepend(this.renderer.domElement);
+        //let svgElem = document.getElementById(videoId + '_' + modeId + '_ui_overlay');
+        //svgElem.appendChild(this.renderer.domElement);
 
         this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
         this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
     
         this.threeManager.addOverlay(this);
+    }
+
+    getSVG() {
+        return this.renderer.domElement;
     }
 
     addRenderPass(renderPass) {
@@ -680,8 +689,8 @@ function createUiRegions() {
 
     //////////////////////////////////////////////
 
-    panTiltVideoControl.addOverlay(navOverlay);
     panTiltVideoControl.addOverlay(navOverlayTHREE);
+    panTiltVideoControl.addOverlay(navOverlay);
     panTiltVideoControl.addOverlay(armOverlay);
     panTiltVideoControl.setMode('manip');
     panTiltVideoControl.setActive(true);
@@ -702,7 +711,7 @@ function createUiRegions() {
     
     // small rectangle around the mobile base
     let baseRect = makeSquare((camW/2.0) - (mobile_base_width/2.0),
-                  (3*camH/4.0) - (mobile_base_height/2.0),
+                  (2.0*camH/3.0) - (mobile_base_height/2.0),
                   mobile_base_width, mobile_base_height); 
 
     navOverheadOverlay.addRegion(new Region('overhead_nav_do_nothing_region', 
@@ -944,5 +953,5 @@ function drawText(elementID, text, x, y, font_size=100, center=false, color='whi
 }
 
 
-createUiRegions(); // debug = true or false
+createUiRegions();
 threeManager.animate();

@@ -22,6 +22,8 @@ class RealsenseVideoDimensions {
 	    this.cameraFpsIdeal = 15.0;
 		this.camW = realsenseW;
 		this.camH = realsenseH;
+		this.displayW = realsenseH;
+		this.displayH = realsenseW;
     }
 
     setWidth(width) {
@@ -53,6 +55,16 @@ class WideangleVideoDimensions {
     constructor(){
 		this.camW = wideangleW;
 		this.camH = wideangleH;
+
+    	this.cropX = 0.8;
+    	this.cropY = 1.0;
+    	this.overheadCropX = 0.7;
+    	this.overheadCropY = 0.8;
+    	this.overheadManipCropX = 0.5;
+    	this.overheadManipCropY = 0.7;
+
+		this.displayW = this.camW*Math.max(this.cropX, this.overheadCropX, this.overheadManipCropX);
+		this.displayH = this.camH*Math.max(this.cropY, this.overheadCropY, this.overheadManipCropY);
 	    this.setHeight(wHeight*bufferFactorY);
 	    this.cameraFpsIdeal = 20.0;
 	    this.computeDimensions();
@@ -62,30 +74,26 @@ class WideangleVideoDimensions {
     	this.w = width;
 	    if (this.w < 300)
 	    	this.w = 300;
-	    this.h = this.w*wideangleH*1.0/wideangleW;
+	    this.h = this.w*this.displayH*1.0/this.displayW;
     }
 
     setHeight(height) {
     	this.h = height;
 	    if (this.h < 300)
 	    	this.h = 300;
-	    this.w = this.h*wideangleW*1.0/wideangleH;
+	    this.w = this.h*this.displayW*1.0/this.displayH;
     }
 
     computeDimensions() {
-    	this.cropX = 0.8;
-    	this.cropY = 1.0;
 	    this.gripperCropDim = {sx: this.camW * (1.0-this.cropX) / 2.0,
 			    sy: this.camH * (1.0-this.cropY) / 2.0,
 			    sw: this.camW * this.cropX,
 			    sh: this.camH * this.cropY,
 			    dx: 0,
 			    dy: 0,
-			    dw: this.w * this.cropX,
-			    dh: this.h * this.cropY};
+			    dw: this.w,
+			    dh: this.h};
 
-    	this.overheadCropX = 0.7;
-    	this.overheadCropY = 0.8;
 	    this.overheadNavCropDim = {sx: this.camW * (1.0-this.overheadCropX) / 2.0,
 			    sy: 0, // get more from the top
 			    sw: this.camW * this.overheadCropX,
@@ -95,10 +103,10 @@ class WideangleVideoDimensions {
 			    dw: this.w,
 			    dh: this.h};
 
-	    this.overheadManipCropDim = {sx: this.camW * (1.0-this.overheadCropX) / 2.0,
+	    this.overheadManipCropDim = {sx: this.camW * (1.0-this.overheadManipCropX) / 1.5, //get more from the right
 			    sy: 0, // get more from the top
-			    sw: this.camW * this.overheadCropX,
-			    sh: this.camH * this.overheadCropY,
+			    sw: this.camW * this.overheadManipCropX,
+			    sh: this.camH * this.overheadManipCropY,
 			    dx: 0,
 			    dy: 0,
 			    dw: this.w,

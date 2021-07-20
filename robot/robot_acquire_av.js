@@ -79,8 +79,8 @@ class VideoStream {
         this.editedDim = editedDim;
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute("class", 'border border-warning');        
-        this.canvas.width = this.editedDim.w;
-        this.canvas.height = this.editedDim.h;
+        this.canvas.width = editedDim.w;
+        this.canvas.height = editedDim.h;
         this.displayElement = document.getElementById(videoId);
         this.displayElement.setAttribute("width", camDim.w);        
         this.displayElement.setAttribute("height", camDim.h);
@@ -130,12 +130,7 @@ class VideoStream {
 
                 if (backendRobotMode == 'nav'){
                     let dim = wideVideoDimensions.overheadNavCropDim;
-                    this.context.drawImage(this.img, 
-                        dim.sx, dim.sy, dim.sw, dim.sh,
-                        dim.dx, dim.dy, dim.dw, dim.dh);
-                }
-                else if (backendRobotMode == 'manip') {
-                    const rotation = -90.0 * degToRad;
+                    const rotation = 90.0 * degToRad;
                     this.context.fillStyle="black";
                     this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
                     this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
@@ -145,7 +140,12 @@ class VideoStream {
                         this.camDim.w, this.camDim.h);
                     this.context.rotate(-rotation);
                     this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
-                    //dim = wideVideoDimensions.overheadManipCropDim;
+                }
+                else if (backendRobotMode == 'manip') {
+                    let dim = wideVideoDimensions.overheadManipCropDim;
+                    this.context.drawImage(this.img, 
+                        dim.sx, dim.sy, dim.sw, dim.sh,
+                        dim.dx, dim.dy, dim.dw, dim.dh);
                 }
                 else
                     console.log('Unknown mode:',  backendRobotMode);
