@@ -195,13 +195,19 @@ class Database {
   }
 
   addPose(id, description, pose) {
-    let dir = 'users/' + (this.uid) + 'poses/' + (id);
+    let dir = 'users/' + (this.uid) + '/poses/' + (id);
     let dbRef = firebase.database().ref(dir);
     dbRef.update({pose: pose, description: description});
   }
 
-  getAllPoses() {
+  getGlobalPoses() {
     let dir = '/poses';
+    let dbRef = firebase.database().ref(dir);
+    return dbRef.once("value");
+  }
+
+  getUserPoses() {
+    let dir = 'users/' + (this.uid) + '/poses';
     let dbRef = firebase.database().ref(dir);
     return dbRef.once("value");
   }

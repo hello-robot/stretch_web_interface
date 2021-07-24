@@ -131,7 +131,6 @@ jointStateTopic.subscribe(function(message) {
     JointEffort = getJointEffort(jointState, 'joint_arm_l0');
     var message = {'type': 'sensor', 'subtype':'arm', 'name':'arm_effort', 'value': JointEffort};
     sendData(message);
-
 });
 
 var tfClient = new ROSLIB.TFClient({

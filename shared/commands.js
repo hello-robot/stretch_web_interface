@@ -193,7 +193,7 @@ function moveToPose(id) {
     var cmd = {type:"command",
                subtype:"full",
                name:"pose",
-               modifier:poseManager.poses[id].pose};
+               modifier:poseManager.getPose(id)};
     sendData(cmd);
     db.logEvent("Pose", id);
 }
