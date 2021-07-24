@@ -193,4 +193,16 @@ class Database {
       console.log(newEventLog);
     }
   }
+
+  addPose(id, description, pose) {
+    let dir = 'users/' + (this.uid) + 'poses/' + (id);
+    let dbRef = firebase.database().ref(dir);
+    dbRef.update({pose: pose, description: description});
+  }
+
+  getAllPoses() {
+    let dir = '/poses';
+    let dbRef = firebase.database().ref(dir);
+    return dbRef.once("value");
+  }
 }

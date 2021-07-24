@@ -10,11 +10,15 @@ function initializeOperatorInterface() {
 	setMode("nav");
 }
 
+let poseManager;
 function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
 	// switch to navigation mode.
 	console.log('Starting in navigation mode')
 	setMode("nav");
+
+	poseManager = new PoseManager(db, 'robotPoseContainer');
+	poseManager.initialize();
 }
 
 function createModeSwitch() {

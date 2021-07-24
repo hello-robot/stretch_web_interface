@@ -435,33 +435,6 @@ function robotModeOn(modeKey) {
     } 
 }
 
-// TODO: Figure out the goal pose for arm ready to manipulate
-var stowArmPose = {
-    'joint_lift': 0.25,
-    'wrist_extension': 0.05,
-    'joint_wrist_yaw': 3.0
-};
-
-var prepArmPose = {
-    'joint_lift': 0.6,
-    'wrist_extension': 0.1,
-    'joint_wrist_yaw': 0.0
-};
-
-
-function stowRobotArm() {
-    let prepPoseGoal = generatePoseGoal(stowArmPose);
-    prepPoseGoal.send();
-    console.log('Sending stow pose to robot');    
-}
-
-function prepRobotArm() {
-    let prepPoseGoal = generatePoseGoal(prepArmPose);
-    prepPoseGoal.send();
-    console.log('Sending prep pose to robot');    
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////
 
 //Called from button click
@@ -654,6 +627,9 @@ function headPan(angRad) {
     }
 }
 
+function goToPose(pose) {
+    generatePoseGoal(pose).send()
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 

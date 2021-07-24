@@ -189,22 +189,13 @@ function gripperClose() {
     db.logEvent("GripperClose", "medium");
 }
 
-function stowArm() {
+function moveToPose(id) {
     var cmd = {type:"command",
                subtype:"full",
-               name:"stow",
-               modifier:"medium"};
+               name:"pose",
+               modifier:poseManager.poses[id].pose};
     sendData(cmd);
-    db.logEvent("StowArm", "medium");
-}
-
-function prepArm() {
-    var cmd = {type:"command",
-               subtype:"full",
-               name:"prep",
-               modifier:"medium"};
-    sendData(cmd);
-    db.logEvent("PrepArm", "medium");
+    db.logEvent("Pose", id);
 }
 
 function gripperOpen() {
@@ -591,13 +582,9 @@ var armCommands = {
 }  
 
 var fullCommands = {
-    "stow": function(size) {
+    "pose": function(pose) {
       console.log('full body: stow command received...executing');
-      stowRobotArm();
-    },
-    "prep": function(size) {
-      console.log('full body: prep command received...executing');
-      prepRobotArm();
+      goToPose(pose);
     }
 }  
 
