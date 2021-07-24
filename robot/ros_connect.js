@@ -295,8 +295,8 @@ function generatePoseGoal(pose) {
                     break;
                 case 'wrist_extension':
                     jointGoal.client = trajectoryClients.arm;
-                    j_n = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'];
-                    j_p = [jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4];
+                    jointGoal.names = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'];
+                    jointGoal.positions = [jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4];
                     break;
                 case 'joint_lift':
                 case 'joint_wrist_yaw':
@@ -364,6 +364,7 @@ function generatePoseGoal(pose) {
         }
         return {"send": function() {
                 poseGoals.forEach(function(goal) {
+                    console.log(goal)
                     goal.send();
                 });
             }
@@ -438,12 +439,14 @@ function robotModeOn(modeKey) {
 var stowArmPose = {
     'joint_lift': 0.25,
     'wrist_extension': 0.05,
-    'joint_wrist_yaw': 3.0};
+    'joint_wrist_yaw': 3.0
+};
 
 var prepArmPose = {
     'joint_lift': 0.6,
     'wrist_extension': 0.1,
-    'joint_wrist_yaw': 0.0};
+    'joint_wrist_yaw': 0.0
+};
 
 
 function stowRobotArm() {
