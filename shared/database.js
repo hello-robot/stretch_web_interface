@@ -51,9 +51,14 @@ class Database {
   /*
   * Function to initialize firebase and sign in anonymously
   */
-  initialize(){
+  initialize() {
       this.app = firebase.initializeApp(this.config);
-      firebase.auth().onAuthStateChanged(this.handleAuthStateChange);
+
+      /*
+       * This callback syntax is necessary to access
+       * `this` from the callback function.
+      */
+      firebase.auth().onAuthStateChanged((user) => this.handleAuthStateChange(user)); 
 
       // Wait a little bit to see is we are already logged in
       // then attempt an anonymous sign in
@@ -131,25 +136,27 @@ class Database {
         console.log("Email: " + user.email);
         this.userEmail = user.email;
 
-        let signinButton = document.getElementById('googleSignInButton');
-        let signinInfo = document.getElementById('googleSignInInfo');
-        if (signinButton != null) {
-          signinButton.style.display = 'none';
+        console.log(user);
+
+        let signInButton = document.getElementById('googleSignInButton');
+        let signInInfo = document.getElementById('googleSignInInfo');
+        if (signInButton != null) {
+          signInButton.style.display = 'none';
         }
-        if (signinInfo != null) {
-          signinInfo.style.display = 'block';
-          signinInfo.innerHTML="<i>Signed in as " + user.displayName + "</i>";
+        if (signInInfo != null) {
+          signInInfo.style.display = 'block';
+          signInInfo.innerHTML="<i>Signed in as " + user.displayName + "</i>";
         }
       } else {
         console.log("Signed in anonymously as " + user.uid);
         this.userEmail = null;
-        let signinButton = document.getElementById('googleSignInButton');
-        let signinInfo = document.getElementById('googleSignInInfo');
-        if (signinButton != null) {
-          signinButton.style.display = 'block';
+        let signInButton = document.getElementById('googleSignInButton');
+        let signInInfo = document.getElementById('googleSignInInfo');
+        if (signInButton != null) {
+          signInButton.style.display = 'block';
         }
-        if (signinInfo != null) {
-          signinInfo.style.display = 'none';
+        if (signInInfo != null) {
+          signInInfo.style.display = 'none';
         }
       }
 
