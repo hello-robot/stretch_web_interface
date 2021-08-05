@@ -236,16 +236,28 @@
 					</button>
 				</div>
 				<div class="modal-body">
-					<form role="form" id="addPoseForm">
+					<form role="form" id="addPoseForm" class="needs-validation" novalidate>
 						<div class="form-group">
 							<label for="poseModalDescription">Pose description</label>
 							<input type="text" class="form-control" id="poseModalDescription" placeholder="Enter description" required>
+							<div class="invalid-feedback">
+								Please enter a name for this pose
+							</div>
 						</div>
 						<label for="description">Sections to save</label>
 						<fieldset id="checkArray">
-							<input type="checkbox" name="head" value="head" /> Head <br>
-							<input type="checkbox" name="gripper" value="gripper" /> Gripper <br>
-							<input type="checkbox" name="arm" value="arm" /> Arm <br>
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_head" required /> Head <br>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_gripper" required /> Gripper <br>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_arm" required /> Arm <br>
+								<div class="invalid-feedback">
+									Please select at least one section to save
+								</div>
+							</div>
 						</fieldset>
 					<button type="submit" class="btn btn-primary mt-4">Add Pose</button>
 					</form>
@@ -281,6 +293,7 @@
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
 <script src="../shared/database.js"></script>
+<script src="../shared/request_response.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="operator_acquire_av.js"></script>

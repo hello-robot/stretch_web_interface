@@ -74,7 +74,7 @@ class PoseManager {
             this.pending_requests[id] = {
                 "handleResponse": (state) => {
                         if (state.responseType === 'jointState') {
-                            resolve(state);
+                            resolve(state.data);
                             delete this.pending_requests[id];
                         } else {
                             console.error(`Invalid response ${state.responseType}. Expected: jointState`);
@@ -89,9 +89,9 @@ class PoseManager {
 
     async addPose() {
         let poseFilter = {
-            head: !!$('input[name="head"]:checked'),
-            gripper: !!$('input[name="gripper"]:checked'),
-            arm: !!$('input[name="arm"]:checked'),
+            head: $('#poseSaveSelection_head').is(':checked'),
+            gripper: $('#poseSaveSelection_gripper').is(':checked'),
+            arm: $('#poseSaveSelection_arm').is(':checked'),
         };
         let description = $("#poseModalDescription").val();
         let id = description.replace(/\s/g, '');
@@ -100,17 +100,62 @@ class PoseManager {
 
         let pose = {};
 
-        /*
+        if (poseFilter.head) {
+            pose.joint_head_tilt = fullPose.joint_head_tilt;
+            pose.joint_head_pan = fullPose.joint_head_pan;
+        }
+
+        if (poseFilter.gripper) {
+            pose.joint_gripper_finger_left = fullPose.joint_gripper_finger_left
+            pose.joint_wrist_yaw = fullPose.joint_wrist_yaw;
+        }
+
+        if (poseFilter.arm) {
+            pose.wrist_extension = fullPose.wrist_extension;
+            pose.joint_lift = fullPose.joint_lift;
+        }
+
         this.db.addPose(id, description, pose)
         this.createPoseButton({pose: pose, description: description}, id);
         this.poses.user[id] = {pose: pose, description: description};
-        */
-        console.log(fullPose);
     }
 
 }
-$("#addPoseForm").on("submit",function(e) {
+
+// Modified from https://stackoverflow.com/a/60108369/6454085
+$(document).ready(function(){
+    var requiredCheckboxes = $('.poseSaveSelection');
+    requiredCheckboxes.change(function() {
+        if($('.poseSaveSelection:checked').length > 0) {
+            requiredCheckboxes.removeAttr('required');
+        } else {
+            requiredCheckboxes.attr('required', 'required');
+        }
+    });
+});
+
+// Modified From : https://getbootstrap.com/docs/4.6/components/forms/#validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var form = $('#addPoseForm');
+        form.on('submit', (event) => {
+            if (form[0].checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                addPoseFormHandler(event);
+            }
+            form.addClass('was-validated');
+        });
+    }, false);
+})();
+
+
+function addPoseFormHandler (e) {
     e.preventDefault();
     $('#posesModal').modal('hide');
     poseManager.addPose();
-});
+    $('#addPoseForm')[0].reset();
+}
