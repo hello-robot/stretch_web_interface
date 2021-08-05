@@ -5,7 +5,7 @@ class PoseManager {
         this.db = db;
         this.poseContainerId = poseContainerId;
         this.poses  = {};
-        this.pending_states = {};
+        this.pending_requests = {};
     }
 
     initialize() {
@@ -67,12 +67,20 @@ class PoseManager {
             sendData({
                 type: 'request',
                 id: id,
-                requestType: 'jointState'
+                requestType: 'jointState',
+                responseHandler: 'poseManager'
             });
 
-            this.pending_states[id] = {"handleResponse": (state) => {
-                resolve(state);
-            }
+            this.pending_requests[id] = {
+                "handleResponse": (state) => {
+                        if (state.responseType === 'jointState') {
+                            resolve(state);
+                            delete this.pending_requests[id];
+                        } else {
+                            console.error(`Invalid response ${state.responseType}. Expected: jointState`);
+                        }
+                    },
+                "requestType": "jointState"
         }
         });
 
