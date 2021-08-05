@@ -54,10 +54,10 @@ class PoseManager {
 
     getPose(id) {
         if (id in this.poses.global) {
-            return this.poses.global[id];
+            return this.poses.global[id].pose;
         }
         if (id in this.poses.user) {
-            return this.poses.user[id];
+            return this.poses.user[id].pose;
         }
         console.error(`No pose with id ${id} found`);
     }
@@ -118,6 +118,7 @@ class PoseManager {
         this.db.addPose(id, description, pose)
         this.createPoseButton({pose: pose, description: description}, id);
         this.poses.user[id] = {pose: pose, description: description};
+        db.logEvent("CreatePose", {pose: pose, description: description, id: id});
     }
 
 }
