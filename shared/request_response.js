@@ -14,7 +14,6 @@ function respondToRequest(request) {
                 responseType: request.requestType,
                 data: processedJointPositions
             });
-            console.log(processedJointPositions);
             break;
     }
 }

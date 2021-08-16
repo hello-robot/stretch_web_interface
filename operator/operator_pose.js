@@ -73,14 +73,14 @@ class PoseManager {
 
             this.pending_requests[id] = {
                 "handleResponse": (state) => {
-                        if (state.responseType === 'jointState') {
+                        if (state.responseType === this.pending_requests[id].expectedType) {
                             resolve(state.data);
                             delete this.pending_requests[id];
                         } else {
-                            console.error(`Invalid response ${state.responseType}. Expected: jointState`);
+                            console.error(`Invalid response ${state.responseType}. Expected: ${this.pending_requests[id].expectedType}`);
                         }
                     },
-                "requestType": "jointState"
+                "expectedType": "jointState"
         }
         });
 
