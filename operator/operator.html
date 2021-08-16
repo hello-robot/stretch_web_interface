@@ -4,14 +4,7 @@
     <!-- META tags go here -->
     <!-- This can improve the appearance of web pages on mobile devices. -->
     
-    <!-- CSP exceptions -->
-	<!-- 
-		NOTE: It is a bit unintuitive for debugging that this document follows different CSP
-		rules than the rest of the site. Would it be possible to combine these rules with the ones in app.js?
-	-->
 	<meta http-equiv="content-type" content="text/html; charset=utf-8 ;">
-	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https://webrtc.github.io/adapter/ https://cdn.jsdelivr.net/; style-src 'self' https://stackpath.bootstrapcdn.com">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<meta name="viewport" content="height=device-height, initial-scale=1.0">-->
  		
@@ -90,21 +83,17 @@
 		    	<div class="d-flex justify-content-start">
 		    		<button id="lookLeftManipButton" type="button" class="btn btn-secondary btn-sm v-button" title="Look right" onclick="lookRight()" onmousedown="startAction('lookRight')">></button>
 		    	</div>
-		    	<div class="d-flex flex-column justify-content-sm-center">
-<!-- 					<button id="gripperCloseButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
+<!-- 		    	<div class="d-flex flex-column justify-content-sm-center">
+					<button id="gripperCloseButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
 			  		<img src="gripper_close_medium.png" width="30"/>
 					</button>
 					<button id="gripperOpenButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
 					  <img src="gripper_open_medium.png" width="30"/>
 					</button>
- -->		
-	 					<button id="stowArmButton" type="button" class="btn btn-secondary btn-block my-2" title="Stow arm" onclick="stowArm()">
-						  Stow arm
-						</button>
-						<button id="prepArmButton" type="button" class="btn btn-secondary btn-block my-2" title="Prepare arm" onclick="prepArm()">
-						  Prepare arm
-						</button>
-		    	</div>
+ 		
+ 					</div>
+-->
+ 					<div class="d-flex flex-column justify-content-sm-center" id="robotPoseContainer"></div>
 
 		    	<div class=""></div>
 		    	<div class="">
@@ -149,6 +138,10 @@
 	  </div>
 
 	  <div class="d-flex flex-fill justify-content-end mb-4">
+		  <div class="mr-4">
+			  <img id="googleSignInButton" src="../shared/assets/web/2x/btn_google_signin_light_normal_web@2x.png" onclick="db.signInWithGoogle()" />
+			  <label id="googleSignInInfo" for="googleSignInButton"></label>
+		  </div>
 	    <!-- Button to open the settings -->
 	      <div class="recordswitch">
 	  		<button id="record" type="button" class="btn btn-sm btn-secondary">Start Recording</button>
@@ -232,15 +225,59 @@
 	  </div>
 	</div>
 
+	<!-- POSES -->
+	<div class="modal fade" id="posesModal" tabindex="-1" role="dialog" aria-labelledby="posesTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="posesModalTitle">Add pose</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<form role="form" id="addPoseForm" class="needs-validation" novalidate>
+						<div class="form-group">
+							<label for="poseModalDescription">Pose description</label>
+							<input type="text" class="form-control" id="poseModalDescription" placeholder="Enter description" required>
+							<div class="invalid-feedback">
+								Please enter a name for this pose
+							</div>
+						</div>
+						<label for="description">Sections to save</label>
+						<fieldset id="checkArray">
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_head" required /> Head <br>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_gripper" required /> Gripper <br>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="poseSaveSelection form-check-input" id="poseSaveSelection_arm" required /> Arm <br>
+								<div class="invalid-feedback">
+									Please select at least one section to save
+								</div>
+							</div>
+						</fieldset>
+					<button type="submit" class="btn btn-primary mt-4">Add Pose</button>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
      
 </div>
 
 <link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
 
-<!-- <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
- -->
+
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -256,10 +293,12 @@
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
 <script src="../shared/database.js"></script>
+<script src="../shared/request_response.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="operator_acquire_av.js"></script>
 <script src="operator_recorder.js"></script>
+<script src="operator_pose.js"></script>
 <script src="../shared/send_recv_av.js"></script>
 <script type='text/javascript' >
 	initializeOperatorInterface();

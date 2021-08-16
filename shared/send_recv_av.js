@@ -345,12 +345,16 @@ function sendData(obj) {
 	    objects_sent.push(obj);
 	    dataChannel.send(data);
 	    console.log('Sent Data: ' + data);
-            break;
+        break;
 	case 'sensor':
 	    // unless being recorded, don't store or write information to the console due to high
 	    // frequency and large amount of data (analogous to audio and video).
 	    dataChannel.send(data);
-            break;
+        break;
+    case 'request':
+    case 'response':
+	    dataChannel.send(data);
+        break;
 	default:
 	    console.log('*************************************************************');
 	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
@@ -392,6 +396,12 @@ function onReceiveMessageCallback(event) {
                 addToSensorLog(obj);
             }
             receiveSensorReading(obj);
+            break;
+        case 'request':
+            respondToRequest(obj);
+            break;
+        case 'response':
+            receiveResponse(obj);
             break;
         default:
             console.log('*******************************************************');
