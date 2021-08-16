@@ -3,16 +3,22 @@ var peer_name = "OPERATOR";
 var velocityControlOn = false;
 var noWristOn = true;
 
+let db;
 function initializeOperatorInterface() {
-  var db = new Database(config, runOnOpenDataChannel);
-  setMode("nav");
+	db = new Database(config, runOnOpenDataChannel);
+	// createModeSwitch();
+	setMode("nav");
 }
 
+let poseManager;
 function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
 	// switch to navigation mode.
 	console.log('Starting in navigation mode')
 	setMode("nav");
+
+	poseManager = new PoseManager(db, 'robotPoseContainer');
+	poseManager.initialize();
 }
 
 function checkSettingValue(id){

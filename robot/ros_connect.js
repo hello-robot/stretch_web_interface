@@ -92,7 +92,6 @@ jointStateTopic.subscribe(function(message) {
     JointEffort = getJointEffort(jointState, 'joint_arm_l0');
     var message = {'type': 'sensor', 'subtype':'arm', 'name':'arm_effort', 'value': JointEffort};
     sendData(message);
-
 });
 
 var tfClient = new ROSLIB.TFClient({
@@ -192,7 +191,7 @@ if (inSim) {
     })
 }
 
-function generatePoseGoal(pose){
+function generatePoseGoal(pose) {
 
     var outStr = '{'
     for (var key in pose) {
@@ -209,93 +208,131 @@ function generatePoseGoal(pose){
     }
 
     if (!inSim) {
-        var t = trajectoryClients.main;
-    } else {
-        switch (jointNames[0]) {
-            case 'joint_head_tilt':
-            case 'joint_head_pan':
-                var t = trajectoryClients.head;
-                break;
-            case 'joint_gripper_finger_left':
-                var t = trajectoryClients.gripper;
-                jointNames.push('joint_gripper_finger_right')
-                jointPositions.push(jointPositions[0])
-                break;
-            case 'wrist_extension':
-                console.log(jointNames, jointPositions)
-                jointNames = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3']
-                jointPositions = [jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4, jointPositions[0]/4]
-            case 'joint_lift':
-            case 'joint_wrist_yaw':
-                var t = trajectoryClients.arm;
-                break;
-            case 'translate_mobile_base':
-                var translate = new ROSLIB.Message({
-                    linear : {
-                      x : jointPositions[0]*10,
-                      y : 0.0,
-                      z : 0.0
-                    },
-                    angular : {
-                      x : 0.0,
-                      y : 0.0,
-                      z : 0.0
-                    }
-                  });
-                  trajectoryClients.base.publish(translate)
-                  return {"send": function(){}};
-            case 'rotate_mobile_base':
-                var rotate = new ROSLIB.Message({
-                    linear : {
-                      x : 0.0,
-                      y : 0.0,
-                      z : 0.0
-                    },
-                    angular : {
-                      x : 0.0,
-                      y : 0.0,
-                      z : jointPositions[0]*10
-                    }
-                  });
-                  trajectoryClients.base.publish(rotate)
-                return {"send": function(){}};
-        }
-    }
-
-    var newGoal = new ROSLIB.Goal({
-        actionClient : t,
-        goalMessage : {
-            trajectory : {
-            joint_names : jointNames,
-            points : [
-                {
+        var newGoal = new ROSLIB.Goal({
+            actionClient : trajectoryClients.main,
+            goalMessage : {
+                trajectory : {
+                joint_names : jointNames,
+                points : [
+                    {
                     positions : jointPositions,
                     // The following might causing the jumpiness in continuous motions
+                    /*
                     time_from_start: {
                         secs: 0,
                         nsecs: 1
                     }
+                    */
+                    }
+                ]
                 }
-            ]
+            }
+        });
+
+        console.log('newGoal created =' + newGoal)
+        
+        newGoal.on('feedback', function(feedback) {
+            console.log('Feedback: ' + feedback.sequence);
+        });
+        
+        newGoal.on('result', function(result) {
+            console.log('Final Result: ' + result.sequence);
+        });
+        
+        return newGoal
+    } else {
+        var poseGoals = [];
+        for (var i = 0; i < jointNames.length; i++) {
+            var jointGoal = {};
+            switch (jointNames[i]) {
+                case 'joint_head_tilt':
+                case 'joint_head_pan':
+                    jointGoal.client = trajectoryClients.head;
+                    jointGoal.names = [jointNames[i]];
+                    jointGoal.positions = [jointPositions[i]]; 
+                    break;
+                case 'joint_gripper_finger_left':
+                    jointGoal.client = trajectoryClients.gripper;
+                    jointGoal.names = ['joint_gripper_finger_left', 'joint_gripper_finger_right'];
+                    jointGoal.positions = [jointPositions[i], jointPositions[i]];
+                    break;
+                case 'wrist_extension':
+                    jointGoal.client = trajectoryClients.arm;
+                    jointGoal.names = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'];
+                    jointGoal.positions = [jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4];
+                    break;
+                case 'joint_lift':
+                case 'joint_wrist_yaw':
+                    jointGoal.client = trajectoryClients.arm;
+                    jointGoal.names = [jointNames[i]];
+                    jointGoal.positions = [jointPositions[i]]; 
+                    break;
+                case 'translate_mobile_base':
+                    jointGoal.client = trajectoryClients.base;
+                    var translate = new ROSLIB.Message({
+                        linear : {
+                        x : jointPositions[i]*10,
+                        y : 0.0,
+                        z : 0.0
+                        },
+                        angular : {
+                        x : 0.0,
+                        y : 0.0,
+                        z : 0.0
+                        }
+                    });
+                    jointGoal.message = translate;
+                    break;
+                case 'rotate_mobile_base':
+                    jointGoal.client = trajectoryClients.base;
+                    var rotate = new ROSLIB.Message({
+                        linear : {
+                        x : 0.0,
+                        y : 0.0,
+                        z : 0.0
+                        },
+                        angular : {
+                        x : 0.0,
+                        y : 0.0,
+                        z : jointPositions[i]*10
+                        }
+                    });
+                    jointGoal.message = rotate;
+                    break;
+            }
+
+            if (!jointGoal.message) {
+                poseGoals.push(new ROSLIB.Goal({
+                    actionClient : jointGoal.client,
+                    goalMessage : {
+                        trajectory : {
+                        joint_names : jointGoal.names,
+                        points : [
+                            {
+                            positions : jointGoal.positions,
+                            time_from_start: {
+                                secs: 0,
+                                nsecs: 1
+                            }
+                            }
+                        ]
+                        }
+                    }
+                }));
+            } else {
+                poseGoals.push({"send": function() {
+                    jointGoal.client.publish(jointGoal.message);
+                }});
             }
         }
-    });
-
-    console.log('newGoal created =' + newGoal)
-    
-    newGoal.on('feedback', function(feedback) {
-    	console.log('Feedback: ');
-        if (feedback)
-            console.log(feedback);
-    });
-    
-    newGoal.on('result', function(result) {
-    	console.log('Final Result: ', );
-        if (result)
-            console.log(result);
-    });
-    
-    return newGoal
+        return {"send": function() {
+                poseGoals.forEach(function(goal) {
+                    console.log(goal)
+                    goal.send();
+                });
+            }
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -362,31 +399,6 @@ function robotModeOn(modeKey) {
         console.log('sending manipulation pose to head');
     } 
 }
-
-// TODO: Figure out the goal pose for arm ready to manipulate
-var stowArmPose = {
-    'joint_lift': 0.25,
-    'wrist_extension': 0.05,
-    'joint_wrist_yaw': 3.0};
-
-var prepArmPose = {
-    'joint_lift': 0.6,
-    'wrist_extension': 0.1,
-    'joint_wrist_yaw': 0.0};
-
-
-function stowRobotArm() {
-    let prepPoseGoal = generatePoseGoal(stowArmPose);
-    prepPoseGoal.send();
-    console.log('Sending stow pose to robot');    
-}
-
-function prepRobotArm() {
-    let prepPoseGoal = generatePoseGoal(prepArmPose);
-    prepPoseGoal.send();
-    console.log('Sending prep pose to robot');    
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -579,6 +591,9 @@ function headPan(angRad) {
     }
 }
 
+function goToPose(pose) {
+    generatePoseGoal(pose).send()
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 

@@ -5,7 +5,7 @@ var currentV = "medium";
 function setVelocity(newV) {
   if (Object.keys(modifiers).includes(newV)){
     currentV = newV;
-    Database.logEvent("SpeedChange", newV);
+    db.logEvent("SpeedChange", newV);
   }
   else
     console.log("Invalid velocity: " + newV);
@@ -48,7 +48,7 @@ function lookLeft() {
                name:"left",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("LookLeft", currentV);
+    db.logEvent("LookLeft", currentV);
 }
 
 function lookRight() {
@@ -57,7 +57,7 @@ function lookRight() {
              name:"right",
              modifier:currentV};
   sendData(cmd);
-  Database.logEvent("LookRight", currentV);
+  db.logEvent("LookRight", currentV);
 }
 
 function lookUp() {
@@ -66,7 +66,7 @@ function lookUp() {
                name:"up",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("LookUp", currentV);
+    db.logEvent("LookUp", currentV);
 }
 
 function lookDown() {
@@ -75,7 +75,7 @@ function lookDown() {
                name:"down",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("LookDown", currentV);
+    db.logEvent("LookDown", currentV);
 }
 
 function changeGripperFollow(isStart) {
@@ -84,7 +84,7 @@ function changeGripperFollow(isStart) {
                name:"gripper_follow",
                modifier:isStart};
     sendData(cmd);
-    Database.logEvent("LookAtGripper", isStart);
+    db.logEvent("LookAtGripper", isStart);
 }
 
 function moveForward() {
@@ -93,7 +93,7 @@ function moveForward() {
                name:"forward",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("MoveForward", currentV);
+    db.logEvent("MoveForward", currentV);
 }
 
 function moveBackward() {
@@ -102,7 +102,7 @@ function moveBackward() {
                name:"backward",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("MoveBackward", currentV);
+    db.logEvent("MoveBackward", currentV);
 }
 
 function turnLeft() {
@@ -111,7 +111,7 @@ function turnLeft() {
                name:"turn_left",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("TurnLeft", currentV);
+    db.logEvent("TurnLeft", currentV);
 }
 
 function turnRight() {
@@ -120,7 +120,7 @@ function turnRight() {
                name:"turn_right",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("TurnRight", currentV);
+    db.logEvent("TurnRight", currentV);
 }
 
 function turnCCW() {
@@ -129,7 +129,7 @@ function turnCCW() {
                name:"turn_ccw",
                modifier:"none"};
     sendData(cmd);
-    Database.logEvent("TurnCCW", currentV);
+    db.logEvent("TurnCCW", currentV);
 }
 
 function turnCW() {
@@ -138,7 +138,7 @@ function turnCW() {
                name:"turn_cw",
                modifier:"none"};
     sendData(cmd);
-    Database.logEvent("TurnCW", currentV);
+    db.logEvent("TurnCW", currentV);
 }
 
 function liftUp() {
@@ -147,7 +147,7 @@ function liftUp() {
                name:"up",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("LiftUp", currentV);
+    db.logEvent("LiftUp", currentV);
 }
 
 function liftDown() {
@@ -156,7 +156,7 @@ function liftDown() {
                name:"down",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("LiftDown", currentV);
+    db.logEvent("LiftDown", currentV);
 }
 
 function armRetract() {
@@ -165,7 +165,7 @@ function armRetract() {
                name:"retract",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("ArmRetract", currentV);
+    db.logEvent("ArmRetract", currentV);
 }
 
 function armExtend() {
@@ -174,7 +174,7 @@ function armExtend() {
                name:"extend",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("ArmExtend", currentV);
+    db.logEvent("ArmExtend", currentV);
 }
 
 function gripperClose() {
@@ -183,25 +183,16 @@ function gripperClose() {
                name:"close",
                modifier:"medium"};
     sendData(cmd);
-    Database.logEvent("GripperClose", "medium");
+    db.logEvent("GripperClose", "medium");
 }
 
-function stowArm() {
+function moveToPose(id) {
     var cmd = {type:"command",
                subtype:"full",
-               name:"stow",
-               modifier:"medium"};
+               name:"pose",
+               modifier:poseManager.getPose(id)};
     sendData(cmd);
-    Database.logEvent("StowArm", "medium");
-}
-
-function prepArm() {
-    var cmd = {type:"command",
-               subtype:"full",
-               name:"prep",
-               modifier:"medium"};
-    sendData(cmd);
-    Database.logEvent("PrepArm", "medium");
+    db.logEvent("Pose", id);
 }
 
 function gripperOpen() {
@@ -210,7 +201,7 @@ function gripperOpen() {
                name:"open",
                modifier:"medium"};
     sendData(cmd);
-    Database.logEvent("GripperOpen", "medium");
+    db.logEvent("GripperOpen", "medium");
 }
 
 function wristIn() {
@@ -219,7 +210,7 @@ function wristIn() {
                name:"in",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("WristIn", currentV);
+    db.logEvent("WristIn", currentV);
 }
 
 function wristOut() {
@@ -228,7 +219,7 @@ function wristOut() {
                name:"out",
                modifier:currentV};
     sendData(cmd);
-    Database.logEvent("WristOut", currentV);
+    db.logEvent("WristOut", currentV);
 }
 
 
@@ -334,6 +325,35 @@ function wristRollLeft() {
 var interfaceMode = 'nav';
 var interfaceModifier = 'no_wrist';
 
+/**
+* modekey in {'nav', 'low_arm', 'high_arm', 'hand', 'look' }
+*/
+function turnModeOn(modeKey) {
+    console.log('turnModeOn: modeKey = ' + modeKey)
+
+  let autoViewOn = false;
+  let onoffButton = document.getElementById("autoViewOn");
+  if (onoffButton != undefined)
+    autoViewOn = onoffButton.checked;
+  console.log("autoViewOn: " + autoViewOn);
+
+  // Send command to back-end to change the camera view based on mode
+  if (autoViewOn) {
+      setCameraView(modeKey);
+  }
+  else {
+      console.log("Not changing view automatically on control mode change.");
+  }
+
+  // Update the front-end for the new mode
+  panTiltCameraVideoControl.setMode(modeKey)
+  db.logEvent("ModeChange", modeKey);
+}
+
+/**
+* Preset views only available for modeKey in {'nav', 'low_arm', 'high_arm'}
+*/
+
 function setCameraView(modeKey) {
   var cmd;
   if(noWristOn === false) {
@@ -352,7 +372,7 @@ function setCameraView(modeKey) {
   }
   interfaceMode = modeKey;
   sendData(cmd);
-  Database.logEvent("SetCameraView", modeKey);
+  db.logEvent("SetCameraView", modeKey);
 }
 
 var modeKeys = ['nav', 'manip', 'low_arm', 'high_arm', 'hand', 'look'];
@@ -558,13 +578,9 @@ var armCommands = {
 }  
 
 var fullCommands = {
-    "stow": function(size) {
+    "pose": function(pose) {
       console.log('full body: stow command received...executing');
-      stowRobotArm();
-    },
-    "prep": function(size) {
-      console.log('full body: prep command received...executing');
-      prepRobotArm();
+      goToPose(pose);
     }
 }  
 
