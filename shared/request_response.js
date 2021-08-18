@@ -15,6 +15,15 @@ function respondToRequest(request) {
                 data: processedJointPositions
             });
             break;
+        case "cameraInfo":
+            sendData({
+                type: "response",
+                id: request.id,
+                responseHandler: request.responseHandler,
+                responseType: request.requestType,
+                data: cameraInfo
+            });
+            break;
     }
 }
 
@@ -23,7 +32,9 @@ function receiveResponse(response) {
         case "poseManager":
             poseManager.request_response_handler.pending_requests[response.id].handleResponse(response);
             break;
-
+        case "global":
+            globalRequestResponseHandler.pending_requests[response.id].handleResponse(response);
+            break;
     }
 }
 

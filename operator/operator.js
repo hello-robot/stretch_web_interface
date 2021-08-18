@@ -11,7 +11,9 @@ function initializeOperatorInterface() {
 }
 
 let poseManager;
-function runOnOpenDataChannel() {
+let globalRequestResponseHandler = RequestResponseHandler("global");
+
+async function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
 	// switch to navigation mode.
 	console.log('Starting in navigation mode')
@@ -19,6 +21,11 @@ function runOnOpenDataChannel() {
 
 	poseManager = new PoseManager(db, 'robotPoseContainer');
 	poseManager.initialize();
+
+	let cameraInfo = await globalRequestResponseHandler.makeRequest("cameraInfo").info;
+	for (let i in allRemoteStreams) {
+		displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
+	}
 }
 
 function checkSettingValue(id){

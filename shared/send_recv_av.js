@@ -374,34 +374,6 @@ function stop() {
 
 function sendData(obj) {
     if (isStarted && (dataChannel.readyState === 'open')) {
-<<<<<<< HEAD
-    	var data = JSON.stringify(obj);
-    	switch(obj.type) {
-    	case 'command':
-    	    if (recordOn && addToCommandLog) {
-    		addToCommandLog(obj);
-    	    }
-    	    objects_sent.push(obj);
-    	    dataChannel.send(data);
-    	    console.log('Sent Data: ' + data);
-                break;
-    	case 'sensor':
-    	    // unless being recorded, don't store or write information to the console due to high
-    	    // frequency and large amount of data (analogous to audio and video).
-    	    dataChannel.send(data);
-            break;
-        case 'camerainfo':
-            dataChannel.send(data);
-            console.log("Sending camera info.");
-            break;
-    	default:
-    	    console.log('*************************************************************');
-    	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
-    	    console.log('Received Data: ' + event.data);
-    	    console.log('Received Object: ' + obj);
-    	    console.log('*************************************************************');
-    	}
-=======
 	var data = JSON.stringify(obj);
 	switch(obj.type) {
 	case 'command':
@@ -428,7 +400,6 @@ function sendData(obj) {
 	    console.log('Received Object: ' + obj);
 	    console.log('*************************************************************');
 	}
->>>>>>> master
     }
     // else
     //     console.log("Cannot send data: ", isStarted, dataChannel);
@@ -467,21 +438,11 @@ function onReceiveMessageCallback(event) {
             }
             receiveSensorReading(obj);
             break;
-<<<<<<< HEAD
-        case 'camerainfo':
-            // The mapping between stream id and content is received from the robot
-            cameraInfo = obj.info;
-            for (let i in allRemoteStreams) {
-                displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
-            }
-            console.log("Camera info received.");
-=======
         case 'request':
             respondToRequest(obj);
             break;
         case 'response':
             receiveResponse(obj);
->>>>>>> master
             break;
         default:
             console.log('*******************************************************');
