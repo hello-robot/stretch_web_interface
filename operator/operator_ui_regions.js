@@ -595,8 +595,11 @@ var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
+// TODO: this camera should be configured from the `camerainfo` response
+var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
+
 var navOverlay = new OverlaySVG('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w);
-var navOverlayTHREE = new OverlayTHREE('pantiltVideo', 'nav', threeManager);
+var reachOverlayTHREE = new OverlayTHREE('pantiltVideo', 'nav', threeManager);
 var armOverlay = new OverlaySVG('pantiltVideo', 'manip', videoDimensions.h, videoDimensions.w);
 
 var navOverheadOverlay = new OverlaySVG('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h);
@@ -609,9 +612,6 @@ var armGripperOverlay = new OverlaySVG('gripperVideo', 'manip', wideVideoDimensi
 var overheadVideoControl = new VideoControl('overheadVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
 var panTiltVideoControl = new VideoControl('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w, true);
 var gripperVideoControl = new VideoControl('gripperVideo', 'nav', wideVideoDimensions.w, wideVideoDimensions.h, false);
-
-var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
-let reachOverlayTHREE;
 
 
 function createUiRegions() {
@@ -656,7 +656,6 @@ function createUiRegions() {
         rectToPoly(rightRect), 
         color, 'rotate_ccw', navOverlay.svg, false));
 
-    reachOverlayTHREE = new OverlayTHREE('nav', threeManager);
     reachOverlayTHREE.addItem(new THREEObject(
         'reach_visualization_circle',
         new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
@@ -673,7 +672,6 @@ function createUiRegions() {
     outlineEffectPass.renderToScreen = true;
     outlineEffect.selectObject(reachOverlayTHREE.objs.reach_visualization_circle.mesh);
     reachOverlayTHREE.addRenderPass(outlineEffectPass);
-    navigationVideoControl.addOverlay(reachOverlayTHREE, "threejs");
 
     
     /////////////////////////
@@ -725,7 +723,7 @@ function createUiRegions() {
 
     //////////////////////////////////////////////
 
-    panTiltVideoControl.addOverlay(navOverlayTHREE);
+    panTiltVideoControl.addOverlay(reachOverlayTHREE, "threejs");
     panTiltVideoControl.addOverlay(navOverlay);
     panTiltVideoControl.addOverlay(armOverlay);
     panTiltVideoControl.setMode('manip');

@@ -11,7 +11,7 @@ function initializeOperatorInterface() {
 }
 
 let poseManager;
-let globalRequestResponseHandler = RequestResponseHandler("global");
+let globalRequestResponseHandler = new RequestResponseHandler("global");
 
 async function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
