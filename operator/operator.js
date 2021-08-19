@@ -22,7 +22,8 @@ async function runOnOpenDataChannel() {
 	poseManager = new PoseManager(db, 'robotPoseContainer');
 	poseManager.initialize();
 
-	let cameraInfo = await globalRequestResponseHandler.makeRequest("cameraInfo").info;
+	cameraInfo = (await globalRequestResponseHandler.makeRequest("cameraInfo")).info;
+	
 	for (let i in allRemoteStreams) {
 		displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
 	}
