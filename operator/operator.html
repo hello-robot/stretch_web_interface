@@ -89,10 +89,10 @@
 		    	</div>
  		    	<div class="d-flex flex-column justify-content-sm-center">
 					<button id="gripperCloseButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Close gripper" onclick="gripperClose()" onmousedown="startAction('gripperClose')">
-			  		<img src="gripper_close_medium.png" width="30"/>
+			  		<img src="images/gripper_close_medium.png" width="30"/>
 					</button>
 					<button id="gripperOpenButton" type="button" class="btn btn-outline-danger btn-block my-2" title="Open gripper" onclick="gripperOpen()" onmousedown="startAction('gripperOpen')">
-					  <img src="gripper_open_medium.png" width="30"/>
+					  <img src="images/gripper_open_medium.png" width="30"/>
 					</button>
  		
  					</div>
@@ -142,7 +142,7 @@
 
 	  <div class="d-flex flex-fill justify-content-end mb-4">
 		  <div class="mr-4">
-			  <img id="googleSignInButton" src="../shared/assets/web/2x/btn_google_signin_light_normal_web@2x.png" onclick="db.signInWithGoogle()" />
+			  <img id="googleSignInButton" src="../shared/assets/web/2x/btn_google_signin_light_focus_web@2x.png" onclick="db.signInWithGoogle()" />
 			  <label id="googleSignInInfo" for="googleSignInButton"></label>
 		  </div>
 	    <!-- Button to open the settings -->
@@ -294,7 +294,7 @@
      
 </div>
 
-<link rel="stylesheet" type="text/css" href="operator.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="css/operator.css" media="screen" />
 
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
@@ -311,16 +311,16 @@
 <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.22.1/build/postprocessing.js"></script>
 <script src="../shared/request_response.js"></script>
 <script src="../shared/video_dimensions.js"></script>
-<script src="operator.js"></script>
-<script src="operator_ui_regions.js"></script>
+<script src="js/operator.js"></script>
+<script src="js/operator_ui_regions.js"></script>
 <script src="../shared/sensors.js"></script>
 <script src="../shared/commands.js"></script>
 <script src="../shared/database.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-<script src="operator_acquire_av.js"></script>
-<script src="operator_recorder.js"></script>
-<script src="operator_pose.js"></script>
+<script src="js/operator_acquire_av.js"></script>
+<script src="js/operator_recorder.js"></script>
+<script src="js/operator_pose.js"></script>
 <script src="../shared/send_recv_av.js"></script>
 <script type='text/javascript' >
 	initializeOperatorInterface();

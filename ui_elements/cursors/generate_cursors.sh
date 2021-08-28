@@ -29,7 +29,7 @@ convert right_turn_medium.png -flop left_turn_medium.png
 echo "****************************************"
 echo "copying the results to the operator directory"
 
-cp *.png ../../operator/
+cp *.png ../../operator/images
 
 echo "****************************************"
 echo "attempting to delete generated images in the current directory"

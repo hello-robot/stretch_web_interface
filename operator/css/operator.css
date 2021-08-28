@@ -101,120 +101,120 @@ video {
 }
 
 #nav_forward_region, #overhead_nav_forward_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('../images/up_arrow_medium.png'), auto;
 }
 
 #nav_backward_region, #overhead_nav_backward_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('../images/down_arrow_medium.png'), auto;
 }
 
 #nav_turn_left_region, #overhead_nav_turn_left_region {
-    cursor: url('left_turn_medium.png'), auto;
+    cursor: url('../images/left_turn_medium.png'), auto;
 }
 
 #nav_turn_right_region, #overhead_nav_turn_right_region {
-    cursor: url('right_turn_medium.png'), auto;
+    cursor: url('../images/right_turn_medium.png'), auto;
 }
 
 #nav_ccw_region {
-    cursor: url('rotate_ccw.png'), auto;
+    cursor: url('../images/rotate_ccw.png'), auto;
 }
 
 #nav_cw_region {
-    cursor: url('rotate_cw.png'), auto;
+    cursor: url('../images/rotate_cw.png'), auto;
 }
 
 #manip_down_region, #gripper_manip_down_region, #gripper_nav_down_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('../images/down_arrow_medium.png'), auto;
 }
 
 #manip_up_region, #gripper_manip_up_region, #gripper_nav_up_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('../images/up_arrow_medium.png'), auto;
 }
 
 #manip_extend_region, #overhead_manip_arm_extend_region {
-    cursor: url('out_arrow.png'), auto;
+    cursor: url('../images/out_arrow.png'), auto;
 }
 
 #manip_retract_region, #overhead_manip_arm_retract_region {
-    cursor: url('in_arrow.png'), auto;
+    cursor: url('../images/in_arrow.png'), auto;
 }
 
 #manip_base_forward_region, #overhead_manip_base_forward_region {
-    cursor: url('left_arrow_medium.png'), auto; 
+    cursor: url('../images/left_arrow_medium.png'), auto; 
 }
 
 #manip_base_backward_region, #overhead_manip_base_backward_region {
-    cursor: url('right_arrow_medium.png'), auto;
+    cursor: url('../images/right_arrow_medium.png'), auto;
 }
 
 #overhead_nav_arm_retract_region {
-    cursor: url('left_arrow_medium.png'), auto;  
+    cursor: url('../images/left_arrow_medium.png'), auto;  
 }
 
 #overhead_nav_arm_extend_region {
-    cursor: url('right_arrow_medium.png'), auto;  
+    cursor: url('../images/right_arrow_medium.png'), auto;  
 }
 
 #manip_open_region, #gripper_nav_open_region, #gripper_manip_open_region {
-    cursor: url('gripper_open_medium.png'), auto;
+    cursor: url('../images/gripper_open_medium.png'), auto;
 }
 
 #manip_close_region, #gripper_nav_close_region, #gripper_manip_close_region {
-    cursor: url('gripper_close_medium.png'), auto;
+    cursor: url('../images/gripper_close_medium.png'), auto;
 }
 
 #manip_in_region, #gripper_manip_in_region, #gripper_nav_in_region, #overhead_manip_turn_left_region {
-    cursor: url('left_turn_medium.png'), auto;
+    cursor: url('../images/left_turn_medium.png'), auto;
 }
 
 #manip_out_region, #gripper_manip_out_region, #gripper_nav_out_region, #overhead_manip_turn_right_region {
-    cursor: url('right_turn_medium.png'), auto;
+    cursor: url('../images/right_turn_medium.png'), auto;
 }
 
 
 /*/////////////////*/
 
 #high_arm_up_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('../images/up_arrow_medium.png'), auto;
 }
 
 #high_arm_down_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('../images/down_arrow_medium.png'), auto;
 }
 
 #high_arm_extend_region {
-    cursor: url('out_arrow.png'), auto;
+    cursor: url('../images/out_arrow.png'), auto;
 }
 
 #high_arm_retract_region {
-    cursor: url('in_arrow.png'), auto;
+    cursor: url('../images/in_arrow.png'), auto;
 }
 
 #high_arm_base_forward_region {
-    cursor: url('left_arrow_medium.png'), auto; 
+    cursor: url('../images/left_arrow_medium.png'), auto; 
 }
 
 #high_arm_base_backward_region {
-    cursor: url('right_arrow_medium.png'), auto;
+    cursor: url('../images/right_arrow_medium.png'), auto;
 }
 
 
 
 #look_up_region {
-    cursor: url('up_arrow_medium.png'), auto;
+    cursor: url('../images/up_arrow_medium.png'), auto;
 }
 
 #look_down_region {
-    cursor: url('down_arrow_medium.png'), auto;
+    cursor: url('../images/down_arrow_medium.png'), auto;
 }
 
 #look_left_region {
-    cursor: url('left_arrow_medium.png'), auto; 
+    cursor: url('../images/left_arrow_medium.png'), auto; 
 }
 
 #look_right_region {
-    cursor: url('right_arrow_medium.png'), auto;
+    cursor: url('../images/right_arrow_medium.png'), auto;
 }
 
 

@@ -1,4 +1,4 @@
-![](./images/banner.png)
+![](./README/images/banner.png)
 
 # Table of Contents
 
@@ -135,11 +135,11 @@ Open the browser goto the robot’s IP address. You can use `ifconfig` on the ro
 
 Select "Advanced" and then click on "Proceed to localhost (unsafe)".
 
-<img src="./images/operator_browser_1.png" width="200">
+<img src="./README/images/operator_browser_1.png" width="200">
 
-<img src="./images/operator_browser_2.png" width="200">
+<img src="./README/images/operator_browser_2.png" width="200">
 
-<img src="./images/operator_browser_3.png" width="200">
+<img src="./README/images/operator_browser_3.png" width="200">
 
 Click on "Login" and use the following username and password.
 
@@ -153,18 +153,18 @@ xXTgfdH8
 
 **WARNING: This is a default operator account provided for simple testing. Since this username and password are public on the Internet, this is not secure. You should only use this behind a firewall during development and testing. Deployment would require new credentials and security measures.**
 
-<img src="./images/operator_browser_4.png" width="200">
+<img src="./README/images/operator_browser_4.png" width="200">
 
-<img src="./images/operator_browser_5.png" width="200">
+<img src="./README/images/operator_browser_5.png" width="200">
 
 You should now see a screen like the following. Click on "no robot connected" and select the robot "r1" to connect to it. 
 
-<img src="./images/operator_browser_6.png" width="200">
-<img src="./images/operator_browser_7.png" width="200">
+<img src="./README/images/operator_browser_6.png" width="200">
+<img src="./README/images/operator_browser_7.png" width="200">
 
 You should now see video from the robot on your mobile phone or other device. Click in the designated regions to command the robot to move. You can also click on "Drive", "Arm" down, "Arm" up, "Hand" and "Look" to move different joints on the robot. 
 
-<img src="./images/operator_browser_8.png" width="200">
+<img src="./README/images/operator_browser_8.png" width="200">
 
 <a name="slower"/>
 
@@ -201,7 +201,7 @@ roscd stretch_web_interface/bash_scripts/
 
 Open a Chromium browser on the robot and go to localhost. Select "Advanced" and then click on "Proceed to localhost (unsafe)".
 
-<img src="./images/robot_browser_1.png" width="400">
+<img src="./README/images/robot_browser_1.png" width="400">
 
 Click on "Login" and use the following username and password.
 
@@ -215,13 +215,13 @@ NQUeUb98
 
 **WARNING: This is a default robot account provided for simple testing. Since this username and password are public on the Internet, this is not secure. You should only use this behind a firewall during development and testing. Deployment would require new credentials and security measures.**
 
-<img src="./images/robot_browser_2.png" width="400">
+<img src="./README/images/robot_browser_2.png" width="400">
 
-<img src="./images/robot_browser_3.png" width="400">
+<img src="./README/images/robot_browser_3.png" width="400">
 
 You should now see video from the robot's camera in the browser window. 
 
-<img src="./images/robot_browser_4.png" width="400">
+<img src="./README/images/robot_browser_4.png" width="400">
 
 #### Start the Operator's Browser
 
@@ -258,7 +258,7 @@ Clicking on `users` will show the current credentials.
 
 If you've only used the default development credentials in this repository, you should see entries for the following: three robots with the usernames r1, r2, and r3; three operators with the usernames o1, o2, and o3; and an administrator with the username admin. Each entry consists of encrypted password information (i.e., salt and hash), a username, a name, a role, a date, and a Boolean indicating whether or not the user has been approved. Without approval, the user should be denied access. The role indicates whether the entry is for a robot or an operator. You can click on the image below to see what this should look like.
 
-<img src="./images/mongodb_development_credentials.png" width="640">
+<img src="./README/images/mongodb_development_credentials.png" width="640">
 
 ### Creating New Credentials
 
