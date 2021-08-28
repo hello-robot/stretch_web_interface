@@ -152,6 +152,7 @@ app.use(passport.session());
 // make files in the public directory available to everyone
 console.log('make public directory contents available to everyone');
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'operator/icons')));
 
 app.use('/', index);
 

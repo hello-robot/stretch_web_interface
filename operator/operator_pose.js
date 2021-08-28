@@ -5,7 +5,7 @@ class PoseManager {
         this.db = db;
         this.poseContainerId = poseContainerId;
         this.poses  = {};
-        this.pending_requests = {};
+        this.request_response_handler = new RequestResponseHandler('poseManager');
     }
 
     initialize() {
@@ -62,31 +62,6 @@ class PoseManager {
         console.error(`No pose with id ${id} found`);
     }
 
-    async getRobotState(id) {
-        let statePromise = new Promise((resolve, reject)=> {
-            sendData({
-                type: 'request',
-                id: id,
-                requestType: 'jointState',
-                responseHandler: 'poseManager'
-            });
-
-            this.pending_requests[id] = {
-                "handleResponse": (state) => {
-                        if (state.responseType === this.pending_requests[id].expectedType) {
-                            resolve(state.data);
-                            delete this.pending_requests[id];
-                        } else {
-                            console.error(`Invalid response ${state.responseType}. Expected: ${this.pending_requests[id].expectedType}`);
-                        }
-                    },
-                "expectedType": "jointState"
-        }
-        });
-
-        return statePromise;
-    }
-
     async addPose() {
         let poseFilter = {
             head: $('#poseSaveSelection_head').is(':checked'),
@@ -96,7 +71,7 @@ class PoseManager {
         let description = $("#poseModalDescription").val();
         let id = description.replace(/\s/g, '');
 
-        let fullPose = await this.getRobotState(id);
+        let fullPose = await this.request_response_handler.makeRequest("jointState");
 
         let pose = {};
 

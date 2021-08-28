@@ -11,7 +11,9 @@ function initializeOperatorInterface() {
 }
 
 let poseManager;
-function runOnOpenDataChannel() {
+let globalRequestResponseHandler = new RequestResponseHandler("global");
+
+async function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
 	// switch to navigation mode.
 	console.log('Starting in navigation mode')
@@ -19,43 +21,49 @@ function runOnOpenDataChannel() {
 
 	poseManager = new PoseManager(db, 'robotPoseContainer');
 	poseManager.initialize();
+
+	cameraInfo = (await globalRequestResponseHandler.makeRequest("cameraInfo")).info;
+	
+	for (let i in allRemoteStreams) {
+		displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
+	}
 }
 
-function createModeSwitch() {
-
-	let switchDiv = document.getElementById("modeSwitch");
-	switchDiv.setAttribute("class", "switch");
-	createAndAddSwitchButton(switchDiv, "nav", "Drive", true);
-	createAndAddSwitchButton(switchDiv, "low_arm", "Arm &dArr;");
-	createAndAddSwitchButton(switchDiv, "high_arm", "Arm &uArr;");
-	createAndAddSwitchButton(switchDiv, "hand", "Hand");
-	createAndAddSwitchButton(switchDiv, "look", "Look");
-
-	let span = document.createElement("span");
-	span.setAttribute("class", "switch-selection");
-	switchDiv.appendChild(span);
+function checkSettingValue(id){
+	let element = document.getElementById(id);
+	return element.checked;
 }
 
-function createAndAddSwitchButton(parentDiv, id, text, isChecked=false){
-	let button = document.createElement("input");
-	button.setAttribute("type", "radio");
-	button.setAttribute("class", "switch-input");
-	button.setAttribute("name", "mode-switch");
-	button.setAttribute("value", id);
-	button.setAttribute("id", id + "_mode_button");
-	if (isChecked)
-		button.setAttribute("checked", "true");
+function checkboxSettingChange(element){
+	if (element.id == "showPermanentIconsOverhead") {
+		if (element.checked == true) {
+			overheadVideoControl.addIcons();
+		}
+		else {
+			overheadVideoControl.removeIcons();
+		}
+	}
 
-	let label = document.createElement("label");
-	label.setAttribute("for", id + "_mode_button");
-	label.setAttribute("class", "switch-label switch-label-" + id);
-	label.setAttribute("onclick", "turnModeOn('" + id + "')");
-	label.innerHTML = text;
+	if (element.id == "showPermanentIconsPantilt") {
+		if (element.checked == true) {
+			panTiltVideoControl.addIcons();
+		}
+		else {
+			panTiltVideoControl.removeIcons();
+		}
+	}
 
-	parentDiv.appendChild(button);
-	parentDiv.appendChild(label);
+	if (element.id == "showPermanentIconsGripper") {
+		if (element.checked == true) {
+			gripperVideoControl.addIcons();
+		}
+		else {
+			gripperVideoControl.removeIcons();
+		}
+	}
+
+
 }
-
 
 
 

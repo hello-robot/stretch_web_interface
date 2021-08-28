@@ -4,9 +4,6 @@ var messages_received_body = [];
 var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
-var rosImageReceived = false;
-var img = document.createElement("IMG");
-img.style.visibility = 'hidden';
 var rosJointStateReceived = false;
 var jointState = null;
 var isWristFollowingActive = false;
@@ -16,14 +13,9 @@ var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", versio
 
 // initialize images for camera video
 
-var navigationImageReceived = false
-var navigationImg = document.createElement("IMG")
-navigationImg.style.visibility = 'hidden'
-
-var gripperImageReceived = false
-var gripperImg = document.createElement("IMG")
-gripperImg.style.visibility = 'hidden'
-
+// var rosImageReceived = false;
+// var img = document.createElement("IMG");
+// img.style.visibility = 'hidden';
 
 // connect to rosbridge websocket
 var ros = new ROSLIB.Ros({
@@ -42,58 +34,28 @@ ros.on('close', function() {
     console.log('Connection to websocket has been closed.');
 });
 
-var imageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
-    messageType : 'sensor_msgs/CompressedImage'
-});
+// var imageTopic = new ROSLIB.Topic({
+//     ros : ros,
+//     name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
+//     messageType : 'sensor_msgs/CompressedImage'
+// });
 
-imageTopic.subscribe(function(message) {
-    //console.log('Received compressed image on ' + imageTopic.name);
-    //console.log('message.header =', message.header)
-    //console.log('message.format =', message.format)
-    img.src = 'data:image/jpg;base64,' + message.data
-    if (rosImageReceived === false) {
-	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
-	rosImageReceived = true
-    }
-    //console.log('img.width =', img.width)
-    //console.log('img.height =', img.height)
-    //console.log('img.naturalWidth =', img.naturalWidth)
-    //console.log('img.naturalHeight =', img.naturalHeight)
-    //console.log('attempted to draw image to the canvas')
-    //imageTopic.unsubscribe()
-});
-
-var navigationImageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : '/navigation_camera/image_raw/compressed',
-    messageType : 'sensor_msgs/CompressedImage'
-});
-
-navigationImageTopic.subscribe(function(message) {
-    navigationImg.src = 'data:image/jpg;base64,' + message.data
-
-    if (navigationImageReceived === false) {
-    console.log('Received first compressed image from ROS topic ' + navigationImageTopic.name);
-    navigationImageReceived = true
-    }
-});
-
-var gripperImageTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : '/gripper_camera/image_raw/compressed',
-    messageType : 'sensor_msgs/CompressedImage'
-});
-
-
-gripperImageTopic.subscribe(function(message) {
-    gripperImg.src = 'data:image/jpg;base64,' + message.data
-    if (gripperImageReceived === false) {
-        console.log('Received first compressed image from ROS topic ' + gripperImageTopic.name);
-        gripperImageReceived = true
-    }
-});
+// imageTopic.subscribe(function(message) {
+//     img.src = 'data:image/jpg;base64,' + message.data;
+//     if (rosImageReceived === false) {
+//     	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
+//     	rosImageReceived = true;
+//     }
+//     //console.log('Received compressed image on ' + imageTopic.name);
+//     //console.log('message.header =', message.header)
+//     //console.log('message.format =', message.format)
+//     //console.log('img.width =', img.width)
+//     //console.log('img.height =', img.height)
+//     //console.log('img.naturalWidth =', img.naturalWidth)
+//     //console.log('img.naturalHeight =', img.naturalHeight)
+//     //console.log('attempted to draw image to the canvas')
+//     //imageTopic.unsubscribe()
+// });
 
 
 var jointStateTopic = new ROSLIB.Topic({
@@ -101,7 +63,6 @@ var jointStateTopic = new ROSLIB.Topic({
     name : inSim ? '/joint_states/' : '/stretch/joint_states/',
     messageType : 'sensor_msgs/JointState'
 });
-
 
 jointStateTopic.subscribe(function(message) {
 
@@ -242,8 +203,8 @@ function generatePoseGoal(pose) {
     var jointNames = []
     var jointPositions = []
     for (var key in pose) {
-	jointNames.push(key)
-	jointPositions.push(pose[key])
+    	jointNames.push(key)
+    	jointPositions.push(pose[key])
     }
 
     if (!inSim) {
@@ -255,10 +216,13 @@ function generatePoseGoal(pose) {
                 points : [
                     {
                     positions : jointPositions,
+                    // The following might causing the jumpiness in continuous motions
+                    /*
                     time_from_start: {
                         secs: 0,
                         nsecs: 1
                     }
+                    */
                     }
                 ]
                 }
@@ -404,11 +368,13 @@ function sendCommandBody(cmd) {
 
 //Called from mode switch
 
+var backendRobotMode = 'nav';
 function robotModeOn(modeKey) {
     console.log('robotModeOn called with modeKey = ' + modeKey)
 
     let debugDiv = document.getElementById("debug-text");
     debugDiv.innerHTML = "Robot mode: " + modeKey;
+    backendRobotMode = modeKey;
     
     // This is where the head pose gets set when mode is switched.
 
@@ -496,9 +462,9 @@ function sendIncrementalMove(jointName, jointValueInc) {
 	var pose = {[jointName]: newJointValue}
 	var poseGoal = generatePoseGoal(pose)
 	poseGoal.send()
-	return true
+	return true;
     }
-    return false
+    return false;
 }
 
 function headLookAtGripper(isStarting) {
@@ -554,7 +520,6 @@ function updateBackend() {
     updateHead();
 }
 window.setInterval(updateBackend, backendUpdateFrequency);
-
 
 function armMove(dist, timeout, vel) {
     console.log('attempting to sendarmMove command')

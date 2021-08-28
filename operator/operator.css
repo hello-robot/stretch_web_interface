@@ -20,6 +20,16 @@ video {
   grid-template-rows: 1fr auto 1fr 1fr 1fr;
   height: auto;
   grid-gap: 2px;
+  border: 0px red solid;
+}
+
+.wide_div {
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: auto 1fr 1fr 1fr;
+  height: auto;
+  grid-gap: 2px;
+  border: 0px red solid;
 }
 
 .manip_mode_div {
@@ -27,6 +37,7 @@ video {
   grid-template-columns: 1fr auto 1fr 3fr;
   grid-template-rows: 1fr auto 1fr 1fr 1fr;
   grid-gap: 2px;
+  border: 2px blue solid;
 }
 
 .video_div div {
@@ -85,23 +96,23 @@ video {
   height: 30px;
 }
 
-#nav_do_nothing_region {
+#nav_do_nothing_region, #overhead_nav_do_nothing_region {
     cursor: not-allowed; 
 }
 
-#nav_forward_region {
+#nav_forward_region, #overhead_nav_forward_region {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
-#nav_backward_region {
+#nav_backward_region, #overhead_nav_backward_region {
     cursor: url('down_arrow_medium.png'), auto;
 }
 
-#nav_turn_left_region {
+#nav_turn_left_region, #overhead_nav_turn_left_region {
     cursor: url('left_turn_medium.png'), auto;
 }
 
-#nav_turn_right_region {
+#nav_turn_right_region, #overhead_nav_turn_right_region {
     cursor: url('right_turn_medium.png'), auto;
 }
 
@@ -113,30 +124,56 @@ video {
     cursor: url('rotate_cw.png'), auto;
 }
 
-#manip_down_region {
+#manip_down_region, #gripper_manip_down_region, #gripper_nav_down_region {
     cursor: url('down_arrow_medium.png'), auto;
 }
 
-#manip_up_region {
+#manip_up_region, #gripper_manip_up_region, #gripper_nav_up_region {
     cursor: url('up_arrow_medium.png'), auto;
 }
 
-#manip_extend_region {
+#manip_extend_region, #overhead_manip_arm_extend_region {
     cursor: url('out_arrow.png'), auto;
 }
 
-#manip_retract_region {
+#manip_retract_region, #overhead_manip_arm_retract_region {
     cursor: url('in_arrow.png'), auto;
 }
 
-#manip_base_forward_region {
+#manip_base_forward_region, #overhead_manip_base_forward_region {
     cursor: url('left_arrow_medium.png'), auto; 
 }
 
-#manip_base_backward_region {
+#manip_base_backward_region, #overhead_manip_base_backward_region {
     cursor: url('right_arrow_medium.png'), auto;
 }
 
+#overhead_nav_arm_retract_region {
+    cursor: url('left_arrow_medium.png'), auto;  
+}
+
+#overhead_nav_arm_extend_region {
+    cursor: url('right_arrow_medium.png'), auto;  
+}
+
+#manip_open_region, #gripper_nav_open_region, #gripper_manip_open_region {
+    cursor: url('gripper_open_medium.png'), auto;
+}
+
+#manip_close_region, #gripper_nav_close_region, #gripper_manip_close_region {
+    cursor: url('gripper_close_medium.png'), auto;
+}
+
+#manip_in_region, #gripper_manip_in_region, #gripper_nav_in_region, #overhead_manip_turn_left_region {
+    cursor: url('left_turn_medium.png'), auto;
+}
+
+#manip_out_region, #gripper_manip_out_region, #gripper_nav_out_region, #overhead_manip_turn_right_region {
+    cursor: url('right_turn_medium.png'), auto;
+}
+
+
+/*/////////////////*/
 
 #high_arm_up_region {
     cursor: url('up_arrow_medium.png'), auto;
@@ -160,23 +197,6 @@ video {
 
 #high_arm_base_backward_region {
     cursor: url('right_arrow_medium.png'), auto;
-}
-
-
-#manip_open_region {
-    cursor: url('gripper_open_medium.png'), auto;
-}
-
-#manip_close_region {
-    cursor: url('gripper_close_medium.png'), auto;
-}
-
-#manip_in_region {
-    cursor: url('left_turn_medium.png'), auto;
-}
-
-#manip_out_region {
-    cursor: url('right_turn_medium.png'), auto;
 }
 
 
@@ -231,9 +251,7 @@ video {
 .switch-2 {
   display: inline-block;
   position: relative;
-  /*margin: 20px auto;*/
-  height: 26px; /*26px;*/
-  /* width:  calc(var(--mode-button-width) * 6); */
+  height: 26px;
   width:  calc(var(--mode-button-width) * 5);
   background: rgba(0, 0, 0, 0.25);
   border-radius: 3px;
@@ -278,37 +296,12 @@ video {
 .switch-input {
   display: none;
 }
-.switch-input:checked + .switch-label {
+.switch-input:checked + .switch-label-sm {
   font-weight: bold;
-  color: rgba(255, 255, 255, 1.0);
   text-shadow: 0 1px rgba(255, 255, 255, 0.25);
 /*  transition: 0.15s ease-out; */
   transition: 0.1s ease-out;
 }
-
-.switch-input:checked + .switch-label-nav ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 0);
-}
-
-.switch-input:checked + .switch-label-low_arm ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 1);
-}
-
-.switch-input:checked + .switch-label-high_arm ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 2); 
-}
-
-.switch-input:checked + .switch-label-hand ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 3);
-}
-
-.switch-input:checked + .switch-label-look ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 4);
-}
-
-/* .switch-input:checked + .switch-label-5 ~ .switch-selection { */
-/*     left: calc(var(--mode-button-width) * 5); */
-/* } */
 
 .switch-label-sm {
   position: relative;
@@ -316,12 +309,10 @@ video {
   float: left;
   width: var(--mode-button-width); /*116px;*/
   line-height: 26px; /*26px;*/
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(0, 0, 0, 1.0);
   text-align: center;
   cursor: pointer;
-  font-size: 14px;
-  color: black;
+  font-size: 12px;
   font-family: Trebuchet, Arial, sans-serif;
 }
 
@@ -347,15 +338,32 @@ video {
   z-index: 5;
   top: 0px;
   left: 0px;
-  width: 50px;
-  height: 22px;
+  width: var(--mode-button-width);
+  height: 26px;
   background: transparent;
   border: solid 3px #000000;
   border-radius: 3px;
-  /*background-image: linear-gradient(to bottom, #4fc9ee, #0000ff); /*#3aa2d0);*/
-  /*box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 0 2px rgba(0, 0, 0, 0.2);*/
-  /*transition: left 0.15s ease-out;*/
   transition: left 0.1s ease-out;
+}
+
+.switch-input:checked + .switch-speed-1 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 0);
+}
+
+.switch-input:checked + .switch-speed-2 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 1);
+}
+
+.switch-input:checked + .switch-speed-3 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 2); 
+}
+
+.switch-input:checked + .switch-speed-4 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 3);
+}
+
+.switch-input:checked + .switch-speed-5 ~ .switch-selection {
+    left: calc(var(--mode-button-width) * 4);
 }
 
 .switch-speed-1 {

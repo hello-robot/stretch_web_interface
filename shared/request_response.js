@@ -15,14 +15,67 @@ function respondToRequest(request) {
                 data: processedJointPositions
             });
             break;
+        case "cameraInfo":
+            sendData({
+                type: "response",
+                id: request.id,
+                responseHandler: request.responseHandler,
+                responseType: request.requestType,
+                data: cameraInfo
+            });
+            break;
     }
 }
 
 function receiveResponse(response) {
     switch (response.responseHandler) {
         case "poseManager":
-            poseManager.pending_requests[response.id].handleResponse(response);
+            poseManager.request_response_handler.pending_requests[response.id].handleResponse(response);
             break;
-
+        case "global":
+            globalRequestResponseHandler.pending_requests[response.id].handleResponse(response);
+            break;
     }
 }
+
+class RequestResponseHandler {
+    constructor(name) {
+        this.pending_requests = {};
+        this.name = name;
+    }
+
+    makeRequest(requestType) {
+        let request = new Promise((resolve, reject) => {
+            let id = generateUUID();
+            sendData({
+                type: "request",
+                id: id,
+                requestType: requestType,
+                responseHandler: this.name
+            });
+
+
+            this.pending_requests[id] = {
+                "handleResponse": (state) => {
+                        if (state.responseType === this.pending_requests[id].expectedType) {
+                            resolve(state.data);
+                            delete this.pending_requests[id];
+                        } else {
+                            reject(`Invalid response type ${state.responseType}. Expected: ${this.pending_requests[id].expectedType}`);
+                        }
+                    },
+                "expectedType": requestType
+            };
+        });
+        return request;
+    }
+}
+
+// From: https://stackoverflow.com/a/2117523/6454085
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  

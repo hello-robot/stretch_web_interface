@@ -14,7 +14,6 @@ var objects_sent = [];
 
 var isChannelReady = false;
 var isStarted = false;
-var localStream;
 var pc;
 var remoteStream;
 var displayStream;
@@ -174,24 +173,32 @@ socket.on('webrtc message', function(message) {
 
 ////////////////////////////////////////////////////
 
-
-var panTiltCameraVideo = document.querySelector('#panTiltCameraVideo');
-var navigationVideo = document.querySelector('#navigationVideo');
-var manipulationVideo = document.querySelector('#manipulationVideo');
-
 function maybeStart() {
-    console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+    console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
     if (!isStarted && isChannelReady) {
         console.log('>>>>>> creating peer connection');
         createPeerConnection();
-        if (localStream != undefined) {
-            console.log('adding local media stream to peer connection');
-            pc.addStream(localStream);
-            // Adding by tracks, to be tested
-            //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-        }
         console.log('This peer is the ' + peer_name + '.');
         if (peer_name === 'ROBOT') {
+            if (pantiltStream.localStream != undefined) {
+                console.log('adding local media stream to peer connection');
+                
+                // pc.addStream(pantiltStream.localStream);
+
+                // Adding by tracks, to be tested
+                //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+                let stream = pantiltStream.localStream;
+                let info = {};
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
+                stream = overheadStream.localStream;
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
+                stream = gripperStream.localStream;
+                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
+
+                cameraInfo = {'type':'camerainfo', 'info': info};
+
+            }
             dataConstraint = null;
             dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
             console.log('Creating data channel.');
@@ -218,10 +225,10 @@ function createPeerConnection() {
         pc.onopen = function() {
             console.log('RTC channel opened.');
         };
-        pc.onaddstream = handleRemoteStreamAdded;
+        //pc.onaddstream = handleRemoteStreamAdded;
         pc.onremovestream = handleRemoteStreamRemoved;
         // TODO: Adding things by track, to be tested..
-        // pc.ontrack = handleRemoteTrackAdded;
+        pc.ontrack = handleRemoteTrackAdded;
         console.log('Created RTCPeerConnnection');
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -244,34 +251,65 @@ function handleIceCandidate(event) {
     }
 }
 
+var allRemoteStreams = [];
 function handleRemoteTrackAdded(event) {
-    // TODO: To be tested
     console.log('Remote track added.');
-    const track = e.track;
-    const stream = e.streams[0];
+    const track = event.track;
+    const stream = event.streams[0];
     console.log('got track id=' + track.id, track);
     console.log('stream id=' + stream.id, stream);
+
+    if (peer_name === 'OPERATOR') {
+        console.log('OPERATOR: adding remote tracks');
+        
+        allRemoteStreams.push({'track': track, 'stream': stream});
+        if (cameraInfo) {
+            displayRemoteStream(track, stream);
+        }
+        else{
+            console.log("No camera info yet.");
+        }
+    }
+}
+
+function displayRemoteStream(track, stream) {
+    let thisTrackId = track.id;
+    let thisTrackContent = cameraInfo[track.id];
+    
+    // This is where we would change which view displays which camera stream
+    if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
+        panTiltVideoControl.addRemoteStream(stream);
+    }
+    if (thisTrackContent=="overheadStream" && overheadVideoControl) {
+        overheadVideoControl.addRemoteStream(stream);
+    }
+    if (thisTrackContent=="gripperStream" && gripperVideoControl){
+        gripperVideoControl.addRemoteStream(stream);
+    }
 }
 
 function handleRemoteStreamAdded(event) {
     console.log('Remote stream added.');
     if (peer_name === 'OPERATOR') {
         console.log('OPERATOR: starting to display remote stream');
-        if (panTiltCameraVideo)
-            panTiltCameraVideo.srcObject = event.stream;
-        if (navigationVideo)
-            navigationVideo.srcObject = event.stream;
-        if (manipulationVideo)
-            manipulationVideo.srcObject = event.stream;
-    } else if (peer_name === 'ROBOT') {
+
+        if (panTiltVideoControl)
+            panTiltVideoControl.addRemoteStream(event.stream);
+        if (overheadVideoControl)
+            overheadVideoControl.addRemoteStream(event.stream);
+        if (gripperVideoControl)
+            gripperVideoControl.addRemoteStream(event.stream);
+
+    }
+    else if (peer_name === 'ROBOT') {
         console.log('ROBOT: adding remote audio to display');
         // remove audio tracks from displayStream
-        for (let a of displayStream.getAudioTracks()) {
-            displayStream.removeTrack(a);
+        for (let a of pantiltStream.displayStream.getAudioTracks()) {
+            pantiltStream.displayStream.removeTrack(a);
         }
         var remoteaudio = event.stream.getAudioTracks()[0]; // get remotely captured audio track
-        displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
-	   videoDisplayElement.srcObject = displayStream;
+        pantiltStream.displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
+	    pantiltStream.displayElement.srcObject = pantiltStream.displayStream;
     }
     
     remoteStream = event.stream;
@@ -363,6 +401,8 @@ function sendData(obj) {
 	    console.log('*************************************************************');
 	}
     }
+    // else
+    //     console.log("Cannot send data: ", isStarted, dataChannel);
 }
 
 function closeDataChannels() {
@@ -380,13 +420,14 @@ function dataChannelCallback(event) {
     dataChannel.onclose = onDataChannelStateChange;
 }
 
+var cameraInfo = null;
 function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
         case 'command':
             objects_received.push(obj);
             console.log('Received Data: ' + event.data);
-            //console.log('Received Object: ' + obj);
+            console.log('Received Object: ' + obj);
             executeCommand(obj);
             break;
         case 'sensor':
@@ -416,7 +457,6 @@ function onDataChannelStateChange() {
     var readyState = dataChannel.readyState;
     console.log('Data channel state is: ' + readyState);
     if (readyState === 'open') {
-	runOnOpenDataChannel();
-    } else {
-    }
+    	runOnOpenDataChannel();
+    } 
 }
