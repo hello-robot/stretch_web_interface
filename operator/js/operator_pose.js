@@ -5,7 +5,6 @@ class PoseManager {
         this.db = db;
         this.poseContainerId = poseContainerId;
         this.poses  = {};
-        this.request_response_handler = new RequestResponseHandler('poseManager');
     }
 
     initialize() {
@@ -72,7 +71,7 @@ class PoseManager {
         let description = $("#poseModalDescription").val();
         let id = description.replace(/\s/g, '');
 
-        let fullPose = await this.request_response_handler.makeRequest("jointState");
+        let fullPose = await globalRequestResponseHandler.makeRequest("jointState");
 
         let pose = {};
 

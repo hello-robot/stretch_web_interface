@@ -38,7 +38,11 @@ userController.operator = function(req, res) {
     var file = req.params.file;
     console.log('file', file, operator_root);
     if (isOperator(req)) {
-        res.sendFile(operator_root + "/" + file); 
+        //res.sendFile(operator_root + "/" + file); 
+        //console.log(req);
+        //res.sendFile(__dirname + '/../' + req.originalUrl);
+        //console.log(req.originalUrl, req.params.file);
+        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
     } else {
         res.status(403).send("Not authorized to get " + file); 
     }
@@ -48,7 +52,8 @@ userController.operator = function(req, res) {
 userController.shared = function(req, res) {
     var file = req.params.file;
     if (isOperator(req) || isRobot(req)) {
-        res.sendFile(shared_root + "/" + file); 
+        //res.sendFile(shared_root + "/" + file); 
+        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
     } else {
         res.status(403).send("Not authorized to get " + file); 
     }

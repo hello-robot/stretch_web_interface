@@ -498,7 +498,7 @@ class Region {
             icon.setAttributeNS(null,'id', id);
             icon.setAttributeNS(null,'width', width);
             icon.setAttributeNS('http://www.w3.org/1999/xlink','href',
-                '../images/' + this.iconName + '.png');
+                './images/' + this.iconName + '.png');
             let center = getPolyCenter(this.poly, isConvex)
             icon.setAttributeNS(null,'x', center.x-width/2);
             icon.setAttributeNS(null,'y', center.y-width/2);

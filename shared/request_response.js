@@ -28,14 +28,7 @@ function respondToRequest(request) {
 }
 
 function receiveResponse(response) {
-    switch (response.responseHandler) {
-        case "poseManager":
-            poseManager.request_response_handler.pending_requests[response.id].handleResponse(response);
-            break;
-        case "global":
-            globalRequestResponseHandler.pending_requests[response.id].handleResponse(response);
-            break;
-    }
+    globalRequestResponseHandler.pending_requests[response.id].handleResponse(response);
 }
 
 class RequestResponseHandler {
