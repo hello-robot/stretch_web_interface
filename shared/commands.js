@@ -8,7 +8,8 @@ function setVelocity(newV) {
     db.logEvent("SpeedChange", newV);
   }
   else
-    console.log("Invalid velocity: " + newV);
+    console.error("Invalid velocity: " + newV);
+    console.trace()
 }
 
 // Continuous actions
@@ -391,7 +392,8 @@ function createModeCommands() {
 		    interfaceModifier = 'no_wrist';
 		} else {
 		    if(modifier !== 'none') {
-		    console.log('ERROR: modeCommands modifier unrecognized = ', modifier);
+		    console.error('modeCommands modifier unrecognized = ', modifier);
+            console.trace()
 		    }
 		    interfaceModifier = 'none';
 		}
@@ -416,8 +418,8 @@ function executeCommandBySize(size, command, smallCommandArgs, mediumCommandArgs
         command(...mediumCommandArgs);
         break;
     default:
-        console.log('executeCommandBySize: size unrecognized, so doing nothing');
-        console.log('executeCommandBySize: size = ' + size);
+        console.error('executeCommandBySize: size "' + size + '" unrecognized, so doing nothing');
+        console.trace();
     }
 }
 
@@ -676,5 +678,5 @@ function executeCommand(obj) {
             return;
         }
     }
-    console.log('ERROR: the argument to executeCommand was not a proper command object: ' + obj); 
+    console.error('the argument to executeCommand was not a proper command object: ' + obj); 
 }

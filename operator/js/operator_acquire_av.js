@@ -128,5 +128,6 @@ audioInputSelect.onchange = start;
 audioOutputSelect.onchange = changeAudioDestination;
 
 function handleError(error) {
-    console.log('navigator.getUserMedia error: ', error);
+    console.error('navigator.getUserMedia error: ', error);
+    console.trace();
 }

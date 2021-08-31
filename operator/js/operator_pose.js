@@ -60,6 +60,7 @@ class PoseManager {
             return this.poses.user[id].pose;
         }
         console.error(`No pose with id ${id} found`);
+        console.trace();
     }
 
     async addPose() {

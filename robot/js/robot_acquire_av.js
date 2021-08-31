@@ -57,7 +57,7 @@ function startStreams() {
         navigator.mediaDevices.getUserMedia(constraints).
             then(gotAudioStream).catch(handleError);
     } else {
-        console.log('the robot audio input was not found!');
+        console.warn('the robot audio input was not found!');
     }
 }
 
@@ -148,7 +148,8 @@ class VideoStream {
                         dim.dx, dim.dy, dim.dw, dim.dh);
                 }
                 else
-                    console.log('Unknown mode:',  backendRobotMode);
+                    console.error('Unknown mode:', backendRobotMode);
+                    console.trace();
             }
             else if (this.videoId == "gripperVideo") {
 
@@ -159,7 +160,7 @@ class VideoStream {
 
             }
             else {
-                console.log('Unknown video id:' + this.videoId);
+                console.warn('Unknown video id:' + this.videoId);
                 this.context.drawImage(this.img, 
                     0, 0, this.editedDim.w, this.editedDim.h);
             }
@@ -302,7 +303,7 @@ function findDevices(deviceInfos) {
                     console.log('using this device for robot audio output');
                 break;
             default: 
-                console.log('* unrecognized kind of device * ', d);
+                console.warn('* unrecognized kind of device * ', d);
         }
     }
     
@@ -350,5 +351,6 @@ function gotAudioStream(stream) {
 }
 
 function handleError(error) {
-    console.log('navigator.getUserMedia error: ', error);
+    console.error('navigator.getUserMedia error: ', error);
+    console.trace();
 }

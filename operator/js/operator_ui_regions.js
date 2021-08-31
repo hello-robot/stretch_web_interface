@@ -497,7 +497,7 @@ class Region {
             let icon = document.createElementNS('http://www.w3.org/2000/svg','image');
             icon.setAttributeNS(null,'id', id);
             icon.setAttributeNS(null,'width', width);
-            icon.setAttributeNS('http://www.w3.org/1999/xlink','href', 
+            icon.setAttributeNS('http://www.w3.org/1999/xlink','href',
                 '../images/' + this.iconName + '.png');
             let center = getPolyCenter(this.poly, isConvex)
             icon.setAttributeNS(null,'x', center.x-width/2);
@@ -575,7 +575,8 @@ function setMode(modeId) {
         modeButtonManip.classList.add('btn-info');
     }
     else {
-        console.log('Invalid mode: ' + modeId);
+        console.error('Invalid mode: ' + modeId);
+        console.trace();
     }
 }
 

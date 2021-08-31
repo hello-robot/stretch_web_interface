@@ -123,7 +123,8 @@ class Database {
   handleError(error) {
     var errorCode = error.code;
     var errorMessage = error.message;
-    console.error("Error " + errorCode + ": " + errorMessage);
+    console.error("firebaseError: " + errorCode + ": " + errorMessage);
+    console.trace();
   }
 
   handleAuthStateChange(user) {

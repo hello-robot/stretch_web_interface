@@ -216,17 +216,6 @@ var headSensors = {
 
 		var e_three_space = rosEulerToTHREE(e, 'YZX');
 		threeManager.camera.rotation.copy(e_three_space);
-
-		/*
-		console.log("e_ros_space", e);
-		console.log("q_ros_space", q_ros_space);
-		console.log("q_inverse", q_inverse);
-		console.log("rotated_reference_to_rotation_offset", rotated_reference_to_rotation_offset);
-		console.log("reference_point", reference_point);
-		console.log("rotation_point", rotation_point.clone().multiplyScalar(100));
-		console.log("target_point", target_point);
-		console.log("e_three_space", e_three_space);
-		*/
 	}
 }
 
@@ -271,5 +260,5 @@ function receiveSensorReading(obj) {
         }
     }
 
-    console.log('ERROR: the argument to receiveSensorReading was not a proper command object: ' + obj); 
+    console.error('the argument to receiveSensorReading was not a proper command object: ' + obj); 
 }

@@ -27,7 +27,7 @@ ros.on('connection', function() {
 });
 
 ros.on('error', function(error) {
-    console.log('Error connecting to websocket: ', error);
+    console.error('Error connecting to websocket: ', error);
 });
 
 ros.on('close', function() {
