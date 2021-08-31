@@ -27,7 +27,8 @@ function isOperator(req) {
 userController.robot = function(req, res) {
     var file = req.params.file;
     if (isRobot(req)) {
-        res.sendFile(robot_root + "/" + file); 
+        //res.sendFile(robot_root + "/" + file); 
+        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
     } else {
         res.status(403).send("Not authorized to get " + file); 
     }

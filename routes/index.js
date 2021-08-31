@@ -22,6 +22,8 @@ router.get('/logout', auth.logout);
 
 // route for robot directory
 router.get('/robot/:file', auth.robot);
+router.get('/robot/js/:file', auth.robot);
+router.get('/robot/css/:file', auth.robot);
 
 // route for operator directory
 router.get('/operator/:file', auth.operator);
