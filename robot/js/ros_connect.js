@@ -7,6 +7,7 @@ var commands_sent_wrist = [];
 var rosJointStateReceived = false;
 var jointState = null;
 var isWristFollowingActive = false;
+let inSim = localStorage.getItem('inSim') === "true";
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
@@ -24,6 +25,21 @@ var ros = new ROSLIB.Ros({
 
 ros.on('connection', function() {
     console.log('Connected to websocket.');
+
+    let simTime = new ROSLIB.Param({
+        ros : ros,
+        name :  '/use_sim_time'
+    });
+
+    // Get the value of the max linear speed paramater
+    simTime.get(function(value) {
+        if (value != null) {
+            if (value !== inSim) {
+                localStorage.setItem("inSim", value);
+                location.reload();
+            }
+        }
+    });
 });
 
 ros.on('error', function(error) {

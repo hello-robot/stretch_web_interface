@@ -147,7 +147,6 @@ class VideoStream {
                 }
                 else
                     console.error('Unknown mode:', backendRobotMode);
-                    //console.trace();
             }
             else if (this.videoId == "gripperVideo") {
 
@@ -350,5 +349,4 @@ function gotAudioStream(stream) {
 
 function handleError(error) {
     console.error('navigator.getUserMedia error: ', error);
-    console.trace();
 }

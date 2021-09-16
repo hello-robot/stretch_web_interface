@@ -16,36 +16,12 @@
     <div class='border border-info' id="gripperVideoCanvas"></div>
     <div class='border border-warning' id="pantiltVideoCanvas"></div>
 
-    <div>
-      <div id="simState"></div>
-      <button id="toggleSimState"></button>
-    </div>
 
     <div id="debug-text">
       N/A
     </div>
 
     <link rel="stylesheet" type="text/css" href="./css/robot.css" media="screen" />
-
-    <script type='text/javascript'>
-      var inSim = localStorage.getItem('inSim') == "true" ? true : false;
-
-      if (inSim) {
-        document.getElementById("simState").innerHTML = "You are running in simulation mode";
-        document.getElementById("toggleSimState").textContent = "Switch to physical robot";
-        document.getElementById("toggleSimState").onclick = function () {
-          localStorage.setItem("inSim", false);
-          location.reload();
-        }
-      } else {
-        document.getElementById("simState").innerHTML = "You are running on the physical robot";
-        document.getElementById("toggleSimState").textContent = "Switch to simulation mode";
-        document.getElementById("toggleSimState").onclick = function () {
-          localStorage.setItem("inSim", true);
-          location.reload();
-        }
-      }
-    </script>
 
     <script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
     <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
