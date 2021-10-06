@@ -596,7 +596,7 @@ var strokeOpacity = 0.0;
 var w = videoDimensions.h;
 var h = videoDimensions.w;
 
-// TODO: this camera should be configured from the `camerainfo` response
+// TODO: this camera should be configured from the `streamCameras` response
 var threeManager = new THREEManager(new THREE.PerspectiveCamera(69, w/h, 0.1, 1000), w, h);
 
 var navOverlay = new OverlaySVG('pantiltVideo', 'nav', videoDimensions.h, videoDimensions.w);

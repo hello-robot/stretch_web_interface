@@ -180,25 +180,6 @@ function maybeStart() {
         createPeerConnection();
         console.log('This peer is the ' + peer_name + '.');
         if (peer_name === 'ROBOT') {
-            if (pantiltStream.localStream != undefined) {
-                console.log('adding local media stream to peer connection');
-                
-                // pc.addStream(pantiltStream.localStream);
-
-                // Adding by tracks, to be tested
-                //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-
-                let stream = pantiltStream.localStream;
-                let info = {};
-                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
-                stream = overheadStream.localStream;
-                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
-                stream = gripperStream.localStream;
-                stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
-
-                cameraInfo = {'type':'camerainfo', 'info': info};
-
-            }
             dataConstraint = null;
             dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
             console.log('Creating data channel.');
@@ -267,8 +248,31 @@ function handleRemoteTrackAdded(event) {
             displayRemoteStream(track, stream);
         }
         else{
-            console.log("No camera info yet.");
+            console.error("No camera info yet.");
         }
+    }
+}
+
+function addTracksToPeerConnection() {
+    if (pantiltStream.localStream != undefined) {
+        console.log('adding local media stream to peer connection');
+        
+        // pc.addStream(pantiltStream.localStream);
+
+        // Adding by tracks, to be tested
+        //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+        let stream = pantiltStream.localStream;
+        let info = {};
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
+        stream = overheadStream.localStream;
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
+        stream = gripperStream.localStream;
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
+
+        return {'type':'camerainfo', 'info': info};
+    } else {
+        console.warn('Tracks have already been added')
     }
 }
 

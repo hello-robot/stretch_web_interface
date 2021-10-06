@@ -22,11 +22,10 @@ async function runOnOpenDataChannel() {
 	poseManager = new PoseManager(db, 'robotPoseContainer');
 	poseManager.initialize();
 
-	cameraInfo = (await globalRequestResponseHandler.makeRequest("cameraInfo")).info;
-	
-	for (let i in allRemoteStreams) {
-		displayRemoteStream(allRemoteStreams[i].track, allRemoteStreams[i].stream);
-	}
+	// Request camera information from the robot
+	//  This also triggers it to add all of the camera tracks to the webrtc communication
+	//	Adding the camera tracks triggers handleRemoteTrackAdded and displayRemoteStream to display the streams locally
+	cameraInfo = (await globalRequestResponseHandler.makeRequest("streamCameras")).info;
 }
 
 function checkSettingValue(id){
