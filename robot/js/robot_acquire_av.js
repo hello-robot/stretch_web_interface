@@ -68,9 +68,9 @@ function startStreams() {
 
 var editedFps = 15;
 var handRoll = 0.0;
-var degToRad = (2.0* Math.PI)/360.0;
+const degToRad = (2.0* Math.PI)/360.0;
 
-var overheadStream, gripperStream, pantiltStream;
+let overheadStream, gripperStream, pantiltStream;
 
 class VideoStream {
     constructor(videoId, camDim, editedDim, topicName) {

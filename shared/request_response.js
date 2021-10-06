@@ -16,13 +16,12 @@ function respondToRequest(request) {
             });
             break;
         case "streamCameras":
-            let cInfo = addTracksToPeerConnection();
             sendData({
                 type: "response",
                 id: request.id,
                 responseHandler: request.responseHandler,
                 responseType: request.requestType,
-                data: cInfo
+                data: cameraInfo
             });
             break;
     }

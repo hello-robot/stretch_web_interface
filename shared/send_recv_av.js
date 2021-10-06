@@ -180,6 +180,7 @@ function maybeStart() {
         createPeerConnection();
         console.log('This peer is the ' + peer_name + '.');
         if (peer_name === 'ROBOT') {
+            addTracksToPeerConnection();
             dataConstraint = null;
             dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
             console.log('Creating data channel.');
@@ -232,6 +233,32 @@ function handleIceCandidate(event) {
     }
 }
 
+function addTracksToPeerConnection() {
+    if (pantiltStream.localStream != undefined) {
+        console.log('adding local media stream to peer connection');
+        
+        // pc.addStream(pantiltStream.localStream);
+
+        // Adding by tracks, to be tested
+        //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+        let info = {};
+
+        let stream = pantiltStream.localStream;
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
+
+        stream = overheadStream.localStream;
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
+
+        stream = gripperStream.localStream;
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
+
+        cameraInfo = {'type':'camerainfo', 'info': info};
+    } else {
+        console.warn('Video tracks have not been started')
+    }
+}
+
 var allRemoteStreams = [];
 function handleRemoteTrackAdded(event) {
     console.log('Remote track added.');
@@ -244,41 +271,23 @@ function handleRemoteTrackAdded(event) {
         console.log('OPERATOR: adding remote tracks');
         
         allRemoteStreams.push({'track': track, 'stream': stream});
+        /*
         if (cameraInfo) {
             displayRemoteStream(track, stream);
         }
         else{
             console.error("No camera info yet.");
         }
-    }
-}
-
-function addTracksToPeerConnection() {
-    if (pantiltStream.localStream != undefined) {
-        console.log('adding local media stream to peer connection');
-        
-        // pc.addStream(pantiltStream.localStream);
-
-        // Adding by tracks, to be tested
-        //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-
-        let stream = pantiltStream.localStream;
-        let info = {};
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
-        stream = overheadStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
-        stream = gripperStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
-
-        return {'type':'camerainfo', 'info': info};
-    } else {
-        console.warn('Tracks have already been added')
+        */
     }
 }
 
 function displayRemoteStream(track, stream) {
     let thisTrackId = track.id;
-    let thisTrackContent = cameraInfo[track.id];
+    let thisTrackContent = cameraInfo[thisTrackId];
+
+    console.log('displayRemoteStream: ', thisTrackId, thisTrackContent);
+    console.trace();
     
     // This is where we would change which view displays which camera stream
     if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
@@ -292,6 +301,7 @@ function displayRemoteStream(track, stream) {
     }
 }
 
+/*
 function handleRemoteStreamAdded(event) {
     console.log('Remote stream added.');
     if (peer_name === 'OPERATOR') {
@@ -318,6 +328,7 @@ function handleRemoteStreamAdded(event) {
     
     remoteStream = event.stream;
 }
+*/
 
 function handleCreateOfferError(event) {
     console.log('createOffer() error: ', event);
@@ -380,30 +391,35 @@ function sendData(obj) {
     if (isStarted && (dataChannel.readyState === 'open')) {
 	var data = JSON.stringify(obj);
 	switch(obj.type) {
-	case 'command':
-	    if (recordOn && addToCommandLog) {
-		addToCommandLog(obj);
-	    }
-	    objects_sent.push(obj);
-	    dataChannel.send(data);
-	    console.log('Sent Data: ' + data);
-        break;
-	case 'sensor':
-	    // unless being recorded, don't store or write information to the console due to high
-	    // frequency and large amount of data (analogous to audio and video).
-	    dataChannel.send(data);
-        break;
-    case 'request':
-    case 'response':
-	    dataChannel.send(data);
-        break;
-	default:
-	    console.log('*************************************************************');
-	    console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
-	    console.log('Received Data: ' + event.data);
-	    console.log('Received Object: ' + obj);
-	    console.log('*************************************************************');
-	}
+        case 'command':
+            if (recordOn && addToCommandLog) {
+            addToCommandLog(obj);
+            }
+            objects_sent.push(obj);
+            dataChannel.send(data);
+            console.log('Sent Data: ' + data);
+            break;
+        case 'sensor':
+            // unless being recorded, don't store or write information to the console due to high
+            // frequency and large amount of data (analogous to audio and video).
+            dataChannel.send(data);
+            break;
+        case 'request':
+            dataChannel.send(data);
+            console.log('Sent request: ' + data);
+            break;
+        case 'response':
+            dataChannel.send(data);
+            console.log('Sent response: ' + data);
+            break;
+        default:
+            console.log('*************************************************************');
+            console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...');	
+            console.log('Received Data: ' + data);
+            console.log('Received Object: ' + obj);
+            console.trace();
+            console.log('*************************************************************');
+        }
     }
     // else
     //     console.log("Cannot send data: ", isStarted, dataChannel);
@@ -424,7 +440,7 @@ function dataChannelCallback(event) {
     dataChannel.onclose = onDataChannelStateChange;
 }
 
-var cameraInfo = null;
+let cameraInfo = null;
 function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
