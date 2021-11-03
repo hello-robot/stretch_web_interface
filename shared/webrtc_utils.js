@@ -11,6 +11,7 @@
 
 // If we don't use these anywhere, we might want to get rid of them
 // There is a ton of data being sent, and this is using a lot of ram
+const save_communication = false;
 var objects_received = [];
 var objects_sent = [];
 
@@ -66,81 +67,31 @@ function safelyParseJSON (json) {
 
 /////////////////////////////////////////////
 
-var socket = io.connect();
-
-socket.on('created', function(room) {
-    console.log('Created room ' + room);
-});
-
-socket.on('full', function(room) {
-    console.log('Room ' + room + ' is full');
-});
-
-socket.on('join', function (room){
-    console.log('Another peer made a request to join room ' + room);
-    console.log('This peer is the ' + peer_name + '!');
-    isChannelReady = true;
-    maybeStart();
-});
-
-socket.on('joined', function(room) {
-    console.log('joined: ' + room);
-    isChannelReady = true;
-});
-
-////////////////////////////////////////////////
-
-// all of this is operator only
-if (peer_name === 'OPERATOR') {
-    var robotToControlSelect = document.querySelector('select#robotToControl');
-    robotToControlSelect.onchange = connectToRobot;
-}
-
-function availableRobots() {
-    console.log('asking server what robots are available');
-    socket.emit('what robots are available');
-}
-
-function connectToRobot() {
-    var robot = robotToControlSelect.value;
-    if(robot === 'no robot connected') {
-        console.log('no robot selected');
-        console.log('attempt to hangup');
-        hangup();
-    } else {
-        console.log('attempting to connect to robot =');
-        console.log(robot);
-	requestedRobot = robot;
-        socket.emit('join', robot);
-    }
-}
-
-socket.on('available robots', function(available_robots) {
-    console.log('received response from the server with available robots');
-    console.log('available_robots =');
-    console.log(available_robots);
-
-    // remove any old options
-    while (robotToControlSelect.firstChild) {
-        robotToControlSelect.removeChild(robotToControlSelect.firstChild);
-    }
+function setupSocketIO(socket) {
+    socket.on('created', function(room) {
+        console.log('Created room ' + room);
+    });
     
-    var option = document.createElement('option');
-    option.value = 'no robot connected';
-    option.text = 'no robot connected';
-    robotToControlSelect.appendChild(option);
+    socket.on('full', function(room) {
+        console.log('Room ' + room + ' is full');
+    });
+    
+    socket.on('join', function (room){
+        console.log('Another peer made a request to join room ' + room);
+        console.log('This peer is the ' + peer_name + '!');
+        isChannelReady = true;
+        maybeStart();
+    });
+    
+    socket.on('joined', function(room) {
+        console.log('joined: ' + room);
+        isChannelReady = true;
+    });
+}
 
-    // add all new options
-    for (let r of available_robots) {
-        option = document.createElement('option');
-        option.value = r;
-        option.text = r;
-        robotToControlSelect.appendChild(option);
-    }
-});
 
 ///////////////////////////////////////////////////
-// I think that all of thi needs to run on both, though there are sections that only need one or the other
+// I think that all of this needs to run on both, though there are sections that only need one or the other
 function sendWebRTCMessage(message) {
     console.log('Client sending WebRTC message: ', message);
     socket.emit('webrtc message', message);
@@ -152,11 +103,7 @@ socket.on('webrtc message', function(message) {
     if (message === 'got user media') {
         maybeStart();
     } else if (message.type === 'offer') {
-        if ((peer_name === 'ROBOT') && !isStarted) {
-            maybeStart();
-        } else if ((peer_name === 'OPERATOR') && !isStarted) {
-            maybeStart();
-        }
+        maybeStart();
         pc.setRemoteDescription(new RTCSessionDescription(message));
         doAnswer();
     } else if (message.type === 'answer' && isStarted) {
@@ -234,107 +181,6 @@ function handleIceCandidate(event) {
     }
 }
 
-// this only needs to run on the robot
-function addTracksToPeerConnection() {
-    if (pantiltStream.localStream != undefined) {
-        console.log('adding local media stream to peer connection');
-        
-        // pc.addStream(pantiltStream.localStream);
-
-        // Adding by tracks, to be tested
-        //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-
-        let info = {};
-
-        let stream = pantiltStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "pantiltStream";});
-
-        stream = overheadStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "overheadStream";});
-
-        stream = gripperStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "gripperStream";});
-
-        cameraInfo = {'type':'camerainfo', 'info': info};
-    } else {
-        console.warn('Video tracks have not been started')
-    }
-}
-
-// This only needs to run on the operator, but it might cause errors if the robot doesn't have access to it
-var allRemoteStreams = [];
-function handleRemoteTrackAdded(event) {
-    console.log('Remote track added.');
-    const track = event.track;
-    const stream = event.streams[0];
-    console.log('got track id=' + track.id, track);
-    console.log('stream id=' + stream.id, stream);
-
-    if (peer_name === 'OPERATOR') {
-        console.log('OPERATOR: adding remote tracks');
-        
-        allRemoteStreams.push({'track': track, 'stream': stream});
-        /*
-        if (cameraInfo) {
-            displayRemoteStream(track, stream);
-        }
-        else{
-            console.error("No camera info yet.");
-        }
-        */
-    }
-}
-
-// This is definitely used only by the operator
-function displayRemoteStream(stream) {
-    let thisTrackContent = cameraInfo[stream.id];
-
-    //console.log('displayRemoteStream: ', stream.id, thisTrackContent);
-    //console.trace();
-    
-    // This is where we would change which view displays which camera stream
-    if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
-        panTiltVideoControl.addRemoteStream(stream);
-    }
-    if (thisTrackContent=="overheadStream" && overheadVideoControl) {
-        overheadVideoControl.addRemoteStream(stream);
-    }
-    if (thisTrackContent=="gripperStream" && gripperVideoControl){
-        gripperVideoControl.addRemoteStream(stream);
-    }
-}
-
-/*
-function handleRemoteStreamAdded(event) {
-    console.log('Remote stream added.');
-    if (peer_name === 'OPERATOR') {
-        console.log('OPERATOR: starting to display remote stream');
-
-        if (panTiltVideoControl)
-            panTiltVideoControl.addRemoteStream(event.stream);
-        if (overheadVideoControl)
-            overheadVideoControl.addRemoteStream(event.stream);
-        if (gripperVideoControl)
-            gripperVideoControl.addRemoteStream(event.stream);
-
-    }
-    else if (peer_name === 'ROBOT') {
-        console.log('ROBOT: adding remote audio to display');
-        // remove audio tracks from displayStream
-        for (let a of pantiltStream.displayStream.getAudioTracks()) {
-            pantiltStream.displayStream.removeTrack(a);
-        }
-        var remoteaudio = event.stream.getAudioTracks()[0]; // get remotely captured audio track
-        pantiltStream.displayStream.addTrack(remoteaudio); // add remotely captured audio track to the local display
-	    pantiltStream.displayElement.srcObject = pantiltStream.displayStream;
-    }
-    
-    remoteStream = event.stream;
-}
-*/
-
-/* Everything below here is used by operator and robot */
-
 function handleCreateOfferError(event) {
     console.log('createOffer() error: ', event);
 }
@@ -400,7 +246,8 @@ function sendData(obj) {
             if (recordOn && addToCommandLog) {
             addToCommandLog(obj);
             }
-            objects_sent.push(obj);
+            if (save_communication)
+                objects_sent.push(obj);
             dataChannel.send(data);
             console.log('Sent Data: ' + data);
             break;
@@ -450,7 +297,8 @@ function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
         case 'command':
-            objects_received.push(obj);
+            if (save_communication)
+                objects_received.push(obj);
             console.log('Received Data: ' + event.data);
             console.log('Received Object: ' + obj);
             executeCommand(obj);
