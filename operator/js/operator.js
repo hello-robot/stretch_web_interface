@@ -27,7 +27,8 @@ async function runOnOpenDataChannel() {
 	cameraInfo = (await globalRequestResponseHandler.makeRequest("streamCameras")).info;
 
 	allRemoteStreams.forEach(({track, stream}) => {
-		displayRemoteStream(track, stream);
+		displayRemoteStream(
+			stream);
 	});
 }
 

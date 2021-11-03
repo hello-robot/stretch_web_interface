@@ -18,9 +18,7 @@ navigator.mediaDevices.enumerateDevices().then(findDevices).catch(handleError);
 
 function startStreams() {
 
-    const videoTopicName = inSim ? '/realsense/color/image_raw/compressed':
-                                    '/camera/color/image_raw/compressed';
-    pantiltStream = new PanTiltVideoStream("pantiltVideo", videoTopicName);
+    pantiltStream = new PanTiltVideoStream("pantiltVideo", '/camera/color/image_raw/compressed');
 
     overheadStream = new WideAngleVideoStream("overheadVideo",
         '/navigation_camera/image_raw/compressed');
@@ -149,7 +147,7 @@ class VideoStream {
                 }
                 else
                     console.error('Unknown mode:', backendRobotMode);
-                    console.trace();
+                    //console.trace();
             }
             else if (this.videoId == "gripperVideo") {
 

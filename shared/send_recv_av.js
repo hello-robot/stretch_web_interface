@@ -245,13 +245,13 @@ function addTracksToPeerConnection() {
         let info = {};
 
         let stream = pantiltStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "pantiltStream";});
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "pantiltStream";});
 
         stream = overheadStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "overheadStream";});
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "overheadStream";});
 
         stream = gripperStream.localStream;
-        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[t.id] = "gripperStream";});
+        stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "gripperStream";});
 
         cameraInfo = {'type':'camerainfo', 'info': info};
     } else {
@@ -282,12 +282,11 @@ function handleRemoteTrackAdded(event) {
     }
 }
 
-function displayRemoteStream(track, stream) {
-    let thisTrackId = track.id;
-    let thisTrackContent = cameraInfo[thisTrackId];
+function displayRemoteStream(stream) {
+    let thisTrackContent = cameraInfo[stream.id];
 
-    console.log('displayRemoteStream: ', thisTrackId, thisTrackContent);
-    console.trace();
+    //console.log('displayRemoteStream: ', stream.id, thisTrackContent);
+    //console.trace();
     
     // This is where we would change which view displays which camera stream
     if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
