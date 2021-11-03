@@ -443,7 +443,7 @@ class OverlayTHREE extends Overlay {
 
     enable() {
         this.enabled = true;
-        this.threeManager.animate(doonce=true);
+        this.threeManager.animate(true);
     }
 }
 

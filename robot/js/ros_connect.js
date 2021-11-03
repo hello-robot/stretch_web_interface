@@ -60,7 +60,7 @@ ros.on('close', function() {
 
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
-    name : inSim ? '/joint_states/' : '/stretch/joint_states/',
+    name : '/stretch/joint_states/',
     messageType : 'sensor_msgs/JointState'
 });
 
@@ -186,7 +186,7 @@ if (inSim) {
 
     trajectoryClients.base = new ROSLIB.Topic({
         ros: ros,
-        name: '/stretch_diff_drive_controller/cmd_vel',
+        name: '/stretch/cmd_vel',
         messageType: 'geometry_msgs/Twist'
     })
 }
@@ -327,7 +327,6 @@ function generatePoseGoal(pose) {
         }
         return {"send": function() {
                 poseGoals.forEach(function(goal) {
-                    console.log(goal)
                     goal.send();
                 });
             }
@@ -456,13 +455,13 @@ function getJointValue(jointStateMessage, jointName) {
 function sendIncrementalMove(jointName, jointValueInc) {
     console.log('sendIncrementalMove start: jointName =' + jointName)
     if (jointState !== null) {
-	var newJointValue = getJointValue(jointState, jointName)
-	newJointValue = newJointValue + jointValueInc
-	console.log('poseGoal call: jointName =' + jointName)
-	var pose = {[jointName]: newJointValue}
-	var poseGoal = generatePoseGoal(pose)
-	poseGoal.send()
-	return true;
+        var newJointValue = getJointValue(jointState, jointName)
+        newJointValue = newJointValue + jointValueInc
+        console.log('poseGoal call: jointName =' + jointName)
+        var pose = {[jointName]: newJointValue}
+        var poseGoal = generatePoseGoal(pose)
+        poseGoal.send()
+        return true;
     }
     return false;
 }
