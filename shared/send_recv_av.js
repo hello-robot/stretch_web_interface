@@ -1,5 +1,3 @@
-
-//
 //
 // initial code retrieved from the following link on 9/13/2017
 // https://github.com/googlecodelabs/webrtc-web/blob/master/step-05/js/main.js
@@ -9,6 +7,10 @@
 
 'use strict';
 
+// Most of this should be on both, though some variables should only be one
+
+// If we don't use these anywhere, we might want to get rid of them
+// There is a ton of data being sent, and this is using a lot of ram
 var objects_received = [];
 var objects_sent = [];
 
@@ -61,8 +63,6 @@ function safelyParseJSON (json) {
 
     return parsed; // Could be undefined!
 }
-////////////////////////////////////////////////////////////
-
 
 /////////////////////////////////////////////
 
@@ -90,6 +90,7 @@ socket.on('joined', function(room) {
 
 ////////////////////////////////////////////////
 
+// all of this is operator only
 if (peer_name === 'OPERATOR') {
     var robotToControlSelect = document.querySelector('select#robotToControl');
     robotToControlSelect.onchange = connectToRobot;
@@ -139,7 +140,7 @@ socket.on('available robots', function(available_robots) {
 });
 
 ///////////////////////////////////////////////////
-
+// I think that all of thi needs to run on both, though there are sections that only need one or the other
 function sendWebRTCMessage(message) {
     console.log('Client sending WebRTC message: ', message);
     socket.emit('webrtc message', message);
@@ -233,6 +234,7 @@ function handleIceCandidate(event) {
     }
 }
 
+// this only needs to run on the robot
 function addTracksToPeerConnection() {
     if (pantiltStream.localStream != undefined) {
         console.log('adding local media stream to peer connection');
@@ -259,6 +261,7 @@ function addTracksToPeerConnection() {
     }
 }
 
+// This only needs to run on the operator, but it might cause errors if the robot doesn't have access to it
 var allRemoteStreams = [];
 function handleRemoteTrackAdded(event) {
     console.log('Remote track added.');
@@ -282,6 +285,7 @@ function handleRemoteTrackAdded(event) {
     }
 }
 
+// This is definitely used only by the operator
 function displayRemoteStream(track, stream) {
     let thisTrackId = track.id;
     let thisTrackContent = cameraInfo[thisTrackId];
@@ -329,6 +333,8 @@ function handleRemoteStreamAdded(event) {
     remoteStream = event.stream;
 }
 */
+
+/* Everything below here is used by operator and robot */
 
 function handleCreateOfferError(event) {
     console.log('createOffer() error: ', event);
