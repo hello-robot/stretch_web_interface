@@ -87,6 +87,28 @@ function setupSocketIO(socket) {
         console.log('joined: ' + room);
         isChannelReady = true;
     });
+
+    // This client receives a message
+    socket.on('webrtc message', function(message) {
+        console.log('Client received message:', message);
+        if (message === 'got user media') {
+            maybeStart();
+        } else if (message.type === 'offer') {
+            maybeStart();
+            pc.setRemoteDescription(new RTCSessionDescription(message));
+            doAnswer();
+        } else if (message.type === 'answer' && isStarted) {
+            pc.setRemoteDescription(new RTCSessionDescription(message));
+        } else if (message.type === 'candidate' && isStarted) {
+            var candidate = new RTCIceCandidate({
+                sdpMLineIndex: message.label,
+                candidate: message.candidate
+            });
+            pc.addIceCandidate(candidate);
+        } else if (message === 'bye' && isStarted) {
+            handleRemoteHangup();
+        }
+    });
 }
 
 
@@ -97,27 +119,6 @@ function sendWebRTCMessage(message) {
     socket.emit('webrtc message', message);
 }
 
-// This client receives a message
-socket.on('webrtc message', function(message) {
-    console.log('Client received message:', message);
-    if (message === 'got user media') {
-        maybeStart();
-    } else if (message.type === 'offer') {
-        maybeStart();
-        pc.setRemoteDescription(new RTCSessionDescription(message));
-        doAnswer();
-    } else if (message.type === 'answer' && isStarted) {
-        pc.setRemoteDescription(new RTCSessionDescription(message));
-    } else if (message.type === 'candidate' && isStarted) {
-        var candidate = new RTCIceCandidate({
-            sdpMLineIndex: message.label,
-            candidate: message.candidate
-        });
-        pc.addIceCandidate(candidate);
-    } else if (message === 'bye' && isStarted) {
-        handleRemoteHangup();
-    }
-});
 
 ////////////////////////////////////////////////////
 
@@ -155,14 +156,14 @@ function createPeerConnection() {
         pc.onopen = function() {
             console.log('RTC channel opened.');
         };
-        //pc.onaddstream = handleRemoteStreamAdded;
+
         pc.onremovestream = handleRemoteStreamRemoved;
-        // TODO: Adding things by track, to be tested..
+        
         pc.ontrack = handleRemoteTrackAdded;
+
         console.log('Created RTCPeerConnnection');
     } catch (e) {
-        console.log('Failed to create PeerConnection, exception: ' + e.message);
-        alert('Cannot create RTCPeerConnection object.');
+        console.error('Failed to create PeerConnection, exception: ' + e.message);
         return;
     }
 }

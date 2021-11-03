@@ -28,3 +28,8 @@ function addTracksToPeerConnection() {
         console.warn('Video tracks have not been started')
     }
 }
+
+
+function handleRemoteTrackAdded(event) {
+    console.warn("The operator should not be adding any tracks:", event);
+}
