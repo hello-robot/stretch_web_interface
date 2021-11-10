@@ -92,13 +92,15 @@ sudo ./web_interface_installation.sh
 
 WARNING: The script uninstalls tornado using pip to avoid a rosbridge websocket immediate disconnection issue. This could break other software on your robot.
 
-If firebase access is needed:
+ <!---
+To setup firebase:
 
 Create a new file
 ```
 shared/database.config.js
 ```
-Copy the data from `StretchTeleop: Password` in the [lab wiki](https://github.com/hcrlab/private_wiki/wiki/Lab-account-login-information) into that file.
+Copy the data from `StretchTeleop Firebase: Password` in the [lab wiki](https://github.com/hcrlab/private_wiki/wiki/Lab-account-login-information) into that file.
+--->
 
 <a name="quick"/>
 
