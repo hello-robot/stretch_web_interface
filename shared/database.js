@@ -1,6 +1,5 @@
-
-var config = {
-  apiKey: "AIzaSyAJxcCk9Wp9GtFcveVTG_jgQgGbaUlruJA",
+const config = {
+  apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",
   authDomain: "stretchteleop.firebaseapp.com",
   databaseURL: "https://stretchteleop.firebaseio.com",
   projectId: "stretchteleop",
@@ -54,6 +53,7 @@ class Database {
   initialize() {
       this.app = firebase.initializeApp(this.config);
 
+      if (typeof firebaseApiKey !== 'undefined') {
       /*
        * This callback syntax is necessary to access
        * `this` from the callback function.
@@ -67,6 +67,7 @@ class Database {
       // }, 500);
 
       //this.signInWithGoogle();
+      }
   }
   
   /*
@@ -175,6 +176,9 @@ class Database {
   }
   
   logEvent(eventName, eventInfo) {
+    if (typeof this.config == 'undefined') {
+      return;
+    }
     if (this.isLogging) {
       var eventLog = {};
       if (eventInfo == undefined)

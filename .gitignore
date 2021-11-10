@@ -11,3 +11,6 @@ node_modules
 
 # VS Code related
 .vscode/
+
+# Environment variables
+shared/database.config.js
