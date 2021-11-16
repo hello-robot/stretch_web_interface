@@ -178,34 +178,9 @@ function sendTfs() {
 var trajectoryClients = {};
 trajectoryClients.main = new ROSLIB.ActionClient({
     ros : ros,
-    serverName : inSim ? '/stretch_joint_state_controller/follow_joint_trajectory' : '/stretch_controller/follow_joint_trajectory',
+    serverName : '/stretch_controller/follow_joint_trajectory',
     actionName : 'control_msgs/FollowJointTrajectoryAction'
 });
-if (inSim) {
-    trajectoryClients.head = new ROSLIB.ActionClient({
-        ros : ros,
-        serverName : '/stretch_head_controller/follow_joint_trajectory',
-        actionName : 'control_msgs/FollowJointTrajectoryAction'
-    });
-
-    trajectoryClients.arm = new ROSLIB.ActionClient({
-        ros : ros,
-        serverName : '/stretch_arm_controller/follow_joint_trajectory',
-        actionName : 'control_msgs/FollowJointTrajectoryAction'
-    });
-
-    trajectoryClients.gripper = new ROSLIB.ActionClient({
-        ros : ros,
-        serverName : '/stretch_gripper_controller/follow_joint_trajectory',
-        actionName : 'control_msgs/FollowJointTrajectoryAction'
-    });
-
-    trajectoryClients.base = new ROSLIB.Topic({
-        ros: ros,
-        name: '/stretch/cmd_vel',
-        messageType: 'geometry_msgs/Twist'
-    })
-}
 
 function generatePoseGoal(pose) {
 
@@ -223,131 +198,45 @@ function generatePoseGoal(pose) {
     	jointPositions.push(pose[key])
     }
 
-    if (!inSim) {
-        var newGoal = new ROSLIB.Goal({
-            actionClient : trajectoryClients.main,
-            goalMessage : {
-                trajectory : {
+
+    var newGoal = new ROSLIB.Goal({
+        actionClient : trajectoryClients.main,
+        goalMessage : {
+            trajectory : {
+                header: {
+                    stamp: {
+                        secs: 0,
+                        nsecs: 0
+                    }
+                },
                 joint_names : jointNames,
                 points : [
                     {
                     positions : jointPositions,
                     // The following might causing the jumpiness in continuous motions
-                    /*
                     time_from_start: {
                         secs: 0,
                         nsecs: 1
                     }
-                    */
+
                     }
                 ]
-                }
-            }
-        });
-
-        console.log('newGoal created =' + newGoal)
-        
-        newGoal.on('feedback', function(feedback) {
-            console.log('Feedback: ' + feedback.sequence);
-        });
-        
-        newGoal.on('result', function(result) {
-            console.log('Final Result: ' + result.sequence);
-        });
-        
-        return newGoal
-    } else {
-        var poseGoals = [];
-        for (var i = 0; i < jointNames.length; i++) {
-            var jointGoal = {};
-            switch (jointNames[i]) {
-                case 'joint_head_tilt':
-                case 'joint_head_pan':
-                    jointGoal.client = trajectoryClients.head;
-                    jointGoal.names = [jointNames[i]];
-                    jointGoal.positions = [jointPositions[i]]; 
-                    break;
-                case 'joint_gripper_finger_left':
-                    jointGoal.client = trajectoryClients.gripper;
-                    jointGoal.names = ['joint_gripper_finger_left', 'joint_gripper_finger_right'];
-                    jointGoal.positions = [jointPositions[i], jointPositions[i]];
-                    break;
-                case 'wrist_extension':
-                    jointGoal.client = trajectoryClients.arm;
-                    jointGoal.names = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'];
-                    jointGoal.positions = [jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4, jointPositions[i]/4];
-                    break;
-                case 'joint_lift':
-                case 'joint_wrist_yaw':
-                    jointGoal.client = trajectoryClients.arm;
-                    jointGoal.names = [jointNames[i]];
-                    jointGoal.positions = [jointPositions[i]]; 
-                    break;
-                case 'translate_mobile_base':
-                    jointGoal.client = trajectoryClients.base;
-                    var translate = new ROSLIB.Message({
-                        linear : {
-                        x : jointPositions[i]*10,
-                        y : 0.0,
-                        z : 0.0
-                        },
-                        angular : {
-                        x : 0.0,
-                        y : 0.0,
-                        z : 0.0
-                        }
-                    });
-                    jointGoal.message = translate;
-                    break;
-                case 'rotate_mobile_base':
-                    jointGoal.client = trajectoryClients.base;
-                    var rotate = new ROSLIB.Message({
-                        linear : {
-                        x : 0.0,
-                        y : 0.0,
-                        z : 0.0
-                        },
-                        angular : {
-                        x : 0.0,
-                        y : 0.0,
-                        z : jointPositions[i]*10
-                        }
-                    });
-                    jointGoal.message = rotate;
-                    break;
-            }
-
-            if (!jointGoal.message) {
-                poseGoals.push(new ROSLIB.Goal({
-                    actionClient : jointGoal.client,
-                    goalMessage : {
-                        trajectory : {
-                        joint_names : jointGoal.names,
-                        points : [
-                            {
-                            positions : jointGoal.positions,
-                            time_from_start: {
-                                secs: 0,
-                                nsecs: 1
-                            }
-                            }
-                        ]
-                        }
-                    }
-                }));
-            } else {
-                poseGoals.push({"send": function() {
-                    jointGoal.client.publish(jointGoal.message);
-                }});
             }
         }
-        return {"send": function() {
-                poseGoals.forEach(function(goal) {
-                    goal.send();
-                });
-            }
-        }
-    }
+    });
+
+    console.log('newGoal created =' + newGoal)
+
+    newGoal.on('feedback', function(feedback) {
+        console.log('Feedback: ' + feedback.sequence);
+    });
+
+    newGoal.on('result', function(result) {
+        console.log('Final Result: ' + result.sequence);
+    });
+
+    return newGoal
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
