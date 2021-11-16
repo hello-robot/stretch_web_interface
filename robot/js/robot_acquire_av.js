@@ -13,18 +13,19 @@
  */
 
 'use strict';
-
+let debug = false;
 navigator.mediaDevices.enumerateDevices().then(findDevices).catch(handleError);
 
 function startStreams() {
 
     pantiltStream = new PanTiltVideoStream("pantiltVideo", '/camera/color/image_raw/compressed');
+    pantiltStream = new PanTiltVideoStream("pantiltVideo", videoDimensions, '/camera/color/image_raw/compressed');
 
     overheadStream = new WideAngleVideoStream("overheadVideo",
-        '/navigation_camera/image_raw/compressed');
+        '/navigation_camera/image_raw/compressed', wideVideoDimensions.overheadNavCropDim);
 
     gripperStream = new WideAngleVideoStream("gripperVideo",
-        '/gripper_camera/image_raw/compressed');
+        '/gripper_camera/image_raw/compressed', wideVideoDimensions.gripperCropDim);
 
     pantiltStream.start();
     overheadStream.start();
@@ -32,9 +33,9 @@ function startStreams() {
 
     // For debugging
     if (debug){
-        window.setInterval(pantiltImageCallback, 1000);
-        window.setInterval(overheadImageCallback, 1000);
-        window.setInterval(gripperImageCallback, 1000);
+        window.setInterval(pantiltStream.imageCallback, 1000);
+        window.setInterval(overheadStream.imageCallback, 1000);
+        window.setInterval(gripperStream.imageCallback, 1000);
     }
 
     // Audio stuff
@@ -71,20 +72,20 @@ const degToRad = (2.0* Math.PI)/360.0;
 let overheadStream, gripperStream, pantiltStream;
 
 class VideoStream {
-    constructor(videoId, camDim, editedDim, topicName) {
+    constructor(videoId, camDim, topicName) {
         this.videoId = videoId;
         this.camDim = camDim;
-        this.editedDim = editedDim;
+
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute("class", 'border border-warning');        
-        this.canvas.width = editedDim.w;
-        this.canvas.height = editedDim.h;
+        this.canvas.width = this.camDim.w;
+        this.canvas.height = this.camDim.h;
         this.displayElement = document.getElementById(videoId);
         this.displayElement.setAttribute("width", camDim.w);        
         this.displayElement.setAttribute("height", camDim.h);
         this.context = this.canvas.getContext('2d');
         this.context.fillStyle="pink";
-        this.context.fillRect(0, 0, editedDim.w, editedDim.h);
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.localStream = null;
         this.displayStream = null;
@@ -96,9 +97,9 @@ class VideoStream {
             name : topicName,
             messageType : 'sensor_msgs/CompressedImage'
         });
-        this.img = document.createElement("IMG");
-        this.img.style.visibility = 'hidden';
-        // this.img.setAttribute('crossOrigin', '');
+        // We won't add this to the DOM, but you may want to if you need to see the raw images for debugging
+        this.img = document.createElement("img")
+        //document.body.append(this.img)
 
         let canvasDisplay = document.getElementById(videoId + 'Canvas');
         if (canvasDisplay)
@@ -110,57 +111,23 @@ class VideoStream {
     }
 
     renderVideo() {
-        if (this.imageReceived == true) {
-            if (this.videoId == "pantiltVideo") {
-                // Just rotate
-                const rotation = 90.0 * degToRad;
-                this.context.fillStyle="black";
-                this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
-                this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
-                this.context.rotate(rotation);
-                this.context.drawImage(this.img, 
-                    -this.camDim.w/2, -this.camDim.h/2, 
-                    this.camDim.w, this.camDim.h);
-                this.context.rotate(-rotation);
-                this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
-            }
-            else if (this.videoId == "overheadVideo") {
+        if (!this.imageReceived) {
+            console.info("Not rendering because no image has been received yet")
+            return;
+        }
+        this.context.drawImage(this.img,
+            0, 0, this.camDim.w, this.camDim.h);
 
-                if (backendRobotMode == 'nav'){
-                    let dim = wideVideoDimensions.overheadNavCropDim;
-                    const rotation = 90.0 * degToRad;
-                    this.context.fillStyle="black";
-                    this.context.fillRect(0, 0, this.editedDim.w, this.editedDim.h);
-                    this.context.translate(this.editedDim.w/2, this.editedDim.h/2);
-                    this.context.rotate(rotation);
-                    this.context.drawImage(this.img, 
-                        -this.camDim.w/2, -this.camDim.h/2, 
-                        this.camDim.w, this.camDim.h);
-                    this.context.rotate(-rotation);
-                    this.context.translate(-this.editedDim.w/2, -this.editedDim.h/2);
-                }
-                else if (backendRobotMode == 'manip') {
-                    let dim = wideVideoDimensions.overheadManipCropDim;
-                    this.context.drawImage(this.img, 
-                        dim.sx, dim.sy, dim.sw, dim.sh,
-                        dim.dx, dim.dy, dim.dw, dim.dh);
-                }
-                else
-                    console.error('Unknown mode:', backendRobotMode);
-            }
-            else if (this.videoId == "gripperVideo") {
+    }
 
-                let dim = wideVideoDimensions.gripperCropDim;
-                this.context.drawImage(this.img, 
-                    dim.sx, dim.sy, dim.sw, dim.sh,
-                    dim.dx, dim.dy, dim.dw, dim.dh);
-
-            }
-            else {
-                console.warn('Unknown video id:' + this.videoId);
-                this.context.drawImage(this.img, 
-                    0, 0, this.editedDim.w, this.editedDim.h);
-            }
+    imageCallback(message) {
+        if (debug)
+            this.img.src = 'dummy_overhead.png';
+        else
+            this.img.src = 'data:image/jpg;base64,' + message.data;
+        if (this.imageReceived === false) {
+            console.log('Received first compressed image from ROS topic ' + this.topic.name);
+            this.imageReceived = true;
         }
     }
 
@@ -171,98 +138,92 @@ class VideoStream {
             this.displayStream.removeTrack(a);
         }
         this.localStream = new MediaStream(this.editedVideoStream);
-        this.displayElement.srcObject = this.displayStream; // display the stream    
-    
-        this.drawVideo(); 
+        this.displayElement.srcObject = this.displayStream; // display the stream
+
+        this.drawVideo();
     }
 }
 
 
 class PanTiltVideoStream extends VideoStream {
-    constructor(videoId, topicName) {
-        let camDim = {w:videoDimensions.w, h:videoDimensions.h};
-        let editedDim = {w:camDim.h, h:camDim.w};
-        super(videoId, camDim, editedDim, topicName);
-        this.topic.subscribe(pantiltImageCallback);
+    constructor(videoId, dimensions, topicName) {
+        let rotatedDim = {w:dimensions.h, h:dimensions.w};
+        super(videoId, rotatedDim, topicName);
+        this.topic.subscribe(this.imageCallback.bind(this));
     }
 
     drawVideo() {
         this.renderVideo();
-        requestAnimationFrame(drawPantiltStream);
+        requestAnimationFrame(this.drawVideo.bind(this));
+    }
+
+    renderVideo() {
+        if (!this.imageReceived) {
+            console.info("Not rendering because no image has been received yet for " + this.videoId)
+            return;
+        }
+        // Just rotate
+        const rotation = 90.0 * degToRad;
+        this.context.fillStyle="black";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.rotate(rotation);
+        this.context.drawImage(this.img,
+            0, -this.canvas.width,
+            this.canvas.height, this.canvas.width);
+        this.context.rotate(-rotation);
     }
 }
 
 class WideAngleVideoStream extends VideoStream {
-    constructor(videoId, topicName) {
-        let wideCamDim = {w:wideVideoDimensions.w, 
-            h:wideVideoDimensions.h};
-        let wideEditedDim = {w:wideVideoDimensions.w, 
-            h:wideVideoDimensions.h};
+    constructor(videoId, topicName, crop) {
+        let wideCamDim = {w:crop.dw,
+            h:crop.dh};
 
-        if (videoId == "gripperVideo"){
-            super(videoId, wideCamDim, wideCamDim, topicName);
-            this.topic.subscribe(gripperImageCallback);
+        super(videoId, wideCamDim, topicName);
+        this.crop = crop;
+        this.topic.subscribe(this.imageCallback.bind(this));
+
+    }
+
+    renderVideo() {
+        if (!this.imageReceived) {
+            console.info("Not rendering because no image has been received yet for " + this.videoId)
+            return;
         }
-        else if (videoId == "overheadVideo") {
-            super(videoId, wideCamDim, wideCamDim, topicName);
-            this.topic.subscribe(overheadImageCallback);
+        if (this.videoId == "overheadVideo") {
+            if (backendRobotMode == 'nav'){
+                const rotation = 90.0 * degToRad;
+                this.context.fillStyle="black";
+                this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.context.translate(this.camDim.w/2, this.camDim.h/2);
+                this.context.rotate(rotation);
+                this.context.drawImage(this.img,
+                    -this.camDim.w/2, -this.camDim.h/2,
+                    this.camDim.w, this.camDim.h);
+                this.context.rotate(-rotation);
+                this.context.translate(-this.camDim.w/2, -this.camDim.h/2);
+            }
+            else if (backendRobotMode == 'manip') {
+                let dim = this.crop
+                this.context.drawImage(this.img,
+                    dim.sx, dim.sy, dim.sw, dim.sh,
+                    dim.dx, dim.dy, dim.dw, dim.dh);
+            }
+            else {
+                console.error('Unknown mode:', backendRobotMode);
+            }
+        }
+        else if (this.videoId == "gripperVideo") {
+            let dim = this.crop
+            this.context.drawImage(this.img,
+                dim.sx, dim.sy, dim.sw, dim.sh,
+                dim.dx, dim.dy, dim.dw, dim.dh);
         }
     }
 
     drawVideo() {
         this.renderVideo();
-        if (this.videoId == "gripperVideo") {
-            requestAnimationFrame(drawGripperStream);
-        }
-        else if (this.videoId == "overheadVideo") {
-            requestAnimationFrame(drawOverheadStream);
-        }
-    }
-}
-
-function drawPantiltStream() {
-    pantiltStream.drawVideo();
-}
-
-function drawGripperStream() {
-    gripperStream.drawVideo();
-}
-
-function drawOverheadStream() {
-    overheadStream.drawVideo();
-}
-
-var debug = false;
-function pantiltImageCallback(message) {
-    if (debug)
-        pantiltStream.img.src = 'dummy_pantilt.png';    
-    else
-        pantiltStream.img.src = 'data:image/jpg;base64,' + message.data;
-    if (pantiltStream.imageReceived === false) {
-        console.log('Received first compressed image from ROS topic ' + pantiltStream.topic.name);
-        pantiltStream.imageReceived = true;
-    }
-}
-
-function gripperImageCallback(message) {
-    if (debug)
-        gripperStream.img.src = 'dummy_gripper.png';
-    else
-        gripperStream.img.src = 'data:image/jpg;base64,' + message.data;
-    if (gripperStream.imageReceived === false) {
-        console.log('Received first compressed image from ROS topic ' + gripperStream.topic.name);
-        gripperStream.imageReceived = true;
-    }
-}
-
-function overheadImageCallback(message) {
-    if (debug)
-        overheadStream.img.src = 'dummy_overhead.png';
-    else
-        overheadStream.img.src = 'data:image/jpg;base64,' + message.data;
-    if (overheadStream.imageReceived === false) {
-        console.log('Received first compressed image from ROS topic ' + overheadStream.topic.name);
-        overheadStream.imageReceived = true;
+        requestAnimationFrame(this.drawVideo.bind(this));
     }
 }
 
