@@ -17,8 +17,6 @@ let debug = false;
 navigator.mediaDevices.enumerateDevices().then(findDevices).catch(handleError);
 
 function startStreams() {
-
-    pantiltStream = new PanTiltVideoStream("pantiltVideo", '/camera/color/image_raw/compressed');
     pantiltStream = new PanTiltVideoStream("pantiltVideo", videoDimensions, '/camera/color/image_raw/compressed');
 
     overheadStream = new WideAngleVideoStream("overheadVideo",
@@ -33,9 +31,9 @@ function startStreams() {
 
     // For debugging
     if (debug){
-        window.setInterval(pantiltStream.imageCallback, 1000);
-        window.setInterval(overheadStream.imageCallback, 1000);
-        window.setInterval(gripperStream.imageCallback, 1000);
+        window.setInterval(pantiltStream.imageCallback.bind(pantiltStream), 1000);
+        window.setInterval(overheadStream.imageCallback.bind(overheadStream), 1000);
+        window.setInterval(gripperStream.imageCallback.bind(gripperStream), 1000);
     }
 
     // Audio stuff
@@ -112,7 +110,7 @@ class VideoStream {
 
     renderVideo() {
         if (!this.imageReceived) {
-            console.info("Not rendering because no image has been received yet")
+            // console.info("Not rendering because no image has been received yet")
             return;
         }
         this.context.drawImage(this.img,
@@ -159,7 +157,7 @@ class PanTiltVideoStream extends VideoStream {
 
     renderVideo() {
         if (!this.imageReceived) {
-            console.info("Not rendering because no image has been received yet for " + this.videoId)
+            // console.info("Not rendering because no image has been received yet for " + this.videoId)
             return;
         }
         // Just rotate
@@ -187,7 +185,7 @@ class WideAngleVideoStream extends VideoStream {
 
     renderVideo() {
         if (!this.imageReceived) {
-            console.info("Not rendering because no image has been received yet for " + this.videoId)
+            // console.info("Not rendering because no image has been received yet for " + this.videoId)
             return;
         }
         if (this.videoId == "overheadVideo") {
