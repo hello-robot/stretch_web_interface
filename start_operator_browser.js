@@ -29,6 +29,7 @@ const logId = 'start_robot_browser.js';
 	const browser = await puppeteer.launch({
             headless: false, // default is true
 	    ignoreHTTPSErrors: true, // avoid ERR_CERT_COMMON_NAME_INVALID
+		defaultViewport: null,
             args: ['--use-fake-ui-for-media-stream'] //gives permission to access the robot's cameras and microphones (cleaner and simpler than changing the user directory)
 	});
 	const page = await browser.newPage();
