@@ -76,6 +76,7 @@ if (use_content_security_policy) {
                 'https://apis.google.com/'],
             connectSrc:["'self'",
                 'ws://localhost:9090',
+                'wss://localhost:9090',
                 'https://securetoken.googleapis.com',
                 'https://www.googleapis.com',
                 'wss:\/\/*.firebaseio.com'],
