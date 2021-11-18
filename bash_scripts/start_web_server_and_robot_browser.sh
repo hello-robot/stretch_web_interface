@@ -14,6 +14,10 @@ echo "export HELLO_ROBOT_ENV=\"development\""
 export HELLO_ROBOT_ENV="development"
 
 echo ""
+echo "configured development certificate authority "
+export NODE_EXTRA_CA_CERTS="$(readlink -f ../certificates)/rootCA.pem"
+
+echo ""
 echo "attempting to start MongoDB..."
 echo "sudo systemctl start mongod.service"
 sudo systemctl start mongod.service

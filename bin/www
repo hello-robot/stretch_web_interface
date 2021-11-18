@@ -8,8 +8,8 @@ var fs = require('fs');
 
 if (process.env.HELLO_ROBOT_ENV && (process.env.HELLO_ROBOT_ENV === "development")) {
     var options = {
-	key: fs.readFileSync('./certificates/homemade_privkey.pem'),
-	cert: fs.readFileSync('./certificates/homemade_certificate.crt')
+	key: fs.readFileSync('./certificates/forky.hcrlab.cs.washington.edu+6-key.pem'),
+	cert: fs.readFileSync('./certificates/forky.hcrlab.cs.washington.edu+6.pem')
     };
 }
 else {
