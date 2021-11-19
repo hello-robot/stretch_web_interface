@@ -1,7 +1,7 @@
 'use strict';
 
 var socket = io.connect();
-setupSocketIO(socket,  handleSessionStart);
+setupSocketIO(socket, false, handleSessionStart);
 
 function handleSessionStart() {
         addTracksToPeerConnection();

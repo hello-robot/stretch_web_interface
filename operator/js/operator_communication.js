@@ -1,7 +1,7 @@
 'use strict';
 
 var socket = io.connect();
-setupSocketIO(socket);
+setupSocketIO(socket, true);
 
 socket.on('available robots', function(available_robots) {
     console.log('received response from the server with available robots');

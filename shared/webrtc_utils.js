@@ -15,6 +15,8 @@ const save_communication = false;
 var objects_received = [];
 var objects_sent = [];
 
+let makingOffer = false;
+let ignoreOffer = false;
 var isChannelReady = false;
 var pc;
 var remoteStream;
@@ -54,7 +56,7 @@ function safelyParseJSON (json) {
 
 /////////////////////////////////////////////
 
-function setupSocketIO(socket, onConnectionStart) {
+function setupSocketIO(socket, polite, onConnectionStart) {
     socket.on('created', function(room) {
         console.log('Created room ' + room);
     });
@@ -65,7 +67,7 @@ function setupSocketIO(socket, onConnectionStart) {
     
     socket.on('join', function (room){
         console.log('Another peer made a request to join room ' + room);
-        console.log('This peer is the ' + peer_name + '!');
+        console.log('I am ' + peer_name + '!');
         isChannelReady = true;
         maybeStart(onConnectionStart);
     });
@@ -79,33 +81,34 @@ function setupSocketIO(socket, onConnectionStart) {
         console.log('Received message:', message);
         if (message === 'got user media') {
             maybeStart(onConnectionStart);
-        } else if (message.type === 'offer') {
+        } else if (message.type === 'offer' || message.type === 'answer') {
             maybeStart(onConnectionStart);
-            pc.setRemoteDescription(new RTCSessionDescription(message)).then(() =>
-                pc.createAnswer()
-            )
-            .then((answer)=>
-                pc.setLocalDescription(answer)
-            )
-            .then(()=>{
-                console.log('local description set, now sending to remote', pc.localDescription);
-                sendWebRTCMessage(pc.localDescription);
-            })
-            .catch((error) =>
-                console.error('Failed to create session description: ' + error.toString())
-            );
-        } else if (message.type === 'answer' && pc) {
-            console.log("Heard answer. Finalizing remote description")
-            pc.setRemoteDescription(new RTCSessionDescription(message));
+            const offerCollision = (message.type === "offer") &&
+                (makingOffer || pc.signalingState !== "stable");
+
+            ignoreOffer = !polite && offerCollision;
+            if (ignoreOffer) {
+                console.error("Ignoring offer")
+                return;
+            }
+            pc.setRemoteDescription(message).then(() => {
+                if (message.type === "offer") {
+                    return pc.setLocalDescription();
+                }
+            }).then(() => sendWebRTCMessage(pc.localDescription));
         } else if (message.type === 'candidate' && pc) {
             pc.addIceCandidate(message.candidate).catch(e => {
-                console.log("Failure during addIceCandidate(): " + e.name);
+                if (!ignoreOffer) {
+                    console.log("Failure during addIceCandidate(): " + e.name);
+                    throw e;
+                }
             });
         } else if (message === 'bye' && pc) {
             handleRemoteHangup();
         } else {
             console.error("Unable to handle message")
         }
+
     });
 }
 
@@ -117,43 +120,62 @@ function sendWebRTCMessage(message) {
 ////////////////////////////////////////////////////
 
 function maybeStart(onConnectionStart=() => {}) {
-    console.log('>>>>>>> maybeStart() ', !!pc, isChannelReady);
-    if (!pc && isChannelReady) {
-        console.log('>>>>>> creating peer connection');
-        try {
-            pc = new RTCPeerConnection(pcConfig);
-            pc.onicecandidate = (event) => {
-                console.log('icecandidate event: ', event);
-                sendWebRTCMessage({
-                    type: 'candidate',
-                    candidate: event.candidate
-                });
-            };
-            pc.ondatachannel = (event) => {
-                console.log('Data channel callback executed.');
-                dataChannel = event.channel;
-                dataChannel.onmessage = onReceiveMessageCallback;
-                dataChannel.onopen = onDataChannelStateChange;
-                dataChannel.onclose = onDataChannelStateChange;
-            };
-            pc.onopen = function() {
-                console.log('RTC channel opened.');
-            };
-
-            pc.onremovestream = (event) => {
-                console.log('Remote stream removed. Event: ', event);
-            };
-
-            pc.ontrack = handleRemoteTrackAdded;
-
-            console.log('Created RTCPeerConnnection');
-        } catch (e) {
-            console.error('Failed to create PeerConnection, exception: ' + e.message);
-            return;
-        }
-        console.log('I am the ' + peer_name + '.');
-        onConnectionStart()
+    //console.log('>>>>>>> maybeStart() ', !!pc, isChannelReady);
+    if (pc && !isChannelReady) {
+        return;
     }
+    console.log('Creating peer connection');
+    try {
+        pc = new RTCPeerConnection(pcConfig);
+        pc.onicecandidate = (event) => {
+            sendWebRTCMessage({
+                type: 'candidate',
+                candidate: event.candidate
+            });
+        };
+        pc.ondatachannel = (event) => {
+            console.log('Data channel callback executed.');
+            dataChannel = event.channel;
+            dataChannel.onmessage = onReceiveMessageCallback;
+            dataChannel.onopen = onDataChannelStateChange;
+            dataChannel.onclose = onDataChannelStateChange;
+        };
+        pc.onopen = function() {
+            console.log('RTC channel opened.');
+        };
+
+        pc.onremovestream = (event) => {
+            console.log('Remote stream removed. Event: ', event);
+        };
+
+        pc.onnegotiationneeded = async () => {
+            console.log("Negotiation needed")
+            try {
+                makingOffer = true;
+                await pc.setLocalDescription();
+                sendWebRTCMessage(pc.localDescription);
+            } catch(err) {
+                console.error(err);
+            } finally {
+                makingOffer = false;
+            }
+        };
+
+        pc.oniceconnectionstatechange = () => {
+            if (pc.iceConnectionState === "failed") {
+                pc.restartIce();
+            }
+        };
+        pc.ontrack = handleRemoteTrackAdded;
+
+        console.log('Created RTCPeerConnnection');
+    } catch (e) {
+        console.error('Failed to create PeerConnection, exception: ' + e.message);
+        return;
+    }
+    console.log('I am the ' + peer_name + '.');
+    onConnectionStart()
+
 }
 
 window.onbeforeunload = function() {
