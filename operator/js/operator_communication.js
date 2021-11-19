@@ -44,7 +44,7 @@ function connectToRobot() {
     } else {
         console.log('attempting to connect to robot =');
         console.log(robot);
-	requestedRobot = robot;
+	    requestedRobot = robot;
         socket.emit('join', robot);
     }
 }
@@ -56,20 +56,18 @@ function handleRemoteTrackAdded(event) {
     const stream = event.streams[0];
     console.log('got track id=' + track.id, track);
     console.log('stream id=' + stream.id, stream);
+    console.log('OPERATOR: adding remote tracks');
 
-    if (peer_name === 'OPERATOR') {
-        console.log('OPERATOR: adding remote tracks');
-        
-        allRemoteStreams.push({'track': track, 'stream': stream});
-        /*
-        if (cameraInfo) {
-            displayRemoteStream(track, stream);
-        }
-        else{
-            console.error("No camera info yet.");
-        }
-        */
+    allRemoteStreams.push({'track': track, 'stream': stream});
+    /*
+    if (cameraInfo) {
+        displayRemoteStream(track, stream);
     }
+    else{
+        console.error("No camera info yet.");
+    }
+    */
+
 }
 
 function displayRemoteStream(stream) {

@@ -16,7 +16,6 @@ var objects_received = [];
 var objects_sent = [];
 
 var isChannelReady = false;
-var isStarted = false;
 var pc;
 var remoteStream;
 var displayStream;
@@ -34,18 +33,6 @@ var pcConfig = {
     }]
 };
 
-// Prototype STUN and TURN server used internally by Hello Robot
-//
-// var pcConfig = {
-//     iceServers: [
-// 	{ urls: "stun:pilot.hello-robot.io:5349",
-// 	  username: "r1",
-// 	  credential: "kWJuyF5i2jh0"},
-// 	{ urls: "turn:pilot.hello-robot.io:5349",
-// 	  username: "r1",
-// 	  credential: "kWJuyF5i2jh0"}
-//     ]
-// };
 
 ////////////////////////////////////////////////////////////
 // safelyParseJSON code copied from
@@ -67,7 +54,7 @@ function safelyParseJSON (json) {
 
 /////////////////////////////////////////////
 
-function setupSocketIO(socket) {
+function setupSocketIO(socket, onConnectionStart) {
     socket.on('created', function(room) {
         console.log('Created room ' + room);
     });
@@ -80,7 +67,7 @@ function setupSocketIO(socket) {
         console.log('Another peer made a request to join room ' + room);
         console.log('This peer is the ' + peer_name + '!');
         isChannelReady = true;
-        maybeStart();
+        maybeStart(onConnectionStart);
     });
     
     socket.on('joined', function(room) {
@@ -88,57 +75,84 @@ function setupSocketIO(socket) {
         isChannelReady = true;
     });
 
-    // This client receives a message
     socket.on('webrtc message', function(message) {
-        console.log('Client received message:', message);
+        console.log('Received message:', message);
         if (message === 'got user media') {
-            maybeStart();
+            maybeStart(onConnectionStart);
         } else if (message.type === 'offer') {
-            maybeStart();
+            maybeStart(onConnectionStart);
+            pc.setRemoteDescription(new RTCSessionDescription(message)).then(() =>
+                pc.createAnswer()
+            )
+            .then((answer)=>
+                pc.setLocalDescription(answer)
+            )
+            .then(()=>{
+                console.log('local description set, now sending to remote', pc.localDescription);
+                sendWebRTCMessage(pc.localDescription);
+            })
+            .catch((error) =>
+                console.error('Failed to create session description: ' + error.toString())
+            );
+        } else if (message.type === 'answer' && pc) {
+            console.log("Heard answer. Finalizing remote description")
             pc.setRemoteDescription(new RTCSessionDescription(message));
-            doAnswer();
-        } else if (message.type === 'answer' && isStarted) {
-            pc.setRemoteDescription(new RTCSessionDescription(message));
-        } else if (message.type === 'candidate' && isStarted) {
-            var candidate = new RTCIceCandidate({
-                sdpMLineIndex: message.label,
-                candidate: message.candidate
+        } else if (message.type === 'candidate' && pc) {
+            pc.addIceCandidate(message.candidate).catch(e => {
+                console.log("Failure during addIceCandidate(): " + e.name);
             });
-            pc.addIceCandidate(candidate);
-        } else if (message === 'bye' && isStarted) {
+        } else if (message === 'bye' && pc) {
             handleRemoteHangup();
+        } else {
+            console.error("Unable to handle message")
         }
     });
 }
 
-
-///////////////////////////////////////////////////
-// I think that all of this needs to run on both, though there are sections that only need one or the other
 function sendWebRTCMessage(message) {
-    console.log('Client sending WebRTC message: ', message);
+    console.log('Sending WebRTC message: ', message);
     socket.emit('webrtc message', message);
 }
 
-
 ////////////////////////////////////////////////////
 
-function maybeStart() {
-    console.log('>>>>>>> maybeStart() ', isStarted, isChannelReady);
-    if (!isStarted && isChannelReady) {
+function maybeStart(onConnectionStart=() => {}) {
+    console.log('>>>>>>> maybeStart() ', !!pc, isChannelReady);
+    if (!pc && isChannelReady) {
         console.log('>>>>>> creating peer connection');
-        createPeerConnection();
-        console.log('This peer is the ' + peer_name + '.');
-        if (peer_name === 'ROBOT') {
-            addTracksToPeerConnection();
-            dataConstraint = null;
-            dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
-            console.log('Creating data channel.');
-            dataChannel.onmessage = onReceiveMessageCallback;
-            dataChannel.onopen = onDataChannelStateChange;
-            dataChannel.onclose = onDataChannelStateChange;
-            doCall();
+        try {
+            pc = new RTCPeerConnection(pcConfig);
+            pc.onicecandidate = (event) => {
+                console.log('icecandidate event: ', event);
+                sendWebRTCMessage({
+                    type: 'candidate',
+                    candidate: event.candidate
+                });
+            };
+            pc.ondatachannel = (event) => {
+                console.log('Data channel callback executed.');
+                dataChannel = event.channel;
+                dataChannel.onmessage = onReceiveMessageCallback;
+                dataChannel.onopen = onDataChannelStateChange;
+                dataChannel.onclose = onDataChannelStateChange;
+            };
+            pc.onopen = function() {
+                console.log('RTC channel opened.');
+            };
+
+            pc.onremovestream = (event) => {
+                console.log('Remote stream removed. Event: ', event);
+            };
+
+            pc.ontrack = handleRemoteTrackAdded;
+
+            console.log('Created RTCPeerConnnection');
+        } catch (e) {
+            console.error('Failed to create PeerConnection, exception: ' + e.message);
+            return;
         }
-	   isStarted = true;
+        console.log('I am the ' + peer_name + '.');
+        onConnectionStart()
     }
 }
 
@@ -147,71 +161,6 @@ window.onbeforeunload = function() {
 };
 
 /////////////////////////////////////////////////////////
-
-function createPeerConnection() {
-    try {
-        pc = new RTCPeerConnection(pcConfig);
-        pc.onicecandidate = handleIceCandidate;
-        pc.ondatachannel = dataChannelCallback;
-        pc.onopen = function() {
-            console.log('RTC channel opened.');
-        };
-
-        pc.onremovestream = handleRemoteStreamRemoved;
-        
-        pc.ontrack = handleRemoteTrackAdded;
-
-        console.log('Created RTCPeerConnnection');
-    } catch (e) {
-        console.error('Failed to create PeerConnection, exception: ' + e.message);
-        return;
-    }
-}
-
-function handleIceCandidate(event) {
-    console.log('icecandidate event: ', event);
-    if (event.candidate) {
-        sendWebRTCMessage({
-            type: 'candidate',
-            label: event.candidate.sdpMLineIndex,
-            id: event.candidate.sdpMid,
-            candidate: event.candidate.candidate
-        });
-    } else {
-        console.log('End of candidates.');
-    }
-}
-
-function handleCreateOfferError(event) {
-    console.log('createOffer() error: ', event);
-}
-
-function doCall() {
-    console.log('Sending offer to peer');
-    pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
-}
-
-function doAnswer() {
-    console.log('Sending answer to peer.');
-    pc.createAnswer().then(
-        setLocalAndSendMessage,
-        onCreateSessionDescriptionError
-    );
-}
-
-function setLocalAndSendMessage(sessionDescription) {
-    pc.setLocalDescription(sessionDescription);
-    console.log('setLocalAndSendMessage sending message', sessionDescription);
-    sendWebRTCMessage(sessionDescription);
-}
-
-function onCreateSessionDescriptionError(error) {
-    console.log('Failed to create session description: ' + error.toString());
-}
-
-function handleRemoteStreamRemoved(event) {
-    console.log('Remote stream removed. Event: ', event);
-}
 
 function hangup() {
     console.log('Hanging up.');
@@ -225,7 +174,6 @@ function handleRemoteHangup() {
 }
 
 function stop() {
-    isStarted = false;
     // isAudioMuted = false;
     // isVideoMuted = false;
     pc.close();
@@ -240,7 +188,10 @@ function stop() {
 ////////////////////////////////////////////////////////////
 
 function sendData(obj) {
-    if (isStarted && (dataChannel.readyState === 'open')) {
+    if (!dataChannel || (dataChannel.readyState !== 'open')) {
+        //console.log("Trying to send data, but data channel isn't ready")
+        return;
+    }
 	var data = JSON.stringify(obj);
 	switch(obj.type) {
         case 'command':
@@ -273,9 +224,6 @@ function sendData(obj) {
             console.trace();
             console.log('*************************************************************');
         }
-    }
-    // else
-    //     console.log("Cannot send data: ", isStarted, dataChannel);
 }
 
 function closeDataChannels() {
@@ -285,13 +233,6 @@ function closeDataChannels() {
     console.log('Closed peer connections.');
 }
 
-function dataChannelCallback(event) {
-    console.log('Data channel callback executed.');
-    dataChannel = event.channel;
-    dataChannel.onmessage = onReceiveMessageCallback;
-    dataChannel.onopen = onDataChannelStateChange;
-    dataChannel.onclose = onDataChannelStateChange;
-}
 
 let cameraInfo = null;
 function onReceiveMessageCallback(event) {
