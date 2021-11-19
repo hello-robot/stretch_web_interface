@@ -126,8 +126,11 @@ function createSignalingSocket(io) {
         
         socket.on('join', function(room) {
             console.log('Received request to join room ' + room);
-            
-	    numClients = io.sockets.adapter.rooms.get(room).size
+            if (!io.sockets.adapter.rooms.get(room)) {
+                console.warn("Someone tried to join the nonresistant room " + room )
+                return;
+            }
+	        numClients = io.sockets.adapter.rooms.get(room).size
             console.log('Requested room ' + room + ' currently has ' + numClients + ' client(s)');
             
             if (numClients < 1) {
