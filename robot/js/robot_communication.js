@@ -2,25 +2,17 @@
 
 var socket = io.connect();
 setupSocketIO(socket, false, handleSessionStart);
+pc.ontrack = handleRemoteTrackAdded;
 
 function handleSessionStart() {
-        addTracksToPeerConnection();
-        dataConstraint = null;
-        dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
-        console.log('Creating data channel.');
-        dataChannel.onmessage = onReceiveMessageCallback;
-        dataChannel.onopen = onDataChannelStateChange;
-        dataChannel.onclose = onDataChannelStateChange;
-
-        console.log('Creating offer');
-        pc.createOffer().then((offer)=>
-            pc.setLocalDescription(offer)
-        ).then(()=> {
-            console.log("Sending offer")
-            sendWebRTCMessage(pc.localDescription);
-        }).catch((error)=>{
-            console.error(error)
-        })
+    dataConstraint = null;
+    dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
+    console.log('Creating data channel.');
+    dataChannel.onmessage = onReceiveMessageCallback;
+    dataChannel.onopen = onDataChannelStateChange;
+    dataChannel.onclose = onDataChannelStateChange;
+    // Adding tracks is going to trigger renegotiation
+    addTracksToPeerConnection();
 }
 
 function addTracksToPeerConnection() {

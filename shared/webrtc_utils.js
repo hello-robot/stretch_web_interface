@@ -17,8 +17,8 @@ var objects_sent = [];
 
 let makingOffer = false;
 let ignoreOffer = false;
-var isChannelReady = false;
-var pc;
+let isSettingRemoteAnswerPending = false;
+
 var remoteStream;
 var displayStream;
 var turnReady;
@@ -34,97 +34,9 @@ var pcConfig = {
         'urls': 'stun:stun.l.google.com:19302'
     }]
 };
-
-
-////////////////////////////////////////////////////////////
-// safelyParseJSON code copied from
-// https://stackoverflow.com/questions/29797946/handling-bad-json-parse-in-node-safely
-// on August 18, 2017
-function safelyParseJSON (json) {
-    // This function cannot be optimised, it's best to
-    // keep it small!
-    var parsed;
-    
-    try {
-        parsed = JSON.parse(json);
-    } catch (e) {
-        // Oh well, but whatever...
-    }
-
-    return parsed; // Could be undefined!
-}
-
-/////////////////////////////////////////////
-
-function setupSocketIO(socket, polite, onConnectionStart) {
-    socket.on('created', function(room) {
-        console.log('Created room ' + room);
-    });
-    
-    socket.on('full', function(room) {
-        console.log('Room ' + room + ' is full');
-    });
-    
-    socket.on('join', function (room){
-        console.log('Another peer made a request to join room ' + room);
-        console.log('I am ' + peer_name + '!');
-        isChannelReady = true;
-        maybeStart(onConnectionStart);
-    });
-    
-    socket.on('joined', function(room) {
-        console.log('joined: ' + room);
-        isChannelReady = true;
-    });
-
-    socket.on('webrtc message', function(message) {
-        console.log('Received message:', message);
-        if (message === 'got user media') {
-            maybeStart(onConnectionStart);
-        } else if (message.type === 'offer' || message.type === 'answer') {
-            maybeStart(onConnectionStart);
-            const offerCollision = (message.type === "offer") &&
-                (makingOffer || pc.signalingState !== "stable");
-
-            ignoreOffer = !polite && offerCollision;
-            if (ignoreOffer) {
-                console.error("Ignoring offer")
-                return;
-            }
-            pc.setRemoteDescription(message).then(() => {
-                if (message.type === "offer") {
-                    return pc.setLocalDescription();
-                }
-            }).then(() => sendWebRTCMessage(pc.localDescription));
-        } else if (message.type === 'candidate' && pc) {
-            pc.addIceCandidate(message.candidate).catch(e => {
-                if (!ignoreOffer) {
-                    console.log("Failure during addIceCandidate(): " + e.name);
-                    throw e;
-                }
-            });
-        } else if (message === 'bye' && pc) {
-            handleRemoteHangup();
-        } else {
-            console.error("Unable to handle message")
-        }
-
-    });
-}
-
-function sendWebRTCMessage(message) {
-    console.log('Sending WebRTC message: ', message);
-    socket.emit('webrtc message', message);
-}
-
-////////////////////////////////////////////////////
-
-function maybeStart(onConnectionStart=() => {}) {
-    //console.log('>>>>>>> maybeStart() ', !!pc, isChannelReady);
-    if (pc && !isChannelReady) {
-        return;
-    }
+let pc = function (){
     console.log('Creating peer connection');
+    let pc
     try {
         pc = new RTCPeerConnection(pcConfig);
         pc.onicecandidate = (event) => {
@@ -166,17 +78,104 @@ function maybeStart(onConnectionStart=() => {}) {
                 pc.restartIce();
             }
         };
-        pc.ontrack = handleRemoteTrackAdded;
 
         console.log('Created RTCPeerConnnection');
     } catch (e) {
         console.error('Failed to create PeerConnection, exception: ' + e.message);
         return;
     }
-    console.log('I am the ' + peer_name + '.');
-    onConnectionStart()
+    return pc
 
+}()
+
+
+////////////////////////////////////////////////////////////
+// safelyParseJSON code copied from
+// https://stackoverflow.com/questions/29797946/handling-bad-json-parse-in-node-safely
+// on August 18, 2017
+function safelyParseJSON (json) {
+    // This function cannot be optimised, it's best to
+    // keep it small!
+    var parsed;
+    
+    try {
+        parsed = JSON.parse(json);
+    } catch (e) {
+        // Oh well, but whatever...
+    }
+
+    return parsed; // Could be undefined!
 }
+
+/////////////////////////////////////////////
+
+function setupSocketIO(socket, polite, onConnectionStart) {
+    socket.on('created', function(room) {
+        console.log('Created room ' + room);
+    });
+    
+    socket.on('full', function(room) {
+        console.log('Room ' + room + ' is full');
+    });
+    
+    socket.on('join', function (room){
+        console.log('Another peer made a request to join room ' + room);
+        console.log('I am ' + peer_name + '!');
+        onConnectionStart()
+    });
+    
+    socket.on('joined', function(room) {
+        console.log('joined: ' + room);
+    });
+
+    socket.on('webrtc message', function(message) {
+        console.log('Received message:', message);
+        if (message === 'got user media') {
+        } else if (message.type === 'offer' || message.type === 'answer') {
+            const readyForOffer =
+                !makingOffer &&
+                (pc.signalingState == "stable" || isSettingRemoteAnswerPending);
+            const offerCollision = message.type == "offer" && !readyForOffer;
+
+            ignoreOffer = !polite && offerCollision;
+
+            if (ignoreOffer) {
+                console.error("Ignoring offer")
+                return;
+            }
+            isSettingRemoteAnswerPending = message.type == "answer";
+
+            pc.setRemoteDescription(message).then(() => {
+                isSettingRemoteAnswerPending = false;
+                if (message.type === "offer") {
+                    return pc.setLocalDescription();
+                } else {
+                    return false;
+                }
+            }).then(() => sendWebRTCMessage(pc.localDescription));
+        } else if (message.type === 'candidate' && pc) {
+            pc.addIceCandidate(message.candidate).catch(e => {
+                if (!ignoreOffer) {
+                    console.log("Failure during addIceCandidate(): " + e.name);
+                    throw e;
+                }
+            });
+        } else if (message === 'bye' && pc) {
+            handleRemoteHangup();
+        } else {
+            console.error("Unable to handle message")
+        }
+
+    });
+}
+
+function sendWebRTCMessage(message) {
+    console.log('Sending WebRTC message: ', message);
+    socket.emit('webrtc message', message);
+}
+
+////////////////////////////////////////////////////
+
 
 window.onbeforeunload = function() {
     sendWebRTCMessage('bye');

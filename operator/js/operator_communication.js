@@ -2,6 +2,7 @@
 
 var socket = io.connect();
 setupSocketIO(socket, true);
+pc.ontrack = handleRemoteTrackAdded;
 
 socket.on('available robots', function(available_robots) {
     console.log('received response from the server with available robots');
