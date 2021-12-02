@@ -28,12 +28,12 @@ const fastBoot = true;
             return new Promise(resolve => setTimeout(resolve, ms));
 	}
 	///////////////////////////////////////////////
-
 	const browser = await puppeteer.launch({
             headless: false, // default is true
 	    ignoreHTTPSErrors: true, // avoid ERR_CERT_COMMON_NAME_INVALID
 		defaultViewport: null,
-            args: ['--use-fake-ui-for-media-stream'] //gives permission to access the robot's cameras and microphones (cleaner and simpler than changing the user directory)
+            args: ['--use-fake-ui-for-media-stream', //gives permission to access the robot's cameras and microphones (cleaner and simpler than changing the user directory)
+				'--disable-features=WebRtcHideLocalIpsWithMdns'] // Disables mDNS hostname use in local network P2P discovery. Necessary for enterprise networks that don't forward mDNS traffic
 	});
 	const page = await browser.newPage();
 	const mouse = page.mouse;
@@ -45,7 +45,7 @@ const fastBoot = true;
 	do {
             console.log(logId + ': trying to reach login page...');
             num_tries++; 
-            await page.goto('https://localhost/login',
+            await page.goto('https://forky.hcrlab.cs.washington.edu/login',
                             {timeout:navigation_timeout_ms
                             }
 			   ).then(
