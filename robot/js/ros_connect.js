@@ -19,8 +19,8 @@ var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", versio
 // img.style.visibility = 'hidden';
 
 // connect to rosbridge websocket
-var ros = new ROSLIB.Ros({
-    url : 'ws://localhost:9090'
+let ros = new ROSLIB.Ros({
+    url : 'wss://localhost:9090'
 });
 
 ros.on('connection', function() {
@@ -175,8 +175,7 @@ function sendTfs() {
     }
 }
 
-var trajectoryClients = {};
-trajectoryClients.main = new ROSLIB.ActionClient({
+let trajectoryClient = new ROSLIB.ActionClient({
     ros : ros,
     serverName : '/stretch_controller/follow_joint_trajectory',
     actionName : 'control_msgs/FollowJointTrajectoryAction'
@@ -200,7 +199,7 @@ function generatePoseGoal(pose) {
 
 
     var newGoal = new ROSLIB.Goal({
-        actionClient : trajectoryClients.main,
+        actionClient : trajectoryClient,
         goalMessage : {
             trajectory : {
                 header: {
@@ -345,14 +344,6 @@ function getJointEffort(jointStateMessage, jointName) {
 }
 
 function getJointValue(jointStateMessage, jointName) {
-    if (inSim && jointName == 'wrist_extension') {
-        var value = 0;
-        for (var i = 0; i < 4; i++) {
-            var jName = ['joint_arm_l0', 'joint_arm_l1', 'joint_arm_l2', 'joint_arm_l3'][i]
-            value += jointStateMessage.position[jointStateMessage.name.indexOf(jName)];
-        }
-        return value
-    }
     var jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
 }

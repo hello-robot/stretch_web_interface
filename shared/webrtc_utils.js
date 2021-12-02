@@ -34,7 +34,8 @@ var pcConfig = {
         'urls': 'stun:stun.l.google.com:19302'
     }]
 };
-let pc = function (){
+
+function createPeerConnection(){
     console.log('Creating peer connection');
     let pc
     try {
@@ -85,9 +86,9 @@ let pc = function (){
         return;
     }
     return pc
+}
 
-}()
-
+let pc = createPeerConnection()
 
 ////////////////////////////////////////////////////////////
 // safelyParseJSON code copied from
@@ -195,10 +196,8 @@ function handleRemoteHangup() {
 }
 
 function stop() {
-    // isAudioMuted = false;
-    // isVideoMuted = false;
     pc.close();
-    pc = null;
+    pc = createPeerConnection();
 }
 
 ////////////////////////////////////////////////////////////
