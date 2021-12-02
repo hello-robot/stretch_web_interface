@@ -24,6 +24,8 @@ echo "Installing web-interface Node packages using npm."
 cd ~/repos/stretch_web_interface/
 echo "Update to latest version of npm."
 sudo npm install -g npm
+echo "Installing mkcert globally"
+npm install -g mkcert
 echo "Install packages with npm."
 sudo npm install
 echo "Done."

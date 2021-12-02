@@ -102,6 +102,19 @@ shared/database.config.js
 Copy the data from `StretchTeleop Firebase: Password` in the [lab wiki](https://github.com/hcrlab/private_wiki/wiki/Lab-account-login-information) into that file.
 --->
 
+### Configuring development certificates
+
+Browser features like camera and microphone access require that the page be running in an SSL context, so we need certificates in order to serve the interface and to enable SSL for the rosbridge websocket (see the launch files). For development, we suggest you use [`mkcert`](https://github.com/FiloSottile/mkcert) to manage a set of certificates across the development machines and your robot. These certificates are only valid on machines that are configured to trust them, so you should still use Let's Encrypt if you need to deploy the interface to users who won't have this configuration.
+
+To trust the certificates we've provided (which cover `forky.hcrlab.cs.washington.edu`, our robot's hostname within the University of Washington, as well as `localhost` and variants):
+
+  roscd stretch_web_interface/certificates &&
+  CAROOT=`pwd` mkcert --install
+
+To make your own certificates for your preferred development hostnames, follow mkcert's instructions. We suggest something like `mkcert forky.hcrlab.cs.washington.edu forky.local forky.dev localhost 127.0.0.1 0.0.0.0 ::1`. Then copy the "Certificate Authority" that mkcert created on your machine under `~/.local/share/mkcert` to the other machines, then use the `CAROOT` environment variable (as in the previous invocation) to specify the authority and install the certificate you generated.
+
+Note: Some browsers may allow you to access the interface without having added the custom certificate authority to the truststore by clicking through some scary prompts.
+
 <a name="quick"/>
 
 ## Quick Start
