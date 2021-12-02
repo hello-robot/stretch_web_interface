@@ -16,27 +16,25 @@ function handleSessionStart() {
 }
 
 function addTracksToPeerConnection() {
-    if (pantiltStream.localStream === undefined) {
+    if (pantiltStream.editedVideoStream === undefined) {
         console.warn('Video tracks have not been started')
         return;
     }
     console.log('adding local media stream to peer connection');
 
-    // pc.addStream(pantiltStream.localStream);
-
-    // Adding by tracks, to be tested
-    //localStream.getTracks().forEach(t => pc.addTrack(t, stream));
-
     let info = {};
 
-    let stream = pantiltStream.localStream;
+    let stream = pantiltStream.editedVideoStream;
     stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "pantiltStream";});
 
-    stream = overheadStream.localStream;
+    stream = overheadStream.editedVideoStream;
     stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "overheadStream";});
 
-    stream = gripperStream.localStream;
+    stream = gripperStream.editedVideoStream;
     stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "gripperStream";});
+
+    // Audio won't come as a part of a stream, leaving it up to the client to decide how to present it
+    pc.addTrack(audioStream)
 
     cameraInfo = {'type':'camerainfo', 'info': info};
 }

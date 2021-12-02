@@ -19,8 +19,6 @@ let makingOffer = false;
 let ignoreOffer = false;
 let isSettingRemoteAnswerPending = false;
 
-var remoteStream;
-var displayStream;
 var turnReady;
 
 var requestedRobot;

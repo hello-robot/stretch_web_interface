@@ -4,19 +4,12 @@ var messages_received_body = [];
 var commands_sent_body = [];
 var messages_received_wrist = [];
 var commands_sent_wrist = [];
-var rosJointStateReceived = false;
 var jointState = null;
 var isWristFollowingActive = false;
 let inSim = localStorage.getItem('inSim') === "true";
 
 var session_body = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
 var session_wrist = {ws:null, ready:false, port_details:{}, port_name:"", version:"", commands:[], hostname:"", serial_ports:[]};
-
-// initialize images for camera video
-
-// var rosImageReceived = false;
-// var img = document.createElement("IMG");
-// img.style.visibility = 'hidden';
 
 // connect to rosbridge websocket
 let ros = new ROSLIB.Ros({
@@ -50,30 +43,6 @@ ros.on('close', function() {
     console.log('Connection to websocket has been closed.');
 });
 
-// var imageTopic = new ROSLIB.Topic({
-//     ros : ros,
-//     name : inSim ? '/realsense/color/image_raw/compressed' : '/camera/color/image_raw/compressed', // ROS paths change depending on whether we're in a gazebo sim or running on stretch
-//     messageType : 'sensor_msgs/CompressedImage'
-// });
-
-// imageTopic.subscribe(function(message) {
-//     img.src = 'data:image/jpg;base64,' + message.data;
-//     if (rosImageReceived === false) {
-//     	console.log('Received first compressed image from ROS topic ' + imageTopic.name);
-//     	rosImageReceived = true;
-//     }
-//     //console.log('Received compressed image on ' + imageTopic.name);
-//     //console.log('message.header =', message.header)
-//     //console.log('message.format =', message.format)
-//     //console.log('img.width =', img.width)
-//     //console.log('img.height =', img.height)
-//     //console.log('img.naturalWidth =', img.naturalWidth)
-//     //console.log('img.naturalHeight =', img.naturalHeight)
-//     //console.log('attempted to draw image to the canvas')
-//     //imageTopic.unsubscribe()
-// });
-
-
 var jointStateTopic = new ROSLIB.Topic({
     ros : ros,
     name : '/stretch/joint_states/',
@@ -81,13 +50,11 @@ var jointStateTopic = new ROSLIB.Topic({
 });
 
 jointStateTopic.subscribe(function(message) {
-
-    jointState = message;
-    
-    if (rosJointStateReceived === false) {
-	   console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
-	   rosJointStateReceived = true;
+    if (jointState === null) {
+        console.log('Received first joint state from ROS topic ' + jointStateTopic.name);
     }
+    jointState = message;
+
 
     // send wrist joint effort
     var JointEffort = getJointEffort(jointState, 'joint_wrist_yaw');
@@ -248,8 +215,7 @@ function loggedWebSocketSendWrist(cmd) {
 
 function sendCommandWrist(cmd) {
     if(session_wrist.ready) {
-	
-        command = JSON.stringify(cmd);
+        let command = JSON.stringify(cmd);
         loggedWebSocketSendWrist(command);
     }
 }    
@@ -262,7 +228,7 @@ function loggedWebSocketSendBody(cmd) {
 
 function sendCommandBody(cmd) {
     if(session_body.ready) {
-        command = JSON.stringify(cmd);
+        let command = JSON.stringify(cmd);
         loggedWebSocketSendBody(command);
     }
 }
