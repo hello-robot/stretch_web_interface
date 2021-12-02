@@ -19,6 +19,7 @@
 
 'use strict';
 
+let localStream = null;
 var videoElement = document.querySelector('video');
 var audioInputSelect = document.querySelector('select#audioSource');
 var audioOutputSelect = document.querySelector('select#audioOutput');
@@ -107,13 +108,6 @@ function changeAudioDestination() {
     attachSinkId(videoElement, audioDestination);
 }
 
-function gotStream(stream) {
-    localStream = stream;
-    updateAudioToMatchMuteSwitch();
-    // Refresh button list in case labels have become available
-    return navigator.mediaDevices.enumerateDevices();
-}
-
 function start() {
     var audioSource = audioInputSelect.value;
     var constraints = {
@@ -121,7 +115,12 @@ function start() {
         video: false
     };
     navigator.mediaDevices.getUserMedia(constraints).
-        then(gotStream).then(gotDevices).catch(handleError);
+        then((stream) =>{
+            localStream = stream;
+            updateAudioToMatchMuteSwitch();
+            // Refresh button list in case labels have become available
+            return navigator.mediaDevices.enumerateDevices();
+    }).then(gotDevices).catch(handleError);
 }
 
 audioInputSelect.onchange = start;

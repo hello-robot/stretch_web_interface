@@ -147,6 +147,10 @@ class VideoControl {
         this.video.srcObject = stream;
     }
 
+    removeRemoteStream() {
+        this.video.srcObject = null
+    }
+
     setDimensions(w, h) {
         this.video.setAttribute("width", w);        
         this.video.setAttribute("height", h);

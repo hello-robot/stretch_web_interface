@@ -30,8 +30,22 @@ async function runOnOpenDataChannel() {
 	cameraInfo = (await globalRequestResponseHandler.makeRequest("streamCameras")).info;
 
 	allRemoteStreams.forEach(({track, stream}) => {
-		displayRemoteStream(
-			stream);
+		if (stream === undefined) {
+			// The audio track comes without a stream. Leave it aside for now
+			return;
+		}
+		let thisTrackContent = cameraInfo[stream.id];
+
+		// This is where we would change which view displays which camera stream
+		if (thisTrackContent=="pantiltStream" && panTiltVideoControl) {
+			panTiltVideoControl.addRemoteStream(stream);
+		}
+		if (thisTrackContent=="overheadStream" && overheadVideoControl) {
+			overheadVideoControl.addRemoteStream(stream);
+		}
+		if (thisTrackContent=="gripperStream" && gripperVideoControl){
+			gripperVideoControl.addRemoteStream(stream);
+		}
 	});
 }
 
@@ -67,9 +81,28 @@ function checkboxSettingChange(element){
 			gripperVideoControl.removeIcons();
 		}
 	}
-
-
 }
 
+function connectEventListeners() {
+	document.getElementById("hangup").addEventListener("click", ()=>{
+		disconnectFromRobot()
+		document.getElementById("robotToControl").selectedIndex = 0
+	})
+
+	robotToControlSelect.onchange = () => {
+		const robot = robotToControlSelect.value;
+		if(robot === 'no robot connected') {
+			console.log('no robot selected, hanging up');
+			disconnectFromRobot()
+		} else {
+			connectToRobot(robot)
+		}
+	};
+}
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', connectEventListeners)
+} else {
+	connectEventListeners()
+}
 
 
