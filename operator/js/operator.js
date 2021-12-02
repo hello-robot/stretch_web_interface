@@ -2,15 +2,13 @@ var peer_name = "OPERATOR";
 
 var velocityControlOn = false;
 var noWristOn = true;
-
+let cameraInfo
 let db = "test";
 function initializeOperatorInterface() {
 	if (typeof firebaseApiKey == 'undefined') {
 		console.warn("There is no firebase config, nothing will be logged");
 	}
-	db = new Database(config, runOnOpenDataChannel);
-	// createModeSwitch();
-	setMode("nav");
+	db = new Database(config);
 }
 
 let poseManager;

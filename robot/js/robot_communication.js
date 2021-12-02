@@ -1,5 +1,6 @@
 'use strict';
 
+let cameraInfo
 var socket = io.connect();
 setupSocketIO(socket, false, handleSessionStart);
 pc.ontrack = handleRemoteTrackAdded;
@@ -9,8 +10,11 @@ function handleSessionStart() {
     dataChannel = pc.createDataChannel('DataChannel', dataConstraint);
     console.log('Creating data channel.');
     dataChannel.onmessage = onReceiveMessageCallback;
-    dataChannel.onopen = onDataChannelStateChange;
-    dataChannel.onclose = onDataChannelStateChange;
+    function runOnOpenDataChannel() {
+        sendTfs();
+    }
+    dataChannel.onopen = runOnOpenDataChannel;
+    //dataChannel.onclose = runOnOpenDataChannel;
     // Adding tracks is going to trigger renegotiation
     addTracksToPeerConnection();
 }

@@ -20,14 +20,14 @@ let ignoreOffer = false;
 let isSettingRemoteAnswerPending = false;
 
 var turnReady;
-
+let pc
 var requestedRobot;
 
 var dataChannel;
 var dataConstraint;
 
 // Free STUN server offered by Google
-var pcConfig = {
+const pcConfig = {
     'iceServers': [{
         'urls': 'stun:stun.l.google.com:19302'
     }]
@@ -48,6 +48,14 @@ function createPeerConnection(){
             console.log('Data channel callback executed.');
             dataChannel = event.channel;
             dataChannel.onmessage = onReceiveMessageCallback;
+
+             let onDataChannelStateChange = () =>{
+                const readyState = dataChannel.readyState;
+                console.log('Data channel state is: ' + readyState);
+                if (readyState === 'open') {
+                    runOnOpenDataChannel();
+                }
+            }
             dataChannel.onopen = onDataChannelStateChange;
             dataChannel.onclose = onDataChannelStateChange;
         };
@@ -78,6 +86,13 @@ function createPeerConnection(){
             }
         };
 
+        pc.onconnectionstatechange = () => {
+            if (pc.connectionState === "failed") {
+                console.error("The connection has failed. Resetting the PeerConnection")
+                pc = createPeerConnection()
+            }
+        }
+
         console.log('Created RTCPeerConnnection');
     } catch (e) {
         console.error('Failed to create PeerConnection, exception: ' + e.message);
@@ -86,7 +101,7 @@ function createPeerConnection(){
     return pc
 }
 
-let pc = createPeerConnection()
+pc = createPeerConnection()
 
 ////////////////////////////////////////////////////////////
 // safelyParseJSON code copied from
@@ -160,7 +175,8 @@ function setupSocketIO(socket, polite, onConnectionStart) {
                 }
             });
         } else if (message === 'bye' && pc) {
-            handleRemoteHangup();
+            console.log('Session terminated.');
+            stop();
         } else {
             console.error("Unable to handle message")
         }
@@ -175,7 +191,6 @@ function sendWebRTCMessage(message) {
 
 ////////////////////////////////////////////////////
 
-
 window.onbeforeunload = function() {
     sendWebRTCMessage('bye');
 };
@@ -185,17 +200,13 @@ window.onbeforeunload = function() {
 function hangup() {
     console.log('Hanging up.');
     stop();
+    // Tell the other end that we're ending the call so they can stop
     sendWebRTCMessage('bye');
-}
-
-function handleRemoteHangup() {
-    console.log('Session terminated.');
-    stop();
 }
 
 function stop() {
     pc.close();
-    pc = createPeerConnection();
+    pc = createPeerConnection()
 }
 
 ////////////////////////////////////////////////////////////
@@ -207,7 +218,7 @@ function stop() {
 
 function sendData(obj) {
     if (!dataChannel || (dataChannel.readyState !== 'open')) {
-        //console.log("Trying to send data, but data channel isn't ready")
+        //console.warn("Trying to send data, but data channel isn't ready")
         return;
     }
 	var data = JSON.stringify(obj);
@@ -244,15 +255,6 @@ function sendData(obj) {
         }
 }
 
-function closeDataChannels() {
-    console.log('Closing data channels.');
-    dataChannel.close();
-    console.log('Closed data channel with label: ' + dataChannel.label);
-    console.log('Closed peer connections.');
-}
-
-
-let cameraInfo = null;
 function onReceiveMessageCallback(event) {
     var obj = safelyParseJSON(event.data);
     switch(obj.type) {
@@ -284,12 +286,4 @@ function onReceiveMessageCallback(event) {
             console.log('Received Object: ' + obj);
             console.log('*******************************************************');
     }
-}
-
-function onDataChannelStateChange() {
-    var readyState = dataChannel.readyState;
-    console.log('Data channel state is: ' + readyState);
-    if (readyState === 'open') {
-    	runOnOpenDataChannel();
-    } 
 }
