@@ -37,9 +37,13 @@ function addTracksToPeerConnection() {
     stream = gripperStream.editedVideoStream;
     stream.getTracks().forEach(t => {pc.addTrack(t, stream); info[stream.id] = "gripperStream";});
 
-    // Audio won't come as a part of a stream, leaving it up to the client to decide how to present it
-    pc.addTrack(audioStream)
-
+    // The real robot should have a mic, but we'll allow the call to proceed
+    // even if no audio is present
+    if (audioStream) {
+        pc.addTrack(audioStream)
+    } else {
+        console.warn("No audio stream")
+    }
     cameraInfo = {'type':'camerainfo', 'info': info};
 }
 
