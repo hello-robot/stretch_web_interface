@@ -45,7 +45,7 @@ const fastBoot = true;
 	do {
             console.log(logId + ': trying to reach login page...');
             num_tries++; 
-            await page.goto('https://forky.hcrlab.cs.washington.edu/login',
+            await page.goto('https://localhost/login',
                             {timeout:navigation_timeout_ms
                             }
 			   ).then(
