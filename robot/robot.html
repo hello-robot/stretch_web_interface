@@ -6,17 +6,8 @@
 
   <body>
 
-    <div class="video-display">
-      <video class="video-element" id="overheadVideo" autoplay></video>
-      <video class="video-element" id="gripperVideo" autoplay></video>
-      <video class="video-element" id="pantiltVideo" autoplay></video>
+    <div id="video-display">
     </div>
-
-    <!-- Commented by default to save a bit of drawing overhead -->
-    <!--
-    <div class='border border-primary' id="overheadVideoCanvas"></div>
-    <div class='border border-info' id="gripperVideoCanvas"></div>
-    <div class='border border-warning' id="pantiltVideoCanvas"></div>-->
 
 
     <div id="debug-text">
@@ -28,17 +19,9 @@
     <script src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script src="../shared/commands.js"></script>
-    <script src="../shared/video_dimensions.js"></script>
-    <script src="./js/robot.js"></script>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-    <script src="../shared/webrtc_utils.js"></script>
-    <script src="./js/robot_communication.js"></script>
-    <script src="../shared/sensors.js"></script>
-    <script src="../shared/request_response.js"></script>
-    <script src="./js/robot_acquire_av.js"></script>
-    <script src="./js/ros_connect.js"></script>
+    <script src="./js/main.js" type="module"></script>
     
   </body>
 </html>

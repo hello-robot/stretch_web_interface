@@ -11,6 +11,7 @@ var bufferFactorX = 0.9;
 var bufferFactorY = 0.9;
 var buttonHeight = 18;
 
+// FIXME: Remove window-size based calculations now that UI is responsive
 class RealsenseVideoDimensions {
     // D435i 1280x720 for now. Could be 1920 x 1080 if launch file
     // were changed. The camera is rotated -90 on our robots. For
@@ -103,56 +104,30 @@ class WideangleVideoDimensions {
 			    dw: this.w,
 			    dh: this.h};
 
-	    this.overheadManipCropDim = {sx: this.camW * (1.0-this.overheadManipCropX) / 1.5, //get more from the right
-			    sy: 0, // get more from the top
-			    sw: this.camW * this.overheadManipCropX,
-			    sh: this.camH * this.overheadManipCropY,
-			    dx: 0,
-			    dy: 0,
-			    dw: this.w,
-			    dh: this.h};
+		this.overheadManipCropDim = {
+			sx: this.camW * (1.0 - this.overheadManipCropX) / 1.5, //get more from the right
+			sy: 0, // get more from the top
+			sw: this.camW * this.overheadManipCropX,
+			sh: this.camH * this.overheadManipCropY,
+			dx: 0,
+			dy: 0,
+			dw: this.w,
+			dh: this.h
+		};
 
-	    this.zoom = 1.5;
-	    this.zoomDim = {sx: this.camW * (1.0-1.0/this.zoom) / 2.0,
-				sy: this.camH * (1.0-1.0/this.zoom) / 2.0,
-				sw: this.camW / this.zoom,
-				sh: this.camH / this.zoom,
-				dx: 0,
-				dy: 0,
-				dw: this.w,
-				dh: this.h};
-    }
-}
-
-var wideVideoDimensions = new WideangleVideoDimensions();
-var videoDimensions = new RealsenseVideoDimensions();
-
-function computeDimensions() {
-
-	var totalWidth = wideVideoDimensions.w * 2.0 + videoDimensions.h;
-	let targetWidth = bufferFactorX*wWidth;
-
-	console.log("Aimed for height: ", videoDimensions.w, wideVideoDimensions.h);
-	console.log('window.innerWidth', window.innerWidth);
-	console.log('totalWidth', totalWidth);
-
-	if (totalWidth > targetWidth) {
-		console.log("Need to readjust video widths based on the window width.");
-
-		let newPantiltHeight = targetWidth*videoDimensions.h*1.0/totalWidth;
-		let newWideWidth = targetWidth*wideVideoDimensions.w*1.0/totalWidth;
-
-		console.log('newPantiltHeight', newPantiltHeight);
-		console.log('newWideWidth', newWideWidth);
-
-		videoDimensions.setHeight(newPantiltHeight);
-		let newH = videoDimensions.h - 2 * buttonHeight; // Trick to account for buttons to maximiza height
-		videoDimensions.setHeight(newH);
-		wideVideoDimensions.setWidth(newWideWidth);
-		wideVideoDimensions.computeDimensions();
+		this.zoom = 1.5;
+		this.zoomDim = {
+			sx: this.camW * (1.0 - 1.0 / this.zoom) / 2.0,
+			sy: this.camH * (1.0 - 1.0 / this.zoom) / 2.0,
+			sw: this.camW / this.zoom,
+			sh: this.camH / this.zoom,
+			dx: 0,
+			dy: 0,
+			dw: this.w,
+			dh: this.h
+		};
 	}
 }
 
-computeDimensions();
-
-
+export const wideVideoDimensions = new WideangleVideoDimensions();
+export const realsenseDimensions = new RealsenseVideoDimensions();

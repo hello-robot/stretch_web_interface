@@ -243,22 +243,4 @@ function limitAngle(rad, lower = -Math.PI/2, upper = Math.PI/2) {
     return rad;
 }
 
-var sensors = {
-    "drive": driveSensors,
-    "lift": liftSensors,
-    "arm": armSensors,
-    "wrist": wristSensors,
-    "gripper": gripperSensors,
-	"head": headSensors
-}
 
-function receiveSensorReading(obj) {
-    if ("type" in obj) {
-        if (obj.type === "sensor") {
-            sensors[obj.subtype][obj.name](obj.value);
-            return;
-        }
-    }
-
-    console.error('the argument to receiveSensorReading was not a proper command object: ' + obj); 
-}
