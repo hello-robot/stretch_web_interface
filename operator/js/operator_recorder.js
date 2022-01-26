@@ -51,7 +51,7 @@ var recordContext;
 
 if (use_canvas_drawing_hack) {
     //    rDim = {w: 1920, h:1080}
-    rDim = {w: videoDimensions.w, h: videoDimensions.h}
+    rDim = {w: realsenseDimensions.w, h: realsenseDimensions.h}
     recordFps = 30;
     recordCanvas = document.createElement('canvas');
     recordCanvas.width = rDim.w;

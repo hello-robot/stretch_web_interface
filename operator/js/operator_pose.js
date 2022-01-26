@@ -1,5 +1,7 @@
 'use strict';
 
+
+// FIXME: Make a pose management component, decouple from DB model so
 class PoseManager {
     constructor(db, poseContainerId) {
         this.db = db;

@@ -1,37 +1,12 @@
 'use strict';
 
-var allJoints = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw'];
-
-function respondToRequest(request) {
-    switch(request.requestType) {
-        case "jointState":
-            var processedJointPositions = {};
-            allJoints.forEach((key, i) => {processedJointPositions[key] = getJointValue(jointState, key)});
-            sendData({
-                type: "response",
-                id: request.id,
-                responseHandler: request.responseHandler,
-                responseType: request.requestType,
-                data: processedJointPositions
-            });
-            break;
-        case "streamCameras":
-            sendData({
-                type: "response",
-                id: request.id,
-                responseHandler: request.responseHandler,
-                responseType: request.requestType,
-                data: cameraInfo
-            });
-            break;
-    }
-}
 
 function receiveResponse(response) {
     globalRequestResponseHandler.pending_requests[response.id].handleResponse(response);
 }
 
-class RequestResponseHandler {
+// FIXME: Integrate into WebRTCConnection class
+export class RequestResponseHandler {
     constructor(name) {
         this.pending_requests = {};
         this.name = name;
