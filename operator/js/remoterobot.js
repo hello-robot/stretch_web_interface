@@ -338,8 +338,9 @@ class RobotSensors {
         //"drive": {},
         "lift": {"effort": undefined},
         "arm": {"effort": undefined},
-        "wrist": {"yaw_torque": undefined, "bend_torque": undefined, "roll_torque": undefined},
-        "gripper": {"gripper_torque": undefined},
+        // Yaw effort is primary, bend and roll are for dex wrist only
+        "wrist": {"effort": undefined, "bend_torque": undefined, "roll_torque": undefined},
+        "gripper": {"effort": undefined, "transform": undefined},
         "head": {"transform": undefined}
     }
 
@@ -360,7 +361,7 @@ class RobotSensors {
     set(group, key, value) {
         this.sensors[group][key] = value
         for (const listener of this.listeners[group][key]) {
-            this.listeners[group][key](value)
+            listener(value)
         }
     }
 

@@ -1,9 +1,4 @@
 
-:root {
-    --mode-button-width: 55px;
-    /* --mode-button-width: 15%; */
-}
-
 #video-control-section {
     max-height: 90vh;
 }
@@ -16,170 +11,29 @@
     flex: 1 1
 }
 
-/***************************************************/
-/* Initial code prior to editing                   */
-/* http://www.cssflow.com/snippets/toggle-switches */
-/* Toggle Switch                                   */
-/* May 30, 2012                                    */
-/* MIT License                                     */
-/***************************************************/
-
-/* Initial code prior to editing                   */
-/*
- * Copyright (c) 2012-2013 Thibaut Courouble
- * http://www.cssflow.com
- *
- * Licensed under the MIT License:
- * http://www.opensource.org/licenses/mit-license.php
- */
-
-.switch {
-  display: inline-block;
-  position: relative;
-  height: 52px; /*26px;*/
-  /*margin: 20px auto;*/
-  /* width:  calc(var(--mode-button-width) * 6); */
-  width:  calc(var(--mode-button-width) * 5);
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+.btn-group.velocity-toggle label {
+    color: black
 }
 
-.switch-2 {
-  display: inline-block;
-  position: relative;
-  height: 26px;
-  width:  calc(var(--mode-button-width) * 5);
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+.btn[for="speed-1"] {
+    background: #00ff00;
 }
 
-.switch-label {
-  position: relative;
-  z-index: 2;
-  float: left;
-  width: var(--mode-button-width); /*116px;*/
-  line-height: 52px; /*26px;*/
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: center;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
-  cursor: pointer;
-  
-  font-size: 15px;
-  color: white;
-  font-family: Trebuchet, Arial, sans-serif;
-  /*font-weight: bold;*/
-}
-.switch-label:active {
-  font-weight: bold;
+.btn[for="speed-2"] {
+    background: #80FF00;
 }
 
-.switch-label-off {
-  padding-left: 2px;
+.btn[for="speed-3"] {
+    background: #ffff00;
 }
 
-.switch-label-on {
-  padding-right: 2px;
+.btn[for="speed-4"] {
+    background: #ff8000;
 }
 
-/*
- * Note: using adjacent or general sibling selectors combined with
- *       pseudo classes doesn't work in Safari 5.0 and Chrome 12.
- *       See this article for more info and a potential fix:
- *       http://css-tricks.com/webkit-sibling-bug/
- */
-.switch-input {
-  display: none;
+.btn[for="speed-5"] {
+    background: #ff0000;
 }
-.switch-input:checked + .switch-label-sm {
-  font-weight: bold;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.25);
-/*  transition: 0.15s ease-out; */
-  transition: 0.1s ease-out;
-}
-
-.switch-label-sm {
-  position: relative;
-  z-index: 2;
-  float: left;
-  width: var(--mode-button-width); /*116px;*/
-  line-height: 26px; /*26px;*/
-  color: rgba(0, 0, 0, 1.0);
-  text-align: center;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: Trebuchet, Arial, sans-serif;
-}
-
-.switch-selection {
-  display: block;
-  position: relative;
-  z-index: 1;
-  top: 2px;
-  left: 2px;
-  width: var(--mode-button-width);
-  height: 50px; /*22px;*/
-  background: #0000ff; /*#3aa2d0;*/
-  border-radius: 3px;
-  background-image: linear-gradient(to bottom, #4fc9ee, #0000ff); /*#3aa2d0);*/
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 0 2px rgba(0, 0, 0, 0.2);
-  /*transition: left 0.15s ease-out;*/
-  transition: left 0.1s ease-out;
-}
-
-.switch-selection-sm {
-  display: block;
-  position: relative;
-  z-index: 5;
-  top: 0px;
-  left: 0px;
-  width: var(--mode-button-width);
-  height: 26px;
-  background: transparent;
-  border: solid 3px #000000;
-  border-radius: 3px;
-  transition: left 0.1s ease-out;
-}
-
-.switch-input:checked + .switch-speed-1 ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 0);
-}
-
-.switch-input:checked + .switch-speed-2 ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 1);
-}
-
-.switch-input:checked + .switch-speed-3 ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 2); 
-}
-
-.switch-input:checked + .switch-speed-4 ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 3);
-}
-
-.switch-input:checked + .switch-speed-5 ~ .switch-selection {
-    left: calc(var(--mode-button-width) * 4);
-}
-
-.switch-speed-1 {
-  background: #00ff00;
-}
-.switch-speed-2 {
-  background: #80FF00;
-}
-.switch-speed-3 {
-  background: #ffff00;
-}
-.switch-speed-4 {
-  background: #ff8000;
-}
-.switch-speed-5 {
-  background: #ff0000;
-}
-
-
 
 
 /***************************************************/
@@ -256,7 +110,20 @@
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-    right: 0px; 
+    right: 0px;
 }
 
 /********************************************************************/
+
+#googleSignInButton {
+    width: 0px;
+    height: 0px;
+    padding: 1.2em 5em;
+    background: url("../../shared/assets/web/2x/btn_google_signin_light_normal_web@2x.png");
+    background-size: cover;
+    cursor: pointer;
+}
+
+#googleSignOutButton:focus {
+    background: url("../../shared/assets/web/2x/btn_google_signin_light_focus_web@2x.png");
+}

@@ -1,7 +1,7 @@
 import {getJointEffort, getJointValue, Robot} from "./robot.js";
 import {WebRTCConnection} from "../../shared/webrtcconnection.js";
-import {TransformedVideoStream} from "./camerastream.cmp.js";
-import {realsenseDimensions, wideVideoDimensions} from "../../shared/video_dimensions.js";
+import {TransformedVideoStream} from "./videostream.cmp.js";
+import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../shared/video_dimensions.js";
 
 let cameraInfo
 let audioInId;
@@ -18,19 +18,13 @@ let overheadStream, gripperStream, pantiltStream, audioStream;
 
 function connectedToROS() {
     navigator.mediaDevices.enumerateDevices().then(findDevices).catch(handleError).then(() => {
-        pantiltStream = new TransformedVideoStream({
-            w: realsenseDimensions.camW,
-            h: realsenseDimensions.camH
-        }, null, true);
+        pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
         robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
 
-        overheadStream = new TransformedVideoStream({w: wideVideoDimensions.camW, h: wideVideoDimensions.camH});
+        overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop);
         robot.subscribeToVideo('/navigation_camera/image_raw/compressed', overheadStream.imageCallback.bind(overheadStream))
 
-        gripperStream = new TransformedVideoStream({
-            w: wideVideoDimensions.camW,
-            h: wideVideoDimensions.camH
-        }, wideVideoDimensions.gripperCropDim);
+        gripperStream = new TransformedVideoStream(wideVideoDimensions, gripperCrop);
         robot.subscribeToVideo('/gripper_camera/image_raw/compressed', gripperStream.imageCallback.bind(gripperStream))
         pantiltStream.start();
         overheadStream.start();
@@ -120,13 +114,19 @@ function changeAudioDestination(element) {
 }
 
 
-function forwardTF(message) {
+function forwardTF(frame, transform) {
     if (!connection) return;
     let toSend = {
         type: 'sensor',
-        subtype: 'head',
         name: 'transform',
-        value: message
+        value: transform
+    }
+    if (frame === "link_gripper_finger_left") {
+        toSend.subtype = "gripper"
+    } else if (frame === "camera_color_frame") {
+        toSend.subtype = "head"
+    } else {
+        return;
     }
     connection.sendData(toSend)
 }
@@ -136,10 +136,10 @@ function forwardJointStates(jointState) {
     let messages = []
     // send wrist joint effort
     let effort = getJointEffort(jointState, 'joint_wrist_yaw');
-    messages.push({'type': 'sensor', 'subtype': 'wrist', 'name': 'yaw_torque', 'value': effort})
+    messages.push({'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort})
 
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
-    messages.push({'type': 'sensor', 'subtype': 'gripper', 'name': 'gripper_torque', 'value': effort})
+    messages.push({'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort})
 
     effort = getJointEffort(jointState, 'joint_lift');
     messages.push({'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort})

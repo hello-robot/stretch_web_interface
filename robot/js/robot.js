@@ -82,10 +82,10 @@ export class Robot {
                 this.baseTurn(driveRotMedDist, -DRIVE_ROT_V[MODIFIERS[size]]);
             },
             "turn_ccw": size => {
-                this.baseTurn(driveRotMedDist, Math.PI / 2);
+                this.baseTurn(driveRotMedDist, -Math.PI / 2);
             },
             "turn_cw": size => {
-                this.baseTurn(driveRotMedDist, -Math.PI / 2);
+                this.baseTurn(driveRotMedDist, Math.PI / 2);
             }
         },
         "lift": {
@@ -186,17 +186,15 @@ export class Robot {
         this.ros = new ROSLIB.Ros({
             url: 'wss://localhost:9090'
         });
-        let that = this
-        this.ros.on('connection', function () {
+        this.ros.on('connection', () => {
             console.log('Connected to websocket.');
 
             let simTime = new ROSLIB.Param({
-                ros: that.ros,
+                ros: this.ros,
                 name: '/use_sim_time'
             });
 
-            // Get the value of the max linear speed paramater
-            simTime.get(function (value) {
+            simTime.get(value => {
                 if (value != null) {
                     if (value !== inSim) {
                         localStorage.setItem("inSim", value);
@@ -221,10 +219,10 @@ export class Robot {
             messageType: 'sensor_msgs/JointState'
         });
         this.jointStateTopic.subscribe(message => {
-            if (that.jointState === null) {
+            if (this.jointState === null) {
                 console.log('Received first joint state from ROS topic ' + this.jointStateTopic.name);
             }
-            that.jointState = message;
+            this.jointState = message;
             if (jointStateCallback) jointStateCallback(message)
         });
 
@@ -235,32 +233,29 @@ export class Robot {
             transThres: 0.01
         });
 
-
-        this.tfClient.subscribe('link_gripper_finger_left', tf => {
-            that.linkGripperFingerLeft = tf;
+        this.tfClient.subscribe('link_gripper_finger_left', transform => {
+            this.linkGripperFingerLeft = transform;
             if (tfCallback) {
-                tfCallback(tf)
+                tfCallback('link_gripper_finger_left', transform)
             }
         });
 
-
-        this.tfClient.subscribe('link_head_tilt', function (tf) {
-            that.linkHeadTiltTF = tf;
+        this.tfClient.subscribe('link_head_tilt', transform => {
+            this.linkHeadTiltTF = transform;
             if (tfCallback) {
-                tfCallback(tf)
+                tfCallback('link_head_tilt', transform)
             }
         });
 
-
-        this.tfClient.subscribe('camera_color_frame', function (tf) {
-            that.cameraColorFrameTF = tf;
+        this.tfClient.subscribe('camera_color_frame', transform => {
+            this.cameraColorFrameTF = transform;
             if (tfCallback) {
-                tfCallback(tf)
+                tfCallback('camera_color_frame', transform)
             }
         });
 
-        this.tfClient.subscribe('odom', function (tf) {
-            that.baseTF = tf;
+        this.tfClient.subscribe('odom', transform => {
+            this.baseTF = transform;
         });
         this.trajectoryClient = new ROSLIB.ActionClient({
             ros: this.ros,

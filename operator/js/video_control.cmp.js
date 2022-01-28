@@ -2,16 +2,16 @@ import {BaseComponent, Component} from '../../shared/base.cmp.js';
 
 const template = `
 <div id="top" class="control-button">
-    <button class="btn btn-secondary btn-sm h-button"></button>
+    <button ></button>
 </div>
 <div id="right" class="control-button">
-    <button class="btn btn-secondary btn-sm h-button"></button>
+    <button ></button>
 </div>
 <div id="bottom" class="control-button">
-    <button class="btn btn-secondary btn-sm h-button"></button>
+    <button ></button>
 </div>
 <div id="left" class="control-button">
-    <button class="btn btn-secondary btn-sm h-button"></button>
+    <button></button>
 </div>
 <div class="video-container">
 <div class="overlays-container" data-ref="overlays-container">
@@ -28,11 +28,13 @@ export class VideoControl extends BaseComponent {
         this.overlays = new Map(); // key is mode id, values are a list of Overlay objects
 
         this.setDimensions(width, height);
-        this.isActive = false;
 
         if (buttonMappings) {
-            for (const [name, {action, label}] of buttonMappings) {
-                // FIXME: Hook up these controls
+            for (const [name, {action, label, title}] of buttonMappings) {
+                const button = this.shadowRoot.getElementById(name).querySelector("button")
+                button.title = title
+                button.textContent = label
+                button.onclick = action
             }
         } else {
             for (const button of this.shadowRoot.querySelectorAll(".control-button")) {
@@ -72,7 +74,7 @@ export class VideoControl extends BaseComponent {
 
         for (let [m, modeOverlays] of this.overlays.entries()) {
             for (let o of modeOverlays) {
-                if (m === modeId) {
+                if (m === modeId || m === "all") {
                     if (o.type === 'control')
                         overlays.appendChild(o.svg);
                     else if (o.type === 'viz')
@@ -85,20 +87,6 @@ export class VideoControl extends BaseComponent {
         }
     }
 
-    setActive(isActive) {
-        this.isActive = isActive;
-        console.log("this.currentMode", this.currentMode);
-        console.log("this.overlays", this.overlays);
-
-        let modeOverlays = this.overlays[this.currentMode];
-        if (modeOverlays) {
-            for (let o of modeOverlays) {
-                if (o.type === 'control') {
-                    o.setActive(isActive);
-                }
-            }
-        }
-    }
 
 }
 

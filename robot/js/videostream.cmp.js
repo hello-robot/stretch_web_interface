@@ -16,8 +16,6 @@ import {BaseComponent, Component} from "../../shared/base.cmp.js";
 
 let debug = false;
 
-// FIXME: Respect camera's actual FPS.
-const TARGET_FPS = 30;
 const degToRad = (2.0 * Math.PI) / 360.0;
 const template = `<span data-ref="paused-ui">Click to start</span><video data-ref="video" autoplay></video>`
 
@@ -89,7 +87,7 @@ export class VideoStream extends BaseComponent {
             // Hallucinate image messages so we don't have to run ROS to debug this
             window.setInterval(this.imageCallback.bind(this), 1000);
         }
-        this.editedVideoStream = this.canvas.captureStream(TARGET_FPS);
+        this.editedVideoStream = this.canvas.captureStream(this.inDim.fps);
         this.displayElement.srcObject = this.editedVideoStream; // display the stream
         this.drawVideo();
     }

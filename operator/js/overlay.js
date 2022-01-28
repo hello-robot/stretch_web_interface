@@ -1,48 +1,10 @@
 'use strict';
 
 
-export class THREEManager {
-    constructor(camera, width, height) {
-        this.camera = camera;
-        this.width = width;
-        this.height = height;
-        this.overlays = [];
-    }
-
-    addOverlay(overlay) {
-        this.overlays.push(overlay)
-    }
-
-    pauseOverlayRender(overlay) {
-        overlay.rendering = false
-    }
-
-    resumeOverlayRender(overlay) {
-        overlay.rendering = true
-    }
-
-    animate(doonce = false) {
-        // TODO: Figure out how to properly pass self into a callback function
-        if (!doonce) {
-            requestAnimationFrame(() => {
-                this.animate();
-            });
-        }
-
-        for (const overlay of this.overlays) {
-            if (overlay.rendering) {
-                overlay.render();
-            }
-        }
-    }
-}
-
 /*
 * Base class for a video overlay
 */
 export class Overlay {
-    rendering = true
-
     constructor() {
     }
 
@@ -67,7 +29,6 @@ export class OverlaySVG extends Overlay {
         super();
         this.regions = [];
         this.type = 'control';
-        this.isActive = true;
 
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('preserveAspectRatio', 'none');
@@ -97,40 +58,29 @@ export class OverlaySVG extends Overlay {
         this.svg.style.display = ""
     }
 
-    setActive(isActive) {
-        this.isActive = isActive;
-
-    }
-
 }
 
 /*
 * Class for an THREE.js video overlay
 */
 export class OverlayTHREE extends Overlay {
-    constructor(threeManager) {
+    constructor(camera) {
         super();
         this.objs = {};
         this.type = 'viz';
-        this.threeManager = threeManager;
         this.scene = new THREE.Scene();
+        this.camera = camera
         this.renderer = new THREE.WebGLRenderer({alpha: true});
-        this.renderer.setSize(this.threeManager.width, this.threeManager.height);
+        //this.renderer.setSize(200, 200);
 
         this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
-        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, this.threeManager.camera));
-    
-        this.threeManager.addOverlay(this);
+        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, camera));
 
         this.enabled = true;
     }
 
     getSVG() {
         return this.renderer.domElement;
-    }
-
-    addRenderPass(renderPass) {
-        this.composer.addPass(renderPass);
     }
 
     addItem(obj) {
@@ -142,30 +92,101 @@ export class OverlayTHREE extends Overlay {
         for (const obj in this.objs) {
             this.objs[obj].hide();
         }
-        this.threeManager.pauseOverlayRender(this);
+        this.enabled = false
     }
 
     show() {
-        if (this.enabled) {
-            for (const obj in this.objs) {
-                this.objs[obj].show();
-            }
-            this.threeManager.resumeOverlayRender(this);
+        this.enabled = true
+        for (const obj in this.objs) {
+            this.objs[obj].show();
         }
+        this.animate()
     }
 
     render() {
         this.composer.render();
     }
 
-    disable() {
-        this.enabled = false;
-        this.hide();
+    animate() {
+        if (!this.enabled) {
+            return;
+        }
+        this.render();
+        requestAnimationFrame(this.animate.bind(this));
+    }
+}
+
+// Camera Position Information
+const global_rotation_point = new THREE.Vector3(
+    -0.001328,
+    0,
+    -0.053331
+);
+
+const global_reference_point = new THREE.Vector3(
+    -0.001328,
+    0.027765,
+    -0.053331
+);
+
+const global_target_point = new THREE.Vector3(
+    0.037582,
+    -0.002706,
+    0.019540000000000113
+).add(global_reference_point);
+
+let reference_to_rotation_offset = global_rotation_point.clone().sub(global_reference_point);
+let rotation_to_target_offset = global_target_point.clone().sub(global_rotation_point);
+
+export class ReachOverlay extends OverlayTHREE {
+
+    constructor(camera) {
+        super(camera);
+        let reachCircle = new THREEObject(
+            'reach_visualization_circle',
+            new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
+            new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
+        )
+        this.addItem(reachCircle);
+        let outlineEffect = new POSTPROCESSING.OutlineEffect(
+            this.scene,
+            this.camera,
+            {visibleEdgeColor: 0xff9900});
+        let outlineEffectPass = new POSTPROCESSING.EffectPass(
+            this.camera,
+            outlineEffect
+        );
+        outlineEffectPass.renderToScreen = true;
+        outlineEffect.selectObject(reachCircle.mesh);
+        this.composer.addPass(outlineEffectPass);
     }
 
-    enable() {
-        this.enabled = true;
-        this.threeManager.animate(true);
+    updateTransform(transform) {
+        // Update the rotation and translation of the THREE.js camera to match the physical one
+        let q_ros_space = new THREE.Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+
+        let order = 'XYZ'
+        let e = new THREE.Euler(0, 0, 0, order);
+        e.setFromQuaternion(q_ros_space, order);
+
+        let q_inverse = q_ros_space.clone().invert();
+
+        let reference_point = new THREE.Vector3(transform.translation.x, transform.translation.y, transform.translation.z);
+        // z in global space is y in ros space
+        let rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
+
+        // TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
+        let rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
+
+        let rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
+
+        let target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
+
+        //threeManager.camera.position.copy(target_point);
+        this.camera.position.copy(rosPostoTHREE(transform.translation));
+
+        let e_three_space = rosEulerToTHREE(e, 'YZX');
+        this.camera.rotation.copy(e_three_space);
     }
 }
 
@@ -176,7 +197,7 @@ export class Region {
     path
     icon
 
-    constructor({label, poly, iconImage, isConvex = true, fillOpacity = 0.0, clickHandler, mouseDownHandler}) {
+    constructor({label, poly, iconImage, iconPosition, fillOpacity = 0.0, clickHandler, mouseDownHandler}) {
         this.label = label;
 
         const stroke_width = 2
@@ -185,13 +206,14 @@ export class Region {
         if (iconImage) {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             icon.setAttribute("class", "overlay-icon")
-            icon.setAttribute('width', width);
+            icon.setAttribute('width', String(width));
             icon.setAttribute('href', iconImage);
-            let center = getPolyCenter(poly, isConvex)
-            icon.setAttribute('x', center.x - width / 2);
-            icon.setAttribute('y', center.y - width / 2);
-            icon.setAttribute('visibility', 'visible');
-            icon.setAttribute('opacity', "0.5");
+            if (!iconPosition) {
+                iconPosition = getPolyCenter(poly)
+            }
+            icon.setAttribute('x', String(iconPosition.x));
+            icon.setAttribute('y', String(iconPosition.y));
+            icon.setAttribute('transform', `translate(${-width / 2},${-width / 2})`)
             this.icon = icon
         }
 
@@ -204,7 +226,7 @@ export class Region {
         path.setAttribute('vector-effect', "non-scaling-stroke")
         path.setAttribute('d', svgPolyString(poly));
         if (iconImage) {
-            path.style.cursor = `url(${iconImage}), auto`
+            path.style.cursor = `url(${iconImage}), pointer`
         }
         let tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title')
         tooltip.textContent = label
@@ -219,14 +241,6 @@ export class Region {
         }
     }
 
-    hideIcon() {
-        this.icon.style.visibility = "hidden"
-    }
-
-    showIcon() {
-        this.icon.style.visibility = ""
-    }
-
     setClickHandler(handler) {
         this.path.onclick = handler
         this.path.classList.add("interactive", "clickable")
@@ -239,13 +253,9 @@ export class Region {
 }
 
 
-function getPolyCenter(points, isConvex) {
+function getPolyCenter(points) {
     let avgX = 0;
     let avgY = 0;
-
-    if (!isConvex)
-        points = points.slice(1,5);
-
     for (let p of points) {
         avgX += p.x;
         avgY += p.y;
@@ -276,15 +286,6 @@ export class THREEObject {
     }
 }
 
-function updateReachVisualizationDisplay() {
-    var checkbox = document.getElementById('reachVisualization');
-    if (checkbox.checked) {
-        reachOverlayTHREE.enable();
-    } else {
-        reachOverlayTHREE.disable();
-    }
-}
-
 
 /////// UTILITY FUNCTIONS //////////
 
@@ -312,4 +313,47 @@ export function makeSquare(ulX, ulY, width) {
 
 export function rectToPoly(rect) {
     return [rect.ul, rect.ur, rect.lr, rect.ll];
+}
+
+function rosPostoTHREE(p) {
+    return new THREE.Vector3(p.x, -p.y, p.z);
+}
+
+function rosEulerToTHREE(e, order) {
+    return new THREE.Euler(
+        e.z + (Math.PI / 2),
+        0,
+        e.y + (Math.PI / 2),
+        order
+    )
+}
+
+function encodeSvg(svgString) {
+    return svgString.replace('<svg', (~svgString.indexOf('xmlns') ? '<svg' : '<svg xmlns="http://www.w3.org/2000/svg"'))
+
+        //
+        //   Encode (may need a few extra replacements)
+        //
+        .replace(/"/g, '\'')
+        .replace(/%/g, '%25')
+        .replace(/#/g, '%23')
+        .replace(/{/g, '%7B')
+        .replace(/}/g, '%7D')
+        .replace(/</g, '%3C')
+        .replace(/>/g, '%3E')
+
+        .replace(/\s+/g, ' ')
+//
+//    The maybe list (add on documented fail)
+//
+//  .replace(/&/g, '%26')
+//  .replace('|', '%7C')
+//  .replace('[', '%5B')
+//  .replace(']', '%5D')
+//  .replace('^', '%5E')
+//  .replace('`', '%60')
+//  .replace(';', '%3B')
+//  .replace('?', '%3F')
+//  .replace(':', '%3A')
+//  .replace('@', '%40')
 }
