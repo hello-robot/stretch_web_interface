@@ -1,65 +1,67 @@
 import {VideoControl} from "./video_control.cmp.js";
 import {Component} from '../../shared/base.cmp.js';
 import {PageComponent} from '../../shared/page.cmp.js';
-import {realsenseDimensions, wideVideoDimensions} from "../../shared/video_dimensions.js";
 import {
     OverlaySVG,
-    OverlayTHREE,
     makeRectangle,
     makeSquare,
-    rectToPoly, THREEObject, ReachOverlay
+    rectToPoly
 } from "./overlay.js";
 import {RemoteRobot} from "./remoterobot.js";
 import {WebRTCConnection} from "../../shared/webrtcconnection.js";
+import {LocalStorageModel} from "./model.js";
+import {ReachOverlay} from "./stretchoverlays.js";
 
 // FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
 // FIXME: Settings page not reintegrated
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
-<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left">
+<div class="container-fluid px-sm-2 py-sm-2 d-flex justify-content-left">
 
-    <div class="d-flex flex-fill justify-content-start mb-4 ">
+    <div class="d-flex flex-fill justify-content-start ">
     <div class="btn-group" role="group" aria-label="Select mode" data-ref="mode-toggle">
-      <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked> 
+      <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked disabled> 
       <label class="btn btn-secondary btn-sm" for="mode-navigation">Navigation</label>
   
-      <input type="radio" id="mode-manipulation" class="btn-check" name="mode" value="manip" autocomplete="off"> 
+      <input type="radio" id="mode-manipulation" class="btn-check" name="mode" value="manip" autocomplete="off" disabled> 
       <label class="btn btn-secondary btn-sm" for="mode-manipulation">Manipulation</label>
     </div>
     </div>
+    
+    <command-recorder data-ref="recorder" disabled></command-recorder>
 
-    <div class="d-flex flex-fill justify-content-end mb-4 ">
+    <div class="d-flex flex-fill justify-content-end">
     <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
         <input type="radio" name="velocity" id="speed-1" class="btn-check" value="verysmall" autocomplete="off">
-        <label class="btn btn-sm btn-secondary" for="speed-1">Slowest</label>
+        <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
         <input type="radio" name="velocity" id="speed-2" class="btn-check" value="small" autocomplete="off">
-        <label class="btn btn-sm btn-secondary" for="speed-2">Slow</label>
+        <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
         <input type="radio" name="velocity" id="speed-3" class="btn-check" value="medium" autocomplete="off" checked>
-        <label class="btn btn-sm btn-secondary" for="speed-3">Medium</label>
+        <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
         <input type="radio" name="velocity" id="speed-4" class="btn-check" value="large" autocomplete="off">
-        <label class="btn btn-sm btn-secondary" for="speed-4">Fast</label>
+        <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
         <input type="radio" name="velocity" id="speed-5" class="btn-check" value="verylarge" autocomplete="off">
-        <label class="btn btn-sm btn-secondary" for="speed-5">Fastest</label>
-         
+        <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
     </div>
     </div>
 </div>
 
-
-<section class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left bg-danger" id="video-control-section">
-
+<section class="container-fluid px-sm-2 py-sm-2 mb-3 d-flex justify-content-left bg-danger" id="video-control-section">
     <div class="container-fluid d-flex flex-row justify-content-around" data-ref="video-control-container" id="video-control-container">
     </div>
-    <div>
-        <div class="d-flex flex-column justify-content-sm-center" id="robotPoseContainer"></div>
-
-    </div>
+    <template id="pantilt-extra-controls">
+    <div class="d-flex justify-content-around mt-2">
+    <div class='form-check form-check-inline'> <input type='checkbox' class="form-check-input" value='follow' id="follow-check"><label class="form-check-label" for="follow-check">Follow gripper</label></div><button class='btn btn-secondary btn-sm'>Reset view</button></div></template>
 </section>
 
-<hr>
+<section class="container-fluid px-sm-2">
+<pose-library data-ref="pose-library" disabled></pose-library>
+</section>
+
+<hr />
 
 <div class="container-fluid d-flex flex-row">
-    <div class="d-flex justify-content-start mb-4">
+    <div class="d-flex justify-content-start">
     <div class="input-group input-group-sm" >
         <select data-ref="select-robot" class="form-select" aria-label="Select robot">
             <option value="no robot connected">no robot connected</option>
@@ -67,15 +69,9 @@ const template = `
         <input id="hangup" type="button" class="btn btn-sm btn-warning" value="hang up" data-ref="hangup" disabled/>
     </div>
     </div>
- 
 
-    <div class="d-flex flex-fill justify-content-end mb-4">
-        <div class="recordswitch">
-            <button id="record" type="button" class="btn btn-sm btn-secondary">Start Recording</button>
-            <button id="download" type="button" class="btn btn-sm btn-secondary" disabled>Download Recording
-            </button>
-        </div>
-        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#settings">
+    <div class="d-flex flex-fill justify-content-end">
+        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#settings" disabled>
             Settings
         </button>
     </div>
@@ -88,7 +84,7 @@ export class OperatorComponent extends PageComponent {
     robot
     connection
     pc
-    allRemoteStreams = []
+    allRemoteStreams = new Map()
     currentMode = undefined
 
     constructor() {
@@ -97,7 +93,7 @@ export class OperatorComponent extends PageComponent {
             onMessage: this.handleMessage.bind(this),
             onTrackAdded: this.handleRemoteTrackAdded.bind(this),
             onAvailableRobotsChanged: this.availableRobotsChanged.bind(this),
-            onDataChannelOpen: this.configureRobot.bind(this)
+            onMessageChannelOpen: this.configureRobot.bind(this)
         })
 
         this.refs.get("hangup").addEventListener("click", () => {
@@ -129,6 +125,18 @@ export class OperatorComponent extends PageComponent {
         };
     }
 
+    getVelocityModifier() {
+        return this.shadowRoot.querySelector("input[name=velocity]:checked").value
+    }
+
+    connectedCallback() {
+        let poseLibrary = this.refs.get("pose-library")
+        poseLibrary.getCurrentPose = async () => {
+            return await this.connection.makeRequest("jointState")
+        }
+        this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
+    }
+
     setMode(modeId, button) {
         this.refs.get("video-control-container").classList.remove(this.currentMode + "-mode")
         for (const control in this.controls) {
@@ -137,18 +145,9 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("video-control-container").classList.add(modeId + "-mode")
 
         if (modeId === 'nav') {
-            // FIXME: Fix follow gripper checkbox UI
-            let checkbox = document.getElementById('cameraFollowGripperOn');
-            if (checkbox && checkbox.checked)
-                this.robot.changeGripperFollow(false);
-
             this.robot.setCameraView('nav', true);
 
         } else if (modeId === 'manip') {
-            let checkbox = document.getElementById('cameraFollowGripperOn');
-            if (checkbox && checkbox.checked)
-                this.robot.changeGripperFollow(true);
-
             this.robot.setCameraView('manip', true);
         } else {
             console.error('Invalid mode: ' + modeId);
@@ -158,6 +157,13 @@ export class OperatorComponent extends PageComponent {
     }
 
     disconnectFromRobot() {
+        // Remove controls
+        this.refs.get("video-control-container").innerHTML = ""
+
+        this.refs.get("pose-library").disabled = "true"
+        this.refs.get("recorder").disabled = "true"
+        this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = true)
+
         this.connection.hangup()
         for (const control in this.controls) {
             this.controls[control].removeRemoteStream()
@@ -191,7 +197,7 @@ export class OperatorComponent extends PageComponent {
         console.log('OPERATOR: adding remote tracks');
 
         let streamName = this.connection.cameraInfo[stream.id]
-        this.allRemoteStreams.push({'track': track, 'stream': stream, 'streamName': streamName});
+        this.allRemoteStreams.set(streamName, {'track': track, 'stream': stream});
 
     }
 
@@ -216,22 +222,60 @@ export class OperatorComponent extends PageComponent {
             console.log(event, val)
         })
 
-        this.refs.get("video-control-container").innerHTML = ""
+        this.refs.get("pose-library").disabled = null
+        this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
-        // FIXME: Make the SVGS appropriately responsive to actual video feed aspect ratio
+        const overhead = new VideoControl('nav');
+        const pantilt = new VideoControl('nav', new Map([["left", {
+            title: "look left",
+            action: () => this.robot.lookLeft("medium")
+        }], ["right", {
+            title: "look right",
+            action: () => this.robot.lookRight("medium")
+        }],
+            ["top", {
+                title: "look up",
+                action: () => this.robot.lookUp("medium")
+            }],
+            ["bottom", {
+                title: "look down",
+                action: () => this.robot.lookDown("medium")
+            }]]));
+        let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
+        extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
+            this.robot.setPanTiltFollowGripper(event.target.checked)
+        }
+        extraPanTiltButtons.querySelector("button").onclick = () => {
+            this.robot.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
+        }
+        pantilt.setExtraContents(extraPanTiltButtons)
+        const gripper = new VideoControl('nav');
+
+        this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
+
+        for (const [streamName, info] of this.allRemoteStreams) {
+            this.controls[streamName].addRemoteStream(info.stream)
+        }
+
+        Array(overhead, pantilt, gripper).forEach(control => {
+            this.refs.get("video-control-container").appendChild(control)
+        })
+
+        function icon(name) {
+            return `/operator/images/${name}.svg`
+        }
+
         const w = 100;
         const h = 100;
 
-        // FIXME: threejs overlays haven't been reintegrated. Register listeners on robot sensor model
-        //   that feed values to these overlay layers
-        const threeCamera = new THREE.PerspectiveCamera(69, w / h, 0.1, 1000);
+        let panTiltTrack = this.allRemoteStreams.get("pantilt").stream.getVideoTracks()[0]
+        const threeCamera = new THREE.PerspectiveCamera(69, panTiltTrack.getSettings().aspectRatio, 0.1, 1000);
 
         var ptNavOverlay = new OverlaySVG();
         var reachOverlayTHREE = new ReachOverlay(threeCamera);
         this.robot.sensors.listenToKeyChange("head", "transform", (transform) => {
             reachOverlayTHREE.updateTransform(transform)
         })
-
 
         this.robot.sensors.listenToKeyChange("lift", "effort", value => {
             // FIXME: Color lift up region
@@ -263,7 +307,6 @@ export class OperatorComponent extends PageComponent {
             if (nothingRegion1)
                 nothingRegion1.setAttribute('fill-opacity', 0.0);
         })
-
 
         this.robot.sensors.listenToKeyChange("arm", "effort", value => {
             // FIXME: Set color of manipulation extension region
@@ -354,39 +397,6 @@ export class OperatorComponent extends PageComponent {
         var overheadManipOverlay = new OverlaySVG();
 
         var gripperOverlay = new OverlaySVG();
-        var gripperManipOverlay = new OverlaySVG();
-
-
-        const overhead = new VideoControl('nav', wideVideoDimensions.w, wideVideoDimensions.h);
-        const pantilt = new VideoControl('nav', realsenseDimensions.h, realsenseDimensions.w, new Map([["left", {
-            title: "look left",
-            action: () => this.robot.lookLeft()
-        }], ["right", {
-            title: "look right",
-            action: () => this.robot.lookRight()
-        }],
-            ["top", {
-                title: "look up",
-                action: () => this.robot.lookUp()
-            }],
-            ["bottom", {
-                title: "look down",
-                action: () => this.robot.lookDown()
-            }]]));
-        const gripper = new VideoControl('nav', wideVideoDimensions.w, wideVideoDimensions.h);
-
-        this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
-
-        for (const item of this.allRemoteStreams) {
-            this.controls[item.streamName].addRemoteStream(item.stream)
-        }
-        Array(overhead, pantilt, gripper).forEach(control => {
-            this.refs.get("video-control-container").appendChild(control)
-        })
-
-        function icon(name) {
-            return `/operator/images/${name}.svg`
-        }
 
         var regionPoly;
         var cornerRectSize = 20;
@@ -403,28 +413,28 @@ export class OperatorComponent extends PageComponent {
 
         ptNavOverlay.createRegion({label: 'do nothing', poly: rectToPoly(smRect)});
         ptNavOverlay.createRegion({
-            label: 'move forward',
+            label: 'drive forward',
             poly: [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul],
             iconImage: icon("arrow_up"),
-            clickHandler: () => this.robot.moveForward()
+            clickHandler: () => this.robot.driveForward(this.getVelocityModifier())
         });
         ptNavOverlay.createRegion({
-            label: 'move backward',
+            label: 'drive backward',
             poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
             iconImage: icon("arrow_down"),
-            clickHandler: () => this.robot.moveBackward()
+            clickHandler: () => this.robot.driveBackward(this.getVelocityModifier())
         });
         ptNavOverlay.createRegion({
             label: 'turn left',
             poly: [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul],
             iconImage: icon("turn_left"),
-            clickHandler: () => this.robot.turnLeft()
+            clickHandler: () => this.robot.turnLeft(this.getVelocityModifier())
         });
         ptNavOverlay.createRegion({
             label: 'turn right',
             poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
             iconImage: icon("turn_right"),
-            clickHandler: () => this.robot.turnRight()
+            clickHandler: () => this.robot.turnRight(this.getVelocityModifier())
         });
         ptNavOverlay.createRegion({
             label: 'turn 90 degrees CCW',
@@ -459,61 +469,61 @@ export class OperatorComponent extends PageComponent {
             label: 'lift arm',
             poly: rectToPoly(tpRect),
             iconImage: icon('arrow_up'),
-            clickHandler: () => this.robot.liftUp()
+            clickHandler: () => this.robot.liftUp(this.getVelocityModifier())
         })
         ptManipOverlay.createRegion({
             label: 'lower arm',
             poly: rectToPoly(btRect),
             iconImage: icon('arrow_down'),
-            clickHandler: () => this.robot.liftDown()
+            clickHandler: () => this.robot.liftDown(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
             label: 'extend arm',
             poly: [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul],
-            iconImage: icon('out_arrow'),
-            clickHandler: () => this.robot.armExtend()
+            iconImage: icon('arrow_up_right'),
+            clickHandler: () => this.robot.armExtend(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
             label: 'retract arm',
             poly: [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll],
-            iconImage: icon('in_arrow'),
-            clickHandler: () => this.robot.armRetract()
+            iconImage: icon('arrow_down_left'),
+            clickHandler: () => this.robot.armRetract(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
-            label: 'move forward',
+            label: 'drive forward',
             poly: [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll],
             iconImage: icon('arrow_left'),
-            clickHandler: () => this.robot.moveForward()
+            clickHandler: () => this.robot.driveForward(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
-            label: 'move backward',
+            label: 'drive backward',
             poly: [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr],
             iconImage: icon('arrow_right'),
-            clickHandler: () => this.robot.moveBackward()
+            clickHandler: () => this.robot.driveBackward(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
             label: 'turn hand in',
             poly: rectToPoly(leftRect),
             iconImage: icon('turn_left'),
-            clickHandler: () => this.robot.wristIn()
+            clickHandler: () => this.robot.wristIn(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
             label: 'turn hand out',
             poly: rectToPoly(rightRect),
             iconImage: icon('turn_right'),
-            clickHandler: () => this.robot.wristOut()
-        });
-        ptManipOverlay.createRegion({
-            label: 'open hand',
-            poly: rectToPoly(leftRect2),
-            iconImage: '/operator/images/gripper_close.svg',
-            clickHandler: () => this.robot.gripperOpen()
+            clickHandler: () => this.robot.wristOut(this.getVelocityModifier())
         });
         ptManipOverlay.createRegion({
             label: 'close hand',
+            poly: rectToPoly(leftRect2),
+            iconImage: '/operator/images/gripper_close.svg',
+            clickHandler: () => this.robot.gripperOpen(this.getVelocityModifier())
+        });
+        ptManipOverlay.createRegion({
+            label: 'open hand',
             poly: rectToPoly(rightRect2),
             iconImage: icon('gripper_open'),
-            clickHandler: () => this.robot.gripperClose()
+            clickHandler: () => this.robot.gripperClose(this.getVelocityModifier())
         });
 
         //////////////////////////////////////////////
@@ -543,40 +553,40 @@ export class OperatorComponent extends PageComponent {
 
         overheadNavOverlay.createRegion({label: 'do nothing', poly: rectToPoly(baseRect)});
         overheadNavOverlay.createRegion({
-            label: 'move forward',
+            label: 'drive forward',
             poly: [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul],
             iconImage: icon("arrow_up"),
-            clickHandler: () => this.robot.moveForward()
+            clickHandler: () => this.robot.driveForward(this.getVelocityModifier())
         });
         overheadNavOverlay.createRegion({
-            label: 'move back',
+            label: 'drive back',
             poly: [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],
             iconImage: icon("arrow_down"),
-            clickHandler: () => this.robot.moveBackward()
+            clickHandler: () => this.robot.driveBackward(this.getVelocityModifier())
         });
         overheadNavOverlay.createRegion({
             label: 'turn left',
             poly: [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
             iconImage: icon("turn_left"),
-            clickHandler: () => this.robot.turnLeft()
+            clickHandler: () => this.robot.turnLeft(this.getVelocityModifier())
         });
         overheadNavOverlay.createRegion({
             label: 'turn right',
             poly: [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
             iconImage: icon("turn_right"),
-            clickHandler: () => this.robot.turnRight()
+            clickHandler: () => this.robot.turnRight(this.getVelocityModifier())
         });
         overheadNavOverlay.createRegion({
             label: 'retract arm',
             poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
             iconImage: icon("arrow_left"),
-            clickHandler: () => this.robot.armRetract()
+            clickHandler: () => this.robot.armRetract(this.getVelocityModifier())
         });
         overheadNavOverlay.createRegion({
             label: 'extend arm',
             poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
             iconImage: icon("arrow_right"),
-            clickHandler: () => this.robot.armExtend()
+            clickHandler: () => this.robot.armExtend(this.getVelocityModifier())
         });
 
         var wrist_region_width = camW / 5.0;
@@ -606,7 +616,7 @@ export class OperatorComponent extends PageComponent {
             label: 'close hand',
             poly: rectToPoly(fingertipRect),
             iconImage: icon('gripper_close'),
-            clickHandler: () => this.robot.gripperClose()
+            clickHandler: () => this.robot.gripperClose(this.getVelocityModifier())
         });
         regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
             fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
@@ -616,33 +626,32 @@ export class OperatorComponent extends PageComponent {
             poly: regionPoly,
             iconImage: icon('gripper_open'),
             iconPosition: {x: 70, y: 50},
-            clickHandler: () => this.robot.gripperOpen()
+            clickHandler: () => this.robot.gripperOpen(this.getVelocityModifier())
         });
         gripperOverlay.createRegion({
             label: 'turn wrist in',
             poly: rectToPoly(wristInRect),
             iconImage: icon('turn_left'),
-            clickHandler: () => this.robot.wristIn()
+            clickHandler: () => this.robot.wristIn(this.getVelocityModifier())
         });
         gripperOverlay.createRegion({
             label: 'turn wrist out',
             poly: rectToPoly(wristOutRect),
             iconImage: icon('turn_right'),
-            clickHandler: () => this.robot.wristOut()
+            clickHandler: () => this.robot.wristOut(this.getVelocityModifier())
         });
         gripperOverlay.createRegion({
             label: 'lift arm up',
             poly: rectToPoly(liftUpRect),
             iconImage: icon('arrow_up'),
-            clickHandler: () => this.robot.liftUp()
+            clickHandler: () => this.robot.liftUp(this.getVelocityModifier())
         });
         gripperOverlay.createRegion({
             label: 'lower arm down',
             poly: rectToPoly(liftDownRect),
             iconImage: icon('arrow_down'),
-            clickHandler: () => this.robot.liftDown()
+            clickHandler: () => this.robot.liftDown(this.getVelocityModifier())
         });
-
 
         // /////// MANIPULATION MODE NAVIGATION VIDEO ////////
 
@@ -682,37 +691,37 @@ export class OperatorComponent extends PageComponent {
             label: 'turn wrist in',
             poly: rectToPoly(turnLeftRect),
             iconImage: icon('turn_left'),
-            clickHandler: () => this.robot.wristIn()
+            clickHandler: () => this.robot.wristIn(this.getVelocityModifier())
         });
         overheadManipOverlay.createRegion({
             label: 'turn wrist out',
             poly: rectToPoly(turnRightRect),
             iconImage: icon('turn_right'),
-            clickHandler: () => this.robot.wristOut()
+            clickHandler: () => this.robot.wristOut(this.getVelocityModifier())
         });
         overheadManipOverlay.createRegion({
-            label: 'move base forward',
+            label: 'drive base forward',
             poly: rectToPoly(baseForwardRect),
             iconImage: icon('arrow_left'),
-            clickHandler: () => this.robot.moveForward()
+            clickHandler: () => this.robot.driveForward(this.getVelocityModifier())
         });
         overheadManipOverlay.createRegion({
-            label: 'move base backward',
+            label: 'drive base backward',
             poly: rectToPoly(baseBackwardRect),
             iconImage: icon('arrow_right'),
-            clickHandler: () => this.robot.moveBackward()
+            clickHandler: () => this.robot.driveBackward(this.getVelocityModifier())
         });
         overheadManipOverlay.createRegion({
             label: 'retract arm',
             poly: rectToPoly(armRetractRect),
-            iconImage: icon('in_arrow'),
-            clickHandler: () => this.robot.armRetract()
+            iconImage: icon('arrow_down_left'),
+            clickHandler: () => this.robot.armRetract(this.getVelocityModifier())
         });
         overheadManipOverlay.createRegion({
             label: 'extend arm',
             poly: rectToPoly(armExtendRect),
-            iconImage: icon('out_arrow'),
-            clickHandler: () => this.robot.armExtend()
+            iconImage: icon('arrow_up_right'),
+            clickHandler: () => this.robot.armExtend(this.getVelocityModifier())
         });
 
         overhead.addOverlay(overheadNavOverlay, 'nav');

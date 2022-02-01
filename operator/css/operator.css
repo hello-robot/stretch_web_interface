@@ -15,23 +15,26 @@
     color: black
 }
 
-.btn[for="speed-1"] {
+.btn-check:checked + .btn[for="speed-1"] {
     background: #00ff00;
+    color: black;
 }
 
-.btn[for="speed-2"] {
+.btn-check:checked + .btn[for="speed-2"] {
     background: #80FF00;
+    color: black;
 }
 
-.btn[for="speed-3"] {
+.btn-check:checked + .btn[for="speed-3"] {
     background: #ffff00;
+    color: black;
 }
 
-.btn[for="speed-4"] {
+.btn-check:checked + .btn[for="speed-4"] {
     background: #ff8000;
 }
 
-.btn[for="speed-5"] {
+.btn-check:checked + .btn[for="speed-5"] {
     background: #ff0000;
 }
 

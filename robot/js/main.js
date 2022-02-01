@@ -1,33 +1,31 @@
-import {getJointEffort, getJointValue, Robot} from "./robot.js";
+import {ALL_JOINTS, getJointEffort, getJointValue, Robot} from "./robot.js";
 import {WebRTCConnection} from "../../shared/webrtcconnection.js";
 import {TransformedVideoStream} from "./videostream.cmp.js";
 import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../shared/video_dimensions.js";
 
-let cameraInfo
 let audioInId;
 let audioOutId;
-let record = false
 let connection
 const robot = new Robot({
     jointStateCallback: forwardJointStates,
     tfCallback: forwardTF,
-    connectedCallback: connectedToROS
 })
 
 let overheadStream, gripperStream, pantiltStream, audioStream;
 
-function connectedToROS() {
-    navigator.mediaDevices.enumerateDevices().then(findDevices).catch(handleError).then(() => {
-        pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
-        robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
+robot.connect().then(() => {
+    return navigator.mediaDevices.enumerateDevices()
+}).then(findDevices).catch(handleError).then(() => {
+    pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
+    robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
 
-        overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop);
-        robot.subscribeToVideo('/navigation_camera/image_raw/compressed', overheadStream.imageCallback.bind(overheadStream))
+    overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop);
+    robot.subscribeToVideo('/navigation_camera/image_raw/compressed', overheadStream.imageCallback.bind(overheadStream))
 
-        gripperStream = new TransformedVideoStream(wideVideoDimensions, gripperCrop);
-        robot.subscribeToVideo('/gripper_camera/image_raw/compressed', gripperStream.imageCallback.bind(gripperStream))
-        pantiltStream.start();
-        overheadStream.start();
+    gripperStream = new TransformedVideoStream(wideVideoDimensions, gripperCrop);
+    robot.subscribeToVideo('/gripper_camera/image_raw/compressed', gripperStream.imageCallback.bind(gripperStream))
+    pantiltStream.start();
+    overheadStream.start();
         gripperStream.start();
 
         const displayContainer = document.getElementById("video-display")
@@ -56,12 +54,19 @@ function connectedToROS() {
         } else {
             console.warn('the robot audio input was not found!');
         }
-        connection = new WebRTCConnection('ROBOT', false, record, {
-            onConnectionStart: handleSessionStart,
-            onMessage: handleMessage
-        })
+    connection = new WebRTCConnection('ROBOT', false, {
+        onConnectionStart: handleSessionStart,
+        onMessage: handleMessage
     })
-}
+    connection.registerRequestResponder("jointState", () => {
+        let processedJointPositions = {};
+        ALL_JOINTS.forEach((key, i) => {
+            processedJointPositions[key] = getJointValue(robot.jointState, key)
+        });
+        return processedJointPositions
+    })
+})
+
 
 function findDevices(deviceInfos) {
     // Handles being called several times to update labels. Preserve values.
@@ -150,17 +155,14 @@ function forwardJointStates(jointState) {
 }
 
 function handleError(error) {
-    console.error('navigator.getUserMedia error: ', error);
+    console.error(error);
     console.trace();
 }
-
 
 function handleSessionStart() {
     connection.openDataChannel()
 
     console.log('adding local media stream to peer connection');
-
-    let info = {};
 
     let stream = pantiltStream.editedVideoStream;
     stream.getTracks().forEach(t => connection.addTrack(t, stream, "pantilt"));
@@ -182,9 +184,6 @@ function handleSessionStart() {
 
 function handleMessage(message) {
     switch (message.type) {
-        case "request":
-            handleRequest(message)
-            break;
         case "command":
             if ("type" in message && message.type === "command") {
                 robot.executeCommand(message.subtype, message.name, message.modifier)
@@ -194,34 +193,5 @@ function handleMessage(message) {
             break;
         default:
             console.error("Unknown message type received", message.type)
-    }
-}
-
-
-// FIXME: Determine if this requestresponse mechanism is still needed anywhere.
-function handleRequest(request) {
-    switch (request.requestType) {
-        case "jointState":
-            let processedJointPositions = {};
-            allJoints.forEach((key, i) => {
-                processedJointPositions[key] = getJointValue(jointState, key)
-            });
-            connection.sendData({
-                type: "response",
-                id: request.id,
-                responseHandler: request.responseHandler,
-                responseType: request.requestType,
-                data: processedJointPositions
-            });
-            break;
-        case "streamCameras":
-            connection.sendData({
-                type: "response",
-                id: request.id,
-                responseHandler: request.responseHandler,
-                responseType: request.requestType,
-                data: cameraInfo
-            });
-            break;
     }
 }

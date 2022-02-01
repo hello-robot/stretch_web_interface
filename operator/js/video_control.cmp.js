@@ -1,34 +1,44 @@
 import {BaseComponent, Component} from '../../shared/base.cmp.js';
 
 const template = `
+<link href="/shared/bootstrap.min.css" rel="stylesheet">
 <div id="top" class="control-button">
-    <button ></button>
+    <button  class="btn btn-secondary"></button>
 </div>
 <div id="right" class="control-button">
-    <button ></button>
+    <button  class="btn btn-secondary"></button>
 </div>
 <div id="bottom" class="control-button">
-    <button ></button>
+    <button  class="btn btn-secondary"></button>
 </div>
 <div id="left" class="control-button">
-    <button></button>
+    <button class="btn btn-secondary"></button>
 </div>
+<div id="extra"></div>
 <div class="video-container">
-<div class="overlays-container" data-ref="overlays-container">
+    <div class="overlays-container" data-ref="overlays-container"></div>
+    <video autoplay="true" data-ref="video"></video>
 </div>
-<video autoplay="true" data-ref="video"></video></div>
 `;
 
 export class VideoControl extends BaseComponent {
 
-    constructor(mode, width, height, buttonMappings = undefined) {
+    constructor(mode, buttonMappings = undefined) {
         super(template);
 
         this.currentMode = mode;
         this.overlays = new Map(); // key is mode id, values are a list of Overlay objects
-
-        this.setDimensions(width, height);
-
+        this.overlayResizeNotifier = new ResizeObserver(entries => {
+            let entry = entries[0]
+            if (entry.contentBoxSize) {
+                for (let [_, overlays] of this.overlays) {
+                    for (let overlay of overlays) {
+                        overlay.configure(entry.contentRect.width, entry.contentRect.height)
+                    }
+                }
+            }
+        })
+        this.overlayResizeNotifier.observe(this.refs.get("video"))
         if (buttonMappings) {
             for (const [name, {action, label, title}] of buttonMappings) {
                 const button = this.shadowRoot.getElementById(name).querySelector("button")
@@ -43,16 +53,16 @@ export class VideoControl extends BaseComponent {
         }
     }
 
+    setExtraContents(html) {
+        this.shadowRoot.getElementById("extra").appendChild(html)
+    }
+
     addRemoteStream(stream) {
         this.refs.get("video").srcObject = stream;
     }
 
     removeRemoteStream() {
         this.refs.get("video").srcObject = null
-    }
-
-    setDimensions(w, h) {
-        // FIXME: Element is responsive now so this probably isn't needed
     }
 
     addOverlay(overlay, mode) {

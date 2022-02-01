@@ -6,10 +6,6 @@
 //
 
 
-const save_communication = false;
-var objects_received = [];
-var objects_sent = [];
-
 // Free STUN server offered by Google
 const pcConfig = {
     'iceServers': [{
@@ -21,25 +17,25 @@ export class WebRTCConnection {
     socket
     pc
     onConnectionStart
-    record
+    requestResponders = new Map()
+    pendingRequests = new Map()
     cameraInfo = {}
     makingOffer = false
     ignoreOffer = false
     isSettingRemoteAnswerPending = false
 
-    constructor(peerName, polite, record, {
+    constructor(peerName, polite, {
         onConnectionStart,
         onMessage,
-        onDataChannelOpen,
+        onMessageChannelOpen: onMessageChannelOpen,
         onTrackAdded,
         onAvailableRobotsChanged
     } = {}) {
         this.onConnectionStart = onConnectionStart
         this.onMessage = onMessage
-        this.onDataChannelOpen = onDataChannelOpen
+        this.onMessageChannelOpen = onMessageChannelOpen
         this.onTrackAdded = onTrackAdded
         this.createPeerConnection()
-        this.record = record
         this.socket = io.connect();
 
         this.socket.on('created', room => {
@@ -67,7 +63,6 @@ export class WebRTCConnection {
         })
 
         this.socket.on('signalling', message => {
-            let ignoreOffer = false
             let {sessionDescription, mediaStreamMetadata} = message
             console.log('Received message:', sessionDescription, mediaStreamMetadata);
             if (mediaStreamMetadata) {
@@ -79,9 +74,9 @@ export class WebRTCConnection {
                     (this.pc.signalingState === "stable" || this.isSettingRemoteAnswerPending);
                 const offerCollision = sessionDescription.type === "offer" && !readyForOffer;
 
-                ignoreOffer = !polite && offerCollision;
+                this.ignoreOffer = !polite && offerCollision;
 
-                if (ignoreOffer) {
+                if (this.ignoreOffer) {
                     console.error("Ignoring offer")
                     return;
                 }
@@ -97,7 +92,7 @@ export class WebRTCConnection {
                 }).then(() => this.sendSignallingMessage(this.pc.localDescription));
             } else if (sessionDescription.type === 'candidate' && this.pc) {
                 this.pc.addIceCandidate(sessionDescription.candidate).catch(e => {
-                    if (!ignoreOffer) {
+                    if (!this.ignoreOffer) {
                         console.log("Failure during addIceCandidate(): " + e.name);
                         throw e;
                     }
@@ -111,10 +106,11 @@ export class WebRTCConnection {
     }
 
     openDataChannel() {
-        let dataConstraint = null;
-        this.dataChannel = this.pc.createDataChannel('DataChannel', dataConstraint);
-        console.log('Creating data channel.');
-        this.dataChannel.onmessage = this.onReceiveMessageCallback.bind(this);
+        this.messageChannel = this.pc.createDataChannel('messages');
+        this.requestChannel = this.pc.createDataChannel('requestresponse');
+
+        this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
+        this.requestChannel.onmessage = this.processRequestResponse.bind(this)
     }
 
     createPeerConnection() {
@@ -129,20 +125,26 @@ export class WebRTCConnection {
                     candidate: event.candidate
                 });
             };
-            pc.ondatachannel = (event) => {
-                console.log('Data channel callback executed.');
-                this.dataChannel = event.channel;
-                this.dataChannel.onmessage = this.onReceiveMessageCallback.bind(this);
-
-                let onDataChannelStateChange = () => {
-                    const readyState = this.dataChannel.readyState;
-                    console.log('Data channel state is: ' + readyState);
-                    if (readyState === 'open') {
-                        if (this.onDataChannelOpen) this.onDataChannelOpen();
+            pc.ondatachannel = event => {
+                if (event.channel.label === "messages") {
+                    this.messageChannel = event.channel;
+                    this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
+                    let onDataChannelStateChange = () => {
+                        const readyState = this.messageChannel.readyState;
+                        console.log('Data channel state is: ' + readyState);
+                        if (readyState === 'open') {
+                            if (this.onMessageChannelOpen) this.onMessageChannelOpen();
+                        }
                     }
+                    this.messageChannel.onopen = onDataChannelStateChange;
+                    this.messageChannel.onclose = onDataChannelStateChange;
+                } else if (event.channel.label === "requestresponse") {
+                    this.requestChannel = event.channel
+                    this.requestChannel.onmessage = this.processRequestResponse.bind(this)
+                } else {
+                    console.error("Unknown channel opened:", event.channel.label)
                 }
-                this.dataChannel.onopen = onDataChannelStateChange;
-                this.dataChannel.onclose = onDataChannelStateChange;
+
             };
             pc.onopen = () => {
                 console.log('RTC channel opened.');
@@ -195,21 +197,30 @@ export class WebRTCConnection {
         if (mediaStreamMetadata) {
             message.mediaStreamMetadata = mediaStreamMetadata
         }
-        console.log('Sending signalling message: ', message);
         this.socket.emit('signalling', message);
     }
 
-    addTrack(track, stream, streamName) {
-        this.cameraInfo[stream.id] = streamName
-        this.pc.addTrack(track, stream)
+    availableRobots() {
+        console.log('asking server what robots are available');
+        this.socket.emit('what robots are available');
     }
 
+    connectToRobot(robot) {
+        console.log('attempting to connect to robot =');
+        console.log(robot);
+        this.socket.emit('join', robot);
+    }
 
     hangup() {
         console.log('Hanging up.');
         this.stop();
         // Tell the other end that we're ending the call so they can stop
         this.socket.emit('bye');
+    }
+
+    addTrack(track, stream, streamName) {
+        this.cameraInfo[stream.id] = streamName
+        this.pc.addTrack(track, stream)
     }
 
     stop() {
@@ -227,47 +238,12 @@ export class WebRTCConnection {
 ////////////////////////////////////////////////////////////
 
     sendData(obj) {
-        if (!this.dataChannel || (this.dataChannel.readyState !== 'open')) {
+        if (!this.messageChannel || (this.messageChannel.readyState !== 'open')) {
             //console.warn("Trying to send data, but data channel isn't ready")
             return;
         }
-
         const data = JSON.stringify(obj);
-        if (obj instanceof Array) {
-            this.dataChannel.send(data)
-            return;
-        }
-        switch (obj.type) {
-            case 'command':
-                if (this.record && this.addToCommandLog) {
-                    this.addToCommandLog(obj);
-                }
-                if (save_communication)
-                    objects_sent.push(obj);
-                this.dataChannel.send(data);
-                console.log('Sent Data: ' + data);
-                break;
-            case 'sensor':
-                // unless being recorded, don't store or write information to the console due to high
-                // frequency and large amount of data (analogous to audio and video).
-                this.dataChannel.send(data);
-                break;
-            case 'request':
-                this.dataChannel.send(data);
-                console.log('Sent request: ' + data);
-                break;
-            case 'response':
-                this.dataChannel.send(data);
-                console.log('Sent response: ' + data);
-                break;
-            default:
-                console.log('*************************************************************');
-                console.log('REQUEST TO SEND UNRECOGNIZED MESSAGE TYPE, SO NOTHING SENT...', obj.type);
-                console.log('Received Data: ' + data);
-                console.log('Received Object: ' + obj);
-                console.trace();
-                console.log('*************************************************************');
-        }
+        this.messageChannel.send(data)
     }
 
     onReceiveMessageCallback(event) {
@@ -275,18 +251,62 @@ export class WebRTCConnection {
         if (this.onMessage) this.onMessage(obj)
     }
 
-    availableRobots() {
-        console.log('asking server what robots are available');
-        this.socket.emit('what robots are available');
+    makeRequest(type) {
+        return new Promise((resolve, reject) => {
+            let id = generateUUID();
+            this.requestChannel.send(JSON.stringify({
+                type: "request",
+                id: id,
+                requestType: type
+            }));
+
+            this.pendingRequests.set(id, (responseData) => {
+                resolve(responseData);
+                this.pendingRequests.delete(id);
+            });
+        });
     }
 
-    connectToRobot(robot) {
-        console.log('attempting to connect to robot =');
-        console.log(robot);
-        this.socket.emit('join', robot);
+    registerRequestResponder(requestType, responder) {
+        this.requestResponders.set(requestType, responder)
+    }
 
+    processRequestResponse(message) {
+        message = safelyParseJSON(message.data)
+        if (message.type === "request") {
+            let response = {
+                type: "response",
+                id: message.id,
+                requestType: message.requestType
+            }
+            if (this.requestResponders.has(message.requestType)) {
+                response.data = this.requestResponders.get(message.requestType)()
+                this.requestChannel.send(JSON.stringify(response))
+            } else {
+                console.error("Heard request with no responder")
+                // Send a response so the other side can error out
+                this.requestChannel.send(JSON.stringify(response))
+            }
+
+        } else {
+            if (this.pendingRequests.has(message.id)) {
+                this.pendingRequests.get(message.id)(message.data)
+            } else {
+                console.error("Heard response for request we didn't send")
+            }
+        }
     }
 }
+
+
+// From: https://stackoverflow.com/a/2117523/6454085
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 
 ////////////////////////////////////////////////////////////
 // safelyParseJSON code copied from

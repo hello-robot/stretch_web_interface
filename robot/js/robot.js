@@ -1,12 +1,4 @@
-'use strict';
-
-var messages_received_body = [];
-var commands_sent_body = [];
-var messages_received_wrist = [];
-var commands_sent_wrist = [];
-
-let inSim = localStorage.getItem('inSim') === "true";
-
+export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw'];
 const MODIFIERS = {"verysmall": 0, "small": 1, "medium": 2, "large": 3, "verylarge": 4};
 
 /*
@@ -61,9 +53,6 @@ export class Robot {
     baseTF;
 
     videoTopics = []
-
-    backendUpdateFrequency = 200; //milliseconds
-    backendRobotMode = 'nav';
 
     isWristFollowingActive = false
 
@@ -146,14 +135,8 @@ export class Robot {
             "close": size => {
                 this.gripperDeltaAperture(-1.0);
             },
-            "fully_close": size => {
-                this.gripperFullyClose();
-            },
-            "half_open": size => {
-                this.gripperHalfOpen();
-            },
-            "fully_open": size => {
-                this.gripperFullyOpen();
+            "configure_camera": configuration => {
+
             }
         },
         "head": {
@@ -169,100 +152,104 @@ export class Robot {
             "right": size => {
                 this.headPan(-HEAD_V[MODIFIERS[size]]);
             },
-            "gripper_follow": isStart => {
-                this.headLookAtGripper(isStart);
+            "gripper_follow": value => {
+                this.setPanTiltFollowGripper(value);
             },
+            "configure_overhead_camera": configuration => {
+
+            }
         },
         "full": {
             "pose": pose => {
                 this.goToPose(pose);
             }
-        },
-        "mode": modeCommands
+        }
     }
 
-    constructor({jointStateCallback, tfCallback, connectedCallback}) {
-        // connect to rosbridge websocket
-        this.ros = new ROSLIB.Ros({
-            url: 'wss://localhost:9090'
-        });
-        this.ros.on('connection', () => {
-            console.log('Connected to websocket.');
+    constructor({jointStateCallback, tfCallback}) {
+        this.jointStateCallback = jointStateCallback
+        this.tfCallback = tfCallback
 
-            let simTime = new ROSLIB.Param({
-                ros: this.ros,
-                name: '/use_sim_time'
+    }
+
+    connect() {
+        return new Promise((res, rej) => {
+            // connect to rosbridge websocket
+            let ros = new ROSLIB.Ros({
+                url: 'wss://localhost:9090'
+            });
+            ros.on('connection', () => {
+                let simTime = new ROSLIB.Param({
+                    ros: ros,
+                    name: '/use_sim_time'
+                });
+
+                simTime.get(value => {
+                    this.inSim = value
+                });
+                res(ros)
             });
 
-            simTime.get(value => {
-                if (value != null) {
-                    if (value !== inSim) {
-                        localStorage.setItem("inSim", value);
-                        location.reload();
-                    }
+            ros.on('error', (error) => {
+                rej(error)
+            });
+
+            ros.on('close', () => {
+                rej('Connection to websocket has been closed.')
+            });
+        }).then(ros => {
+            this.ros = ros
+            this.jointStateTopic = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/stretch/joint_states/',
+                messageType: 'sensor_msgs/JointState'
+            });
+            this.jointStateTopic.subscribe(message => {
+                if (this.jointState === null) {
+                    console.log('Received first joint state from ROS topic ' + this.jointStateTopic.name);
+                }
+                this.jointState = message;
+                if (this.jointStateCallback) this.jointStateCallback(message)
+            });
+
+            this.tfClient = new ROSLIB.TFClient({
+                ros: this.ros,
+                fixedFrame: 'base_link',
+                angularThres: 0.01,
+                transThres: 0.01
+            });
+
+            this.tfClient.subscribe('link_gripper_finger_left', transform => {
+                this.linkGripperFingerLeftTF = transform;
+                if (this.tfCallback) {
+                    this.tfCallback('link_gripper_finger_left', transform)
                 }
             });
-            if (connectedCallback) connectedCallback();
-        });
 
-        this.ros.on('error', function (error) {
-            console.error('Error connecting to websocket: ', error);
-        });
+            this.tfClient.subscribe('link_head_tilt', transform => {
+                this.linkHeadTiltTF = transform;
+                if (this.tfCallback) {
+                    this.tfCallback('link_head_tilt', transform)
+                }
+            });
 
-        this.ros.on('close', function () {
-            console.log('Connection to websocket has been closed.');
-        });
+            this.tfClient.subscribe('camera_color_frame', transform => {
+                this.cameraColorFrameTF = transform;
+                if (this.tfCallback) {
+                    this.tfCallback('camera_color_frame', transform)
+                }
+            });
 
-        this.jointStateTopic = new ROSLIB.Topic({
-            ros: this.ros,
-            name: '/stretch/joint_states/',
-            messageType: 'sensor_msgs/JointState'
-        });
-        this.jointStateTopic.subscribe(message => {
-            if (this.jointState === null) {
-                console.log('Received first joint state from ROS topic ' + this.jointStateTopic.name);
-            }
-            this.jointState = message;
-            if (jointStateCallback) jointStateCallback(message)
-        });
-
-        this.tfClient = new ROSLIB.TFClient({
-            ros: this.ros,
-            fixedFrame: 'base_link',
-            angularThres: 0.01,
-            transThres: 0.01
-        });
-
-        this.tfClient.subscribe('link_gripper_finger_left', transform => {
-            this.linkGripperFingerLeft = transform;
-            if (tfCallback) {
-                tfCallback('link_gripper_finger_left', transform)
-            }
-        });
-
-        this.tfClient.subscribe('link_head_tilt', transform => {
-            this.linkHeadTiltTF = transform;
-            if (tfCallback) {
-                tfCallback('link_head_tilt', transform)
-            }
-        });
-
-        this.tfClient.subscribe('camera_color_frame', transform => {
-            this.cameraColorFrameTF = transform;
-            if (tfCallback) {
-                tfCallback('camera_color_frame', transform)
-            }
-        });
-
-        this.tfClient.subscribe('odom', transform => {
-            this.baseTF = transform;
-        });
-        this.trajectoryClient = new ROSLIB.ActionClient({
-            ros: this.ros,
-            serverName: '/stretch_controller/follow_joint_trajectory',
-            actionName: 'control_msgs/FollowJointTrajectoryAction'
-        });
-        window.setInterval(this.updateBackend.bind(this), this.backendUpdateFrequency);
+            this.tfClient.subscribe('odom', transform => {
+                this.baseTF = transform;
+            });
+            this.trajectoryClient = new ROSLIB.ActionClient({
+                ros: this.ros,
+                serverName: '/stretch_controller/follow_joint_trajectory',
+                actionName: 'control_msgs/FollowJointTrajectoryAction'
+            });
+            return Promise.resolve()
+        })
     }
 
     robotModeOn(modeKey) {
@@ -291,7 +278,7 @@ export class Robot {
                 'joint_head_tilt': -0.9
             }, this.trajectoryClient);
             headManPoseGoal.send();
-            console.log('sending manipulation pose to head');
+
         } else if (modeKey === 'high_arm') {
             var headManPoseGoal = generatePoseGoal({
                 'joint_head_pan': -1.57,
@@ -325,8 +312,6 @@ export class Robot {
             var baseBackwardPoseGoal = generatePoseGoal({'translate_mobile_base': vel}, this.trajectoryClient)
             baseBackwardPoseGoal.send()
         }
-        //sendCommandBody({type: "base",action:"translate", dist:dist, vel:vel});
-
     }
 
     baseTurn(ang_deg, vel) {
@@ -339,37 +324,38 @@ export class Robot {
             var baseTurnRightPoseGoal = generatePoseGoal({'rotate_mobile_base': vel}, this.trajectoryClient)
             baseTurnRightPoseGoal.send()
         }
-        //sendCommandBody({type: "base",action:"turn", ang:ang_deg, vel:vel});
     }
 
     sendIncrementalMove(jointName, jointValueInc) {
-        if (this.jointState !== null) {
-            var newJointValue = getJointValue(this.jointState, jointName)
-            newJointValue = newJointValue + jointValueInc
-            console.log('poseGoal call: jointName =' + jointName)
-            var pose = {[jointName]: newJointValue}
-            var poseGoal = generatePoseGoal(pose, this.trajectoryClient)
-            poseGoal.send()
-            return true;
-        } else {
+        if (this.jointState === null) {
             console.warn("Couldn't send incremental move without joint states")
+            return false
         }
-        return false;
-    }
-
-    headLookAtGripper(isStarting) {
-        this.isWristFollowingActive = isStarting;
-        if (isStarting)
-            this.resetOffset();
+        let newJointValue = getJointValue(this.jointState, jointName)
+        newJointValue = newJointValue + jointValueInc
+        let pose = {[jointName]: newJointValue}
+        let poseGoal = generatePoseGoal(pose, this.trajectoryClient)
+        poseGoal.send()
         return true;
+
     }
 
-    updateHead() {
-        if (this.isWristFollowingActive) {
-            if (this.linkGripperFingerLeftTF && this.linkHeadTiltTF) {
-                this.lookAtGripper();
-            }
+    setPanTiltFollowGripper(value) {
+        if (this.isWristFollowingActive === value) return;
+        this.isWristFollowingActive = value;
+        if (value) {
+            this.resetOffset();
+            this.lookAtGripper()
+            this.lookAtGripperInterval = window.setInterval(() => {
+                if (this.linkGripperFingerLeftTF && this.linkHeadTiltTF) {
+                    this.lookAtGripper();
+                }
+            }, 500);
+        } else {
+            clearInterval(this.lookAtGripperInterval)
+            this.lookAtGripperInterval = null
         }
+        return true;
     }
 
     resetOffset() {
@@ -378,7 +364,6 @@ export class Robot {
     }
 
     lookAtGripper() {
-
         let posDifference = {
             x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
             y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
@@ -393,22 +378,22 @@ export class Robot {
 
         const pan = Math.atan2(posDifference.y, posDifference.x) + this.panOffset;
         const tilt = Math.atan2(posDifference.z, -posDifference.y) + this.tiltOffset;
-
-        let debugDiv = document.getElementById("debug-text");
-        debugDiv.innerHTML += "\n lookAtGripper: " + pan + "," + tilt;
-
-        let headFollowPoseGoal = generatePoseGoal({'joint_head_pan': pan, 'joint_head_tilt': tilt})
+        let panDiff = Math.abs(getJointValue(this.jointState, "joint_head_pan") - pan)
+        let tiltDiff = Math.abs(getJointValue(this.jointState, "joint_head_tilt") - tilt)
+        // FIXME(nickswalker,2-1-22): Goals really close to current state cause some whiplash
+        //   these joints in simulation. Ignoring small goals hacks around this for now
+        // console.log(panDiff, tiltDiff)
+        if (panDiff < 0.02 && tiltDiff < 0.02) {
+            return
+        }
+        let headFollowPoseGoal = generatePoseGoal({
+            'joint_head_pan': pan,
+            'joint_head_tilt': tilt
+        }, this.trajectoryClient)
         headFollowPoseGoal.send()
-        console.log('Sending arm look at pose to head.')
     }
-
-    updateBackend() {
-        this.updateHead();
-    }
-
 
     armMove(dist, timeout, vel) {
-        console.log('attempting to sendarmMove command')
         var jointValueInc = 0.0
         if (dist > 0.0) {
             jointValueInc = vel;
@@ -416,7 +401,6 @@ export class Robot {
             jointValueInc = -vel;
         }
         this.sendIncrementalMove('wrist_extension', jointValueInc)
-        //this.sendCommandBody({type: "arm", action:"move", dist:dist, timeout:timeout});
     }
 
     liftMove(dist, timeout, vel) {
@@ -427,7 +411,6 @@ export class Robot {
             jointValueInc = -vel;
         }
         this.sendIncrementalMove('joint_lift', jointValueInc)
-        //this.sendCommandBody({type: "lift", action:"move", dist:dist, timeout:timeout});
     }
 
     gripperDeltaAperture(deltaWidthCm) {
@@ -439,7 +422,6 @@ export class Robot {
             jointValueInc = -0.05
         }
         this.sendIncrementalMove('joint_gripper_finger_left', jointValueInc)
-        //this.sendCommandWrist({type:'gripper', action:'delta', delta_aperture_cm:deltaWidthCm});
     }
 
     wristMove(angRad, vel) {
@@ -469,32 +451,31 @@ export class Robot {
     }
 
     goToPose(pose) {
+        for (let key in pose) {
+            if (ALL_JOINTS.indexOf(key) === -1) {
+                console.error(`No such joint '${key}' from pose goal`)
+                return
+            }
+        }
         generatePoseGoal(pose, this.trajectoryClient).send()
     }
 
     executeCommand(type, name, modifier) {
+        console.info(type, name, modifier)
         this.commands[type][name](modifier)
     }
-
 
 }
 
 function generatePoseGoal(pose, trajectoryClient) {
-    var outStr = '{'
-    for (const key in pose) {
-        outStr = outStr + String(key) + ':' + String(pose[key]) + ', '
-    }
-    outStr = outStr + '}'
-    console.log('generatePoseGoal( ' + outStr + ' )')
-
-    var jointNames = []
-    var jointPositions = []
-    for (var key in pose) {
+    let jointNames = []
+    let jointPositions = []
+    for (let key in pose) {
         jointNames.push(key)
         jointPositions.push(pose[key])
     }
 
-    var newGoal = new ROSLIB.Goal({
+    let newGoal = new ROSLIB.Goal({
         actionClient: trajectoryClient,
         goalMessage: {
             trajectory: {
@@ -520,60 +501,25 @@ function generatePoseGoal(pose, trajectoryClient) {
         }
     });
 
-
     newGoal.on('feedback', function (feedback) {
-        console.log('Feedback: ' + feedback.sequence);
+        console.log('Feedback: ' + feedback);
     });
 
     newGoal.on('result', function (result) {
-        console.log('Final Result: ' + result.sequence);
+        console.log('Final Result: ' + result);
     });
 
     return newGoal
 
 }
 
-
-var modeKeys = ['nav', 'manip', 'low_arm', 'high_arm', 'hand', 'look'];
-
-function createModeCommands() {
-    modeCommands = {}
-    for (var index in modeKeys) {
-        var key = modeKeys[index]
-        // function inside a function used so that commandKey will not
-        // change when key changes. For example, without this, the
-        // interface mode and robotModeOn commands use key = 'look'
-        // (last mode) whenever a function is executed.
-        modeCommands[key] = function (commandKey) {
-            return function (modifier) {
-                if (modifier === 'no_wrist') {
-                    this.interfaceModifier = 'no_wrist';
-                } else {
-                    if (modifier !== 'none') {
-                        console.error('modeCommands modifier unrecognized = ', modifier);
-                        console.trace()
-                    }
-                    this.interfaceModifier = 'none';
-                }
-                console.log('mode: command received with interfaceModifier = ' + this.interfaceModifier + ' ...executing');
-                this.interfaceMode = commandKey
-                robotModeOn(commandKey)
-            }
-        }(key)
-    }
-    return modeCommands;
-}
-
-var modeCommands = createModeCommands();
-
-
 export function getJointEffort(jointStateMessage, jointName) {
-    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.effort[jointIndex]
 }
 
 export function getJointValue(jointStateMessage, jointName) {
-    var jointIndex = jointStateMessage.name.indexOf(jointName)
+    let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
 }
 
