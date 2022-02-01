@@ -86,10 +86,25 @@ export class OperatorComponent extends PageComponent {
     pc
     allRemoteStreams = new Map()
     currentMode = undefined
+    model
 
     constructor() {
         super(template);
-        this.connection = new WebRTCConnection("OPERATOR", true, false, {
+        this.model = new LocalStorageModel()
+
+        this.addEventListener("posecreated", event => {
+            let pose = event.detail
+            this.model.addPose(pose.name, pose)
+        })
+        this.addEventListener("posedeleted", event => {
+            let poseName = event.detail
+            this.model.removePose(poseName)
+        })
+        this.addEventListener("poseclicked", event => {
+            let pose = event.detail
+            this.robot.goToPose(pose)
+        })
+        this.connection = new WebRTCConnection("OPERATOR", true, {
             onMessage: this.handleMessage.bind(this),
             onTrackAdded: this.handleRemoteTrackAdded.bind(this),
             onAvailableRobotsChanged: this.availableRobotsChanged.bind(this),
