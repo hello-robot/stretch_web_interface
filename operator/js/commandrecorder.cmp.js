@@ -2,35 +2,58 @@ import {BaseComponent, Component} from "../../shared/base.cmp.js";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
-<button
+<div class="btn-group mx-2" role="group">
+      <button
     type="button"
-    class="btn btn-primary btn-sm mx-2"
-    data-ref="record">
-Start recording
+    class="btn btn-primary btn-sm"
+    data-ref="start-stop-recording">
+Record
+</button>
+      <button
+    type="button"
+    class="btn btn-secondary btn-sm"
+    data-ref="play" disabled>
+Play 
 </button>
 <button
     type="button"
     class="btn btn-secondary  btn-sm"
-    data-ref="download">
-Download Recording
+    data-ref="download" disabled>
+Download
 </button>
+    </div>
 `
 
-// FIXME: Listen and record command events
 export class CommandRecorder extends BaseComponent {
+    _recording = false
+    recordingBuffer
+    startTimestamp
 
     constructor() {
         super(template)
 
-        this.refs.get("record").onclick = async () => {
-            this.getCurrentPose().then(pose => this.creationModal.pose = pose)
-            this.creationModal.modal.toggle()
+        this.refs.get("start-stop-recording").onclick = () => {
+            this.recording = !this.recording
         }
         this.refs.get("download").onclick = () => {
 
         }
         if (this.disabled) {
             this.shadowRoot.querySelectorAll(".btn").forEach(button => button.disabled = "true")
+        }
+    }
+
+    get recording() {
+        return this._recording
+    }
+
+    set recording(value) {
+        if (value === this._recording) return;
+        this._recording = value
+        if (value) {
+            this.refs.get("start-stop-recording").innerText = "Stop"
+        } else {
+            this.refs.get("start-stop-recording").innerText = "Record"
         }
     }
 
@@ -41,12 +64,17 @@ export class CommandRecorder extends BaseComponent {
     set disabled(value) {
         if (value) {
             this.setAttribute("disabled", "")
-            this.shadowRoot.querySelectorAll(".btn").forEach(button => button.disabled = "true")
+            this.refs.get("start-stop-recording").disabled = "true"
         } else {
             if (this.hasAttribute("disabled")) {
                 this.removeAttribute("disabled")
             }
-            this.shadowRoot.querySelectorAll(".btn").forEach(button => button.disabled = null)
+            this.refs.get("start-stop-recording").disabled = null
+            // Are we holding a recording
+            if (this.recordingBuffer) {
+                this.refs.get("play").disabled = null
+                this.refs.get("download").disabled = null
+            }
         }
     }
 

@@ -1,13 +1,12 @@
-
-#video-control-section {
+#video-control-container {
     max-height: 90vh;
 }
 
-#video-control-section video-control {
+#video-control-container video-control {
     flex: 2 2;
 }
 
-#video-control-section video-control:nth-child(2) {
+#video-control-container video-control:nth-of-type(2) {
     flex: 1 1
 }
 
@@ -15,6 +14,12 @@
     color: black
 }
 
+
+#mode-toggle .btn-check:checked + .btn-secondary {
+    background-color: var(--bs-cyan);
+}
+
+/* Velocity modifer control */
 .btn-check:checked + .btn[for="speed-1"] {
     background: #00ff00;
     color: black;
@@ -38,6 +43,9 @@
     background: #ff0000;
 }
 
+pose-library {
+    background-color: #dddddd;
+}
 
 /***************************************************/
 

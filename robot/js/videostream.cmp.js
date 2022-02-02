@@ -32,6 +32,7 @@ export class VideoStream extends BaseComponent {
         this.canvas.width = this.outDim.w;
         this.canvas.height = this.outDim.h;
         this.displayElement = this.refs.get("video");
+        this.displayElement.style.display = "block"
         this.displayElement.setAttribute("width", outDim.w);
         this.displayElement.setAttribute("height", outDim.h);
         this.displayElement.onclick = () => this.displayElement.play()
@@ -47,13 +48,17 @@ export class VideoStream extends BaseComponent {
         this.context = this.canvas.getContext('2d');
         this.context.fillStyle = "pink";
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.fillStyle = "green";
+        // Using a bright color here can help you spot issues with crops
+        this.context.fillStyle = "black";
         // We won't add this to the DOM, but you may want to if you need to see the raw images for debugging
         this.img = document.createElement("img")
         this.img.crossOrigin = 'anonymous'
         //this.shadowRoot.appendChild(this.img)
         //this.shadowRoot.appendChild(this.canvas)
-        this.imageReceived = false;
+    }
+
+    get imageReceived() {
+        return this.img.src != null
     }
 
     drawVideo() {
@@ -76,9 +81,6 @@ export class VideoStream extends BaseComponent {
             this.img.src = 'dummy_overhead.png';
         else
             this.img.src = 'data:image/jpg;base64,' + message.data;
-        if (this.imageReceived === false) {
-            this.imageReceived = true;
-        }
     }
 
     start() {

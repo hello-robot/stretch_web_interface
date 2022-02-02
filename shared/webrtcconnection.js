@@ -26,12 +26,15 @@ export class WebRTCConnection {
 
     constructor(peerName, polite, {
         onConnectionStart,
+        onConnectionEnd,
         onMessage,
-        onMessageChannelOpen: onMessageChannelOpen,
+        onMessageChannelOpen,
         onTrackAdded,
         onAvailableRobotsChanged
     } = {}) {
         this.onConnectionStart = onConnectionStart
+        // Fired when the disconnection is NOT manually triggered, but happens for an external reason
+        this.onConnectionEnd = onConnectionEnd
         this.onMessage = onMessage
         this.onMessageChannelOpen = onMessageChannelOpen
         this.onTrackAdded = onTrackAdded
@@ -179,6 +182,7 @@ export class WebRTCConnection {
                 if (this.pc.connectionState === "failed" || this.pc.connectionState === "disconnected") {
                     console.error(this.pc.connectionState, "Resetting the PeerConnection")
                     this.createPeerConnection()
+                    if (this.onConnectionEnd) this.onConnectionEnd();
                 }
             }
 
@@ -212,10 +216,16 @@ export class WebRTCConnection {
     }
 
     hangup() {
+        // Tell the other end that we're ending the call so they can stop, and get us kicked out of the robot room
+        console.warn("Honging up")
+        this.socket.emit('bye');
+        if (this.pc.connectionState === "new") {
+            // Don't reset PCs that don't have any state to reset
+            return;
+        }
         console.log('Hanging up.');
         this.stop();
-        // Tell the other end that we're ending the call so they can stop
-        this.socket.emit('bye');
+
     }
 
     addTrack(track, stream, streamName) {

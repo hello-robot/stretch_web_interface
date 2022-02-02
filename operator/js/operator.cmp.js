@@ -16,10 +16,10 @@ import {ReachOverlay} from "./stretchoverlays.js";
 // FIXME: Settings page not reintegrated
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
-<div class="container-fluid px-sm-2 py-sm-2 d-flex justify-content-left">
+<div class="px-2 py-3 d-flex justify-content-left">
 
     <div class="d-flex flex-fill justify-content-start ">
-    <div class="btn-group" role="group" aria-label="Select mode" data-ref="mode-toggle">
+    <div class="btn-group" role="group" aria-label="Select mode" id="mode-toggle" data-ref="mode-toggle">
       <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked disabled> 
       <label class="btn btn-secondary btn-sm" for="mode-navigation">Navigation</label>
   
@@ -46,13 +46,13 @@ const template = `
     </div>
 </div>
 
-<section class="container-fluid px-sm-2 py-sm-2 mb-3 d-flex justify-content-left bg-danger" id="video-control-section">
-    <div class="container-fluid d-flex flex-row justify-content-around" data-ref="video-control-container" id="video-control-container">
+<section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container">
     </div>
-    <template id="pantilt-extra-controls">
-    <div class="d-flex justify-content-around mt-2">
-    <div class='form-check form-check-inline'> <input type='checkbox' class="form-check-input" value='follow' id="follow-check"><label class="form-check-label" for="follow-check">Follow gripper</label></div><button class='btn btn-secondary btn-sm'>Reset view</button></div></template>
 </section>
+<template id="pantilt-extra-controls">
+<div class="d-flex justify-content-around mt-2">
+<div class='form-check form-check-inline'> <input type='checkbox' class="form-check-input" value='follow' id="follow-check"><label class="form-check-label" for="follow-check">Follow gripper</label></div><button class='btn btn-secondary btn-sm'>Reset view</button></div></template>
+
 
 <section class="container-fluid px-sm-2">
 <pose-library data-ref="pose-library" disabled></pose-library>
@@ -105,6 +105,7 @@ export class OperatorComponent extends PageComponent {
             this.robot.goToPose(pose)
         })
         this.connection = new WebRTCConnection("OPERATOR", true, {
+            onConnectionEnd: this.disconnectFromRobot.bind(this),
             onMessage: this.handleMessage.bind(this),
             onTrackAdded: this.handleRemoteTrackAdded.bind(this),
             onAvailableRobotsChanged: this.availableRobotsChanged.bind(this),
@@ -136,7 +137,7 @@ export class OperatorComponent extends PageComponent {
         this.connection.availableRobots()
 
         window.onbeforeunload = () => {
-            this.disconnectFromRobot()
+            this.connection.hangup()
         };
     }
 
@@ -238,6 +239,7 @@ export class OperatorComponent extends PageComponent {
         })
 
         this.refs.get("pose-library").disabled = null
+        this.refs.get("recorder").disabled = null
         this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
         const overhead = new VideoControl('nav');

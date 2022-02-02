@@ -30,14 +30,14 @@ export const overheadManipCrop = ((x, y) => {
 
 function computeCrop(original, x, y) {
     return {
-        sx: original.w * (1.0 - x) / 2.0,
-        sy: original.h * (1.0 - y) / 2.0,
-        sw: original.w * x,
-        sh: original.h * y,
+        sx: Math.round(original.w * (1.0 - x) / 2.0),
+        sy: Math.round(original.h * (1.0 - y) / 2.0),
+        sw: Math.round(original.w * x),
+        sh: Math.round(original.h * y),
         dx: 0,
         dy: 0,
-        dw: original.w * x,
-        dh: original.h * y
+        dw: Math.round(original.w * x),
+        dh: Math.round(original.h * y)
     };
 }
 

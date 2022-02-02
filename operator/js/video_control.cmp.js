@@ -16,8 +16,7 @@ const template = `
 </div>
 <div id="extra"></div>
 <div class="video-container">
-    <div class="overlays-container" data-ref="overlays-container"></div>
-    <video autoplay="true" data-ref="video"></video>
+    <div class="overlays-container" data-ref="overlays-container"></div><video autoplay="true" data-ref="video"></video>
 </div>
 `;
 

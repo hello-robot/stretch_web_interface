@@ -49,6 +49,7 @@
 video {
     background-color: red;
     width: 100%;
+    display: block;
 }
 
 .video-container {
@@ -60,7 +61,6 @@ video {
     position: relative;
     width: 100%;
     height: 100%;
-
 }
 
 .video-container .overlays-container {
