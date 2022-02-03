@@ -1,11 +1,12 @@
 
-var modifiers = {"verysmall":0, "small":1, "medium":2, "large":3, "verylarge":4};
+var modifiers = {"verysmall":0, "small":1, "medium":2, "large":3, "verylarge":4, "continuous": 5};
 var currentV = "medium";
 
 function setVelocity(newV) {
   if (Object.keys(modifiers).includes(newV)){
     currentV = newV;
     db.logEvent("SpeedChange", newV);
+    console.log("SpeedChange " + String(newV));
   }
   else
     console.error("Invalid velocity: " + newV);
@@ -32,7 +33,7 @@ function stopAction() {
   activeAction = null;
 }
 
-var updateFrequency = 400; //milliseconds
+var updateFrequency = 800; //milliseconds
 function updateInterface() {
   if (activeAction != null) {
     console.log("activeAction: " + activeAction);
@@ -336,14 +337,34 @@ var liftMedDist = 100.0;
 var extendMedDist = 100.0;
 var wristMedDist = 0.1;
 
+var vScaleModifiers = {"low":0.1, "medium":0.15, "high":0.2};
+var driveTransMedV = 0.15;
+var driveRotMedV = 0.15;
+
+function setVelocityScale(newV) {
+  if (Object.keys(vScaleModifiers).includes(newV)){
+    driveTransMedV = vScaleModifiers[newV];
+    driveRotMedV = vScaleModifiers[newV];
+    db.logEvent("Velocity Scale Change", newV);
+    console.log("Velocity Scale Change " + String(newV) + ": " + String(driveTransMedV));
+  }
+  else
+    console.error("Invalid velocity scale: " + newV);
+    console.trace()
+}
+
+var vScales = [0.1, 0.5, 1.0, 1.5, 2.0, 0.1];
+function setContinuousVelocity(newV) {
+    vScales[vScales.length - 1] = newV;
+    currentV = "continuous";
+}
+
 var headMedV = 0.1;
-var driveTransMedV = 0.02;
-var driveRotMedV = 0.1;
 var liftMedV = 0.02;
 var extendMedV = 0.02;
 var wristMedV = 0.1;
 
-var vScales = [0.1, 0.5, 1.0, 1.5, 2.0];
+// var vScales = [0.2, 1.0, 2.0, 3.0, 4.0];
 
 var headV = [];
 var driveTransV = [];
@@ -574,6 +595,7 @@ var commands = {
 }
 
 function executeCommand(obj) {
+    console.log("executing command");
     if ("type" in obj) {
         if (obj.type === "command") {
             commands[obj.subtype][obj.name](obj.modifier);
@@ -582,3 +604,4 @@ function executeCommand(obj) {
     }
     console.error('the argument to executeCommand was not a proper command object: ' + obj); 
 }
+

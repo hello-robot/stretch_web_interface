@@ -17,7 +17,7 @@ let globalRequestResponseHandler = new RequestResponseHandler("global");
 async function runOnOpenDataChannel() {
 	// When the robot and the operator are first connected, 
 	// switch to navigation mode.
-	console.log('Starting in navigation mode')
+	console.log('Starting in navigation mode');
 	setMode("nav");
 
 	poseManager = new PoseManager(db, 'robotPoseContainer');
@@ -103,4 +103,48 @@ if (document.readyState === 'loading') {
 	connectEventListeners()
 }
 
+var velocity_slider = document.getElementById("velocity");
+var output = document.getElementById("velocity_output");
+output.innerHTML = slider.value; // Display the default slider value
 
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  output.innerHTML = this.value;
+}
+
+function showDiscreteSpeed() {
+    $('#settings-discrete-speed').show();
+    $('#settings-vscale').show();
+    $('#settings-continuous-speed').hide();           
+    $('#settings-step-size').hide();
+}
+
+function showContinuousSpeed() {
+    $('#settings-discrete-speed').hide();
+    $('#settings-vscale').hide();
+    $('#settings-continuous-speed').show();   
+    $('#settings-step-size').show();
+}
+
+function rangeSlide(value) {
+   document.getElementById('rangeValue').innerHTML = value;
+}
+
+function changeStepSize(newStepSize) {
+	document.getElementById('slider').step = newStepSize;
+	console.log('New Step Size: ' + String(document.getElementById('slider').step));
+}
+
+function btnSlideUp() {
+	var stepSize = document.getElementById('slider').step;
+	$("#slider").val(parseFloat($("#slider").val()) + parseFloat(stepSize));
+	$("#slider").trigger("change");
+	document.getElementById('rangeValue').innerHTML = $("#slider").val();
+}
+
+function btnSlideDown() {
+	var stepSize = document.getElementById('slider').step;
+	$("#slider").val(parseFloat($("#slider").val()) - parseFloat(stepSize));
+	$("#slider").trigger("change");
+	document.getElementById('rangeValue').innerHTML = $("#slider").val();
+}

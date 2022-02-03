@@ -15,17 +15,19 @@
   </head>
   <body onmouseup="stopAction()">
 
-  	<div class="container-fluid px-sm-3 py-sm-3 d-flex justify-content-left">
+  	<div class="container-fluid px-sm-3 py-sm-3 d-flex">
 
-	      <div id="modeSwitch">
+	      <div id="modeSwitch" class="justify-content-left">
 					<div class="btn-group" role="group" aria-label="Basic example">
 					  <button id="modeButtonNav" type="button" onclick="setMode('nav')" class="btn btn-sm btn-secondary btn-info">Navigation</button>
 					  <button id="modeButtonManip" type="button" onclick="setMode('manip')" class="btn btn-sm btn-secondary">Manipulation</button>
 					</div>
 	      </div>
 
-		  <div class="d-flex flex-fill justify-content-end mb-4">
-			  <div class="switch-2">
+	      <div class="d-flex flex-fill"></div>
+	      <div id="settings-discrete-speed" class="justify-content-end mb-4">
+					<div class="d-flex flex-fill discrete-speed">
+				  	<div class="switch-2">
 				        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
 				        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
 				        
@@ -41,9 +43,15 @@
 				        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
 				        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
 				        <span class="switch-selection switch-selection-sm"></span>
-			    </div>
-    	</div>
-
+				    </div>
+				  </div>
+				</div>
+				<div id="settings-continuous-speed" class="justify-content-end mb-4">
+	      	<span id="rangeValue" class="justify-content-end">0.1</span>
+	        <Input id="slider" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05 onChange="setContinuousVelocity(this.value)" onmousemove="rangeSlide(this.value)"></Input>
+	        <button class="up-btn" onclick="btnSlideUp()">&#8593;</button>
+	        <button class="down-btn" onclick="btnSlideDown()">&#8595;</button>
+	    	</div>
     </div>
 
 
@@ -204,41 +212,58 @@
 			    </div>
 	      	</div>
 
-  			<div class="d-flex flex-row">
-			    <div class="ml-2 my-3">
-			  		<label>Movement speed</label>
-			    </div>
-			    <div class="ml-2 my-3">
-				  <div class="switch-2">
-				        <input type="radio" class="switch-input" name="v-switch" value="verysmall" id="verysmall">
-				        <label for="verysmall" class="switch-label-sm switch-label-0 switch-speed-1" onclick="setVelocity('verysmall')">Slowest</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="small" id="small">
-				        <label for="small" class="switch-label-sm switch-label-1 switch-speed-2" onclick="setVelocity('small')">Slow</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="medium" id="medium" checked>
-				        <label for="medium" class="switch-label-sm switch-label-2 switch-speed-3" onclick="setVelocity('medium')">Medium</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="large" id="large">
-				        <label for="large" class="switch-label-sm switch-label-3 switch-speed-4" onclick="setVelocity('large')">Fast</label>
-				        
-				        <input type="radio" class="switch-input" name="v-switch" value="verylarge" id="verylarge">
-				        <label for="verylarge" class="switch-label-sm switch-label-4 switch-speed-5" onclick="setVelocity('verylarge')">Fastest</label>
-				        <span class="switch-selection switch-selection-sm"></span>
-				    </div>
-			    </div>
-	      	</div>
+			  <div class="d-flex flex-row">
+			    <div class="ml-3 my-3">
+			    	<div class="speed-switch-field">
+							<input type="radio" id="radio-one" name="switch-one" value="discrete" onchange="showDiscreteSpeed()" checked/>
+							<label for="radio-one">Discrete</label>
+							<input type="radio" id="radio-two" name="switch-one" value="continuous" onchange="showContinuousSpeed()"/>
+							<label for="radio-two">Continuous</label>
+						</div>
+						<div id="settings-vscale">
+						  <div class="d-flex flex-row discrete-speed">
+			      		<label>Velocity Scale:&nbsp</label>
+						    <div class="switch-3">
+						        <input type="radio" class="switch-input-2" name="v-scale-switch" value="low" id="low" checked>
+						        <label for="low" class="switch-label-sm switch-label-5 switch-speed-1" onclick="setVelocityScale('low')">1x</label>
+						        
+						        <input type="radio" class="switch-input-2" name="v-scale-switch" value="vscalemedium" id="vscalemedium">
+						        <label for="vscalemedium" class="switch-label-sm switch-label-6 switch-speed-3" onclick="setVelocityScale('medium')">1.5x</label>
+						        
+						        <input type="radio" class="switch-input-2" name="v-scale-switch" value="high" id="high">
+						        <label for="high" class="switch-label-sm switch-label-7 switch-speed-5" onclick="setVelocityScale('high')">2x</label>
+						        <span class="switch-selection switch-selection-sm"></span>
+							  </div>
+							</div>
+						</div>
+						<div id="settings-step-size">
+						  <div class="d-flex flex-row continuous-speed">
+			      		<label>Step Size:&nbsp</label>
+						    <div class="switch-3">
+						        <input type="radio" class="switch-input-3" name="step-size-switch" value="ssmall" id="step-small">
+						        <label for="step-small" class="switch-label-sm switch-label-8 switch-speed-1" onclick="changeStepSize(0.025);">small</label>
+						      
+						        <input type="radio" class="switch-input-3" name="step-size-switch" value="step-medium" id="step-medium" checked>
+						        <label for="step-medium" class="switch-label-sm switch-label-9 switch-speed-3" onclick="changeStepSize(0.05);">medium</label>
+						        
+						        <input type="radio" class="switch-input-3" name="step-size-switch" value="step-large" id="step-large">
+						        <label for="step-large" class="switch-label-sm switch-label-10 switch-speed-5" onclick="changeStepSize(0.1);">large</label>
+						        <span class="switch-selection switch-selection-sm"></span>
+							  </div>
+							</div>
+						</div>
+					</div>
 
-			<div class="d-flex flex-row">
-				<div class="checkbox ml-2 my-3">
-					<label class="checkbox-inline no_indent">
-						Arm Reach Visualization:
-						<input id="reachVisualization" type="checkbox" onchange="updateReachVisualizationDisplay()">
-					</label>
-				</div>
-	      	</div>
-
+				<div class="d-flex flex-row">
+					<div class="checkbox ml-2 my-3">
+						<label class="checkbox-inline no_indent">
+							Arm Reach Visualization:
+							<input id="reachVisualization" type="checkbox" onchange="updateReachVisualizationDisplay()">
+						</label>
+					</div>
 	      </div>
+
+	    	</div>
 
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
