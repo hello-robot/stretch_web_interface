@@ -26,9 +26,9 @@ export class Overlay {
 * Class for an SVG video overlay
 */
 export class OverlaySVG extends Overlay {
-    constructor() {
+    constructor(aspectRatio) {
         super();
-        this.regions = [];
+        this.regions = new Map();
         this.type = 'control';
 
         // The parent has now viewbox and will take the size of the container. Place children
@@ -38,26 +38,28 @@ export class OverlaySVG extends Overlay {
         // stretch its contents to fill the parent container
         this.stretchContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.stretchContainer.setAttribute('preserveAspectRatio', 'none');
-        this.stretchContainer.setAttribute('viewBox', "0 0 100 100");
+        this.stretchContainer.setAttribute('viewBox', `0 0 ${100 * aspectRatio} 100`);
         this.svg.appendChild(this.stretchContainer)
+
         // FIXME: Old implementation had a "curtain" feature. What was this and do we need it?
     }
 
-    addRegion(region) {
-        this.regions.push(region);
+    addRegion(name, region) {
+        this.regions.set(name, region);
+        // So the outside can pick a handler using the name
+        region.path.dataset.name = name
         this.stretchContainer.appendChild(region.path)
         if (region.icon) this.svg.appendChild(region.icon)
     }
 
-    createRegion(args) {
+    createRegion(name, args) {
         const region = new Region(args)
-        this.addRegion(region)
+        this.addRegion(name, region)
         return region
     }
 
     hide() {
         this.svg.style.display = "none"
-
     }
 
     show() {

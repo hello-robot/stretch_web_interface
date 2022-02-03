@@ -102,8 +102,12 @@ video {
     fill-opacity: 0.0;
 }
 
-.overlay-region.clickable:hover {
+.overlay-region:hover {
     fill-opacity: 0.1;
+}
+
+.overlay-region[data-name=doNothing]:hover {
+    fill-opacity: 0.0;
 }
 
 /* Three.js canvas positioning */
