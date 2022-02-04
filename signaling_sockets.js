@@ -88,11 +88,9 @@ function createSignalingSocket(io) {
         // convenience function to log server messages on the client
         
         socket.on('what robots are available', function() {
-            if(role === 'operator') {
+            if (role === 'operator') {
                 console.log('operator has requested the available robots');
-                console.log('available_robots =');
-                console.log(available_robots);
-                log('Received request for the available robots');
+                console.log('available_robots =', available_robots);
                 var robots = Array.from(available_robots.values());
                 socket.emit('available robots', robots);
             } else {
@@ -100,39 +98,43 @@ function createSignalingSocket(io) {
             }
         });
 
-        
-        socket.on('webrtc message', function(message) {
-            console.log('Client sent WebRTC message: ', message);
-            if(robot_operator_room !== 'none') {
-                console.log('sending WebRTC message to any other clients in the room named "' +
-                            robot_operator_room + '".');
-                socket.to(robot_operator_room).emit('webrtc message', message);
-                
-                if(message === 'bye') {
-                    if(role === 'operator') {
-                        console.log('Attempting to have the operator leave the robot room.');
-                        console.log('');
-                        socket.leave(robot_operator_room);
-                        available_robots.add(robot_operator_room);
-                        robot_operator_room = 'none';
-                        sendAvailableRobotsUpdate(socket);
-                    }
-                }
+        socket.on('bye', message => {
+            if (role === 'operator' && robot_operator_room !== 'none') {
+                socket.to(robot_operator_room).emit('bye');
+                console.log('Attempting to have the operator leave the robot room.');
+                console.log('');
+                socket.leave(robot_operator_room);
+                available_robots.add(robot_operator_room);
+                robot_operator_room = 'none';
+                sendAvailableRobotsUpdate(socket);
+            } else {
+                console.error("WRONG")
+            }
+        })
+
+        socket.on('signalling', function (message) {
+            //console.log('Client sent WebRTC message: ', message);
+            if (robot_operator_room !== 'none') {
+                //console.log('sending WebRTC message to any other clients in the room named "' +
+                // robot_operator_room + '".');
+                socket.to(robot_operator_room).emit('signalling', message);
+
+
             } else {
                 console.log('robot_operator_room is none, so there is nobody to send the WebRTC message to');
             }
         });
 
-        
-        socket.on('join', function(room) {
+
+        socket.on('join', function (room) {
             console.log('Received request to join room ' + room);
             if (!io.sockets.adapter.rooms.get(room)) {
-                console.warn("Someone tried to join the nonresistant room " + room )
+                console.warn("Someone tried to join the nonresistant room " + room)
                 return;
             }
-	        numClients = io.sockets.adapter.rooms.get(room).size
+            numClients = io.sockets.adapter.rooms.get(room).size
             console.log('Requested room ' + room + ' currently has ' + numClients + ' client(s)');
-            
+
             if (numClients < 1) {
                 //socket.join(room);
                 console.log('*********************************************');
@@ -171,6 +173,15 @@ function createSignalingSocket(io) {
                 connected_robots.delete(robot_name);
                 available_robots.delete(robot_name);
                 sendAvailableRobotsUpdate(socket); // might be good to include this in an object that tracks the robots
+            } else {
+                if (robot_operator_room !== "none") {
+                    socket.to(robot_operator_room).emit('bye');
+
+                    available_robots.add(robot_operator_room);
+                    robot_operator_room = 'none';
+                    sendAvailableRobotsUpdate(socket);
+                }
+
             }
             console.log('user disconnected');
         });

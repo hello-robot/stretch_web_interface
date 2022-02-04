@@ -19,6 +19,7 @@
 
 'use strict';
 
+// FIXME: Audio selection should be moved into the operator page component. The UI probably needs its own component
 let localStream = null;
 var videoElement = document.querySelector('video');
 var audioInputSelect = document.querySelector('select#audioSource');
@@ -126,7 +127,3 @@ function start() {
 audioInputSelect.onchange = start;
 audioOutputSelect.onchange = changeAudioDestination;
 
-function handleError(error) {
-    console.error('navigator.getUserMedia error: ', error);
-    console.trace();
-}

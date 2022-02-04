@@ -3,18 +3,6 @@
     height:90%;
 }
 
-.video-element {
-    /*position:absolute;*/
-    height:90%;
-    z-index:1;
+transformed-video-stream {
     border: 1px gray solid;
 }
-
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-
