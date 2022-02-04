@@ -8,6 +8,7 @@ const template = `
 <!-- SETTINGS -->
 <div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle"
      aria-hidden="true" data-ref="modal-container">
+    <link href="/operator/css/settings.css" rel="stylesheet">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -109,7 +110,7 @@ const template = `
 
 export class SettingsComponent extends BaseComponent {
     constructor() {
-        super(template);
+        super(template, false);
         this.modalContainer = this.refs.get("modal-container")
         this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
     }
