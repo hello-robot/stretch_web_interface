@@ -61,8 +61,8 @@ const template = `
                             <input type="radio" id="continuous" class="btn-check" name="velocity-mode" autocomplete="off" value="continuous"/>
                             <label class="btn btn-secondary btn-sm" for="continuous">Continuous</label>
                         </div>
-                        <div id="settings-vscale">
-                            <div class="d-flex flex-row discrete-speed">
+                        <div id="settings-vscale" data-ref="settings-vscale">
+                            <div class="d-flex flex-row">
                                 <label>Velocity Scale:&nbsp</label>
                                 <div class="btn-group velocity-toggle" role="group" data-ref="velocity-toggle">
                                     <input type="radio" name="velocity" id="speed-1" class="btn-check" value="low" autocomplete="off">
@@ -74,8 +74,8 @@ const template = `
                                 </div>
                             </div>
                         </div>
-                        <div id="settings-step-size">
-                          <div class="d-flex flex-row continuous-speed">
+                        <div id="settings-step-size" data-ref="settings-step-size">
+                          <div class="d-flex flex-row">
                             <label>Step Size:&nbsp</label>
                                 <div class="btn-group step-size-toggle" role="group" data-ref="step-size-toggle">
                                     <input type="radio" name="stepsize" id="speed-4" class="btn-check" value="small" autocomplete="off">
@@ -112,10 +112,36 @@ export class SettingsComponent extends BaseComponent {
         super(template);
         this.modalContainer = this.refs.get("modal-container")
         this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
+        // Discrete settings are the default
+        this.hideContinuousSettings();
+        
+        this.refs.get("vmode-toggle").addEventListener("click", () => {
+            if (this.modalContainer.querySelector("input[name=velocity-mode]:checked").value == "discrete") {
+                this.hideContinuousSettings();
+            } else { 
+                this.showContinuousSettings();
+            }
+        })
+
     }
 
+    getSpeedMode() {
+        return this.modalContainer.querySelector("input[name=velocity-mode]:checked").value
+    }
+    
     showModal() {
         this.modal.show();   
+    }
+
+    hideContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = "block";
+        this.refs.get("settings-step-size").style.display = "none";
+    }
+
+
+    showContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = "none";
+        this.refs.get("settings-step-size").style.display = "block";
     }
 }
 
