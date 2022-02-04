@@ -29,7 +29,7 @@ export class BaseComponent extends HTMLElement {
     cssLink;
     refs = new Map();
 
-    constructor(html = '') {
+    constructor(html = '', makeVisible = true) {
         // Call parent
         super();
 
@@ -43,7 +43,9 @@ export class BaseComponent extends HTMLElement {
             link.setAttribute('rel', 'stylesheet');
             link.setAttribute('href', cssLink);
             link.onload = () => {
-                this.style.visibility = 'visible';
+                if (makeVisible) {
+                    this.style.visibility = 'visible';
+                }
             }
             link.onerror = () => {
                 throw new Error(`Fail to load stylesheet for ${this.constructor.name}. 
@@ -73,6 +75,12 @@ export class BaseComponent extends HTMLElement {
 
         // Append child
         this.shadowRoot?.append(...container.children);
+
+        // Either this element is meant to be hidden, or we need
+        // to make it visible later after css loads
+        if (!makeVisible || cssLink && makeVisible) {
+            this.style.visibility = 'hidden';
+        }
     }
 }
 
