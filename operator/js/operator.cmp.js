@@ -51,8 +51,8 @@ const template = `
             <input type="radio" name="velocity" id="speed-5" class="btn-check" value="verylarge" autocomplete="off">
             <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
         </div>
-        <div data-ref="velocity-slider">
-            <span id="rangeValue" class="justify-content-end">0.1</span>
+        <div id="velocity-slider" data-ref="velocity-slider">
+            <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
             <Input id="slider" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05></Input>
             <button class="up-btn">&#8593;</button>
             <button class="down-btn">&#8595;</button>
@@ -173,8 +173,12 @@ export class OperatorComponent extends PageComponent {
     }
 
     getVelocityModifier() {
-        console.log(this.shadowRoot.querySelector("input[name=velocity]:checked").value)
         return this.shadowRoot.querySelector("input[name=velocity]:checked").value
+    }
+
+    getVelocityScaleModifier() {
+        console.log(this.settings.getVScaleModifier())
+        return this.settings.getVScaleModifier()
     }
 
     connectedCallback() {
@@ -362,7 +366,7 @@ export class OperatorComponent extends PageComponent {
             let regionName = composedTarget.dataset.name
             if (regionName === "doNothing") return;
             // Treat region name as method name on robot
-            this.robot[regionName](this.getVelocityModifier())
+            this.robot[regionName](this.getVelocityModifier(), this.getVelocityScaleModifier())
         })
     }
 

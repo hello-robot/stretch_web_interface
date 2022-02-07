@@ -16,7 +16,7 @@ const template = `
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- <div class="form-check mb-4">
+                <div class="form-check mb-4">
                     <input class="form-check-input" type="checkbox" value="" id="showPermanentIconsOverhead"
                            onchange="checkboxSettingChange(this);" checked>
                     <label class="form-check-label" for="showPermanentIconsOverhead">
@@ -52,7 +52,7 @@ const template = `
                     <div class="ml-2 my-3">
                         <label for="audioOutput">Audio out: </label><select id="audioOutput"></select>
                     </div>
-                </div> -->
+                </div>
 
                 <div class="d-flex flex-row flex-fill">
                     <div class="ml-3 my-3">
@@ -65,8 +65,8 @@ const template = `
                         <div id="settings-vscale" data-ref="settings-vscale">
                             <div class="d-flex flex-row">
                                 <label>Velocity Scale:&nbsp</label>
-                                <div class="btn-group velocity-toggle" role="group" data-ref="velocity-toggle">
-                                    <input type="radio" name="velocity" id="speed-1" class="btn-check" value="low" autocomplete="off">
+                                <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
+                                    <input type="radio" name="velocity" id="speed-1" class="btn-check" value="low" autocomplete="off" checked>
                                     <label class="btn btn-sm btn-outline-secondary" for="speed-1">1x</label>
                                     <input type="radio" name="velocity" id="speed-2" class="btn-check" value="medium" autocomplete="off">
                                     <label class="btn btn-sm btn-outline-secondary" for="speed-2">2x</label>
@@ -135,14 +135,17 @@ export class SettingsComponent extends BaseComponent {
     }
 
     hideContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = "block";
+        // this.refs.get("settings-vscale").style.display = "block";
         this.refs.get("settings-step-size").style.display = "none";
     }
 
-
     showContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = "none";
+        // this.refs.get("settings-vscale").style.display = "none";
         this.refs.get("settings-step-size").style.display = "block";
+    }
+
+    getVScaleModifier() {
+        return this.modalContainer.querySelector("input[name=velocity]:checked").value
     }
 }
 
