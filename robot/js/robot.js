@@ -1,6 +1,6 @@
 export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw'];
 const MODIFIERS = {"verysmall": 0, "small": 1, "medium": 2, "large": 3, "verylarge": 4};
-
+const V_SCALE_MODIFIERS = {"low":1, "medium":2, "high":3};
 /*
 * VELOCITY SETTINGS
 */
@@ -58,47 +58,47 @@ export class Robot {
 
     commands = {
         "drive": {
-            "forward": size => {
-                this.baseTranslate(100, -DRIVE_TRANS_V[MODIFIERS[size]])
+            "forward": (vsize, vscalesize) => {
+                this.baseTranslate(100, -DRIVE_TRANS_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])            
             },
-            "backward": size => {
-                this.baseTranslate(100, DRIVE_TRANS_V[MODIFIERS[size]])
+            "backward": (vsize, vscalesize) => {
+                this.baseTranslate(100, DRIVE_TRANS_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
             },
-            "turn_right": size => {
-                this.baseTurn(driveRotMedDist, DRIVE_ROT_V[MODIFIERS[size]]);
+            "turn_right": (vsize, vscalesize) => {
+                this.baseTurn(driveRotMedDist, DRIVE_ROT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "turn_left": size => {
-                this.baseTurn(driveRotMedDist, -DRIVE_ROT_V[MODIFIERS[size]]);
+            "turn_left": (vsize, vscalesize) => {
+                this.baseTurn(driveRotMedDist, -DRIVE_ROT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "turn_ccw": size => {
+            "turn_ccw": (vsize, vscalesize) => {
                 this.baseTurn(driveRotMedDist, -Math.PI / 2);
             },
-            "turn_cw": size => {
+            "turn_cw": (vsize, vscalesize) => {
                 this.baseTurn(driveRotMedDist, Math.PI / 2);
             }
         },
         "lift": {
-            "up": size => {
-                this.liftMove(liftMedDist, -1, LIFT_V[MODIFIERS[size]]);
+            "up": (vsize, vscalesize) => {
+                this.liftMove(liftMedDist, -1, LIFT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "down": size => {
-                this.liftMove(liftMedDist, -1, -LIFT_V[MODIFIERS[size]]);
+            "down": (vsize, vscalesize) => {
+                this.liftMove(liftMedDist, -1, -LIFT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             }
         },
         "arm": {
-            "extend": size => {
-                this.armMove(extendMedDist, -1, EXTEND_V[MODIFIERS[size]]);
+            "extend": (vsize, vscalesize) => {
+                this.armMove(extendMedDist, -1, EXTEND_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "retract": size => {
-                this.armMove(extendMedDist, -1, -EXTEND_V[MODIFIERS[size]]);
+            "retract": (vsize, vscalesize) => {
+                this.armMove(extendMedDist, -1, -EXTEND_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             }
         },
         "wrist": {
-            "in": size => {
-                this.wristMove(wristMedDist, WRIST_V[MODIFIERS[size]])
+            "in": (vsize, vscalesize) => {
+                this.wristMove(wristMedDist, WRIST_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
             },
-            "out": size => {
-                this.wristMove(wristMedDist, -WRIST_V[MODIFIERS[size]])
+            "out": (vsize, vscalesize) => {
+                this.wristMove(wristMedDist, -WRIST_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
             },
             "stop_all_motion": () => {
                 this.wristStopMotion();
@@ -109,19 +109,19 @@ export class Robot {
             "auto_bend": ang_deg => {
                 this.wristAutoBend(ang_deg);
             },
-            "init_fixed_wrist": size => {
+            "init_fixed_wrist": (vsize, vscalesize) => {
                 this.initFixedWrist();
             },
-            "bend_up": size => {
+            "bend_up": (vsize, vscalesize) => {
                 this.wristBend(5.0); // attempt to bed the wrist upward by 5 degrees
             },
-            "bend_down": size => {
+            "bend_down": (vsize, vscalesize) => {
                 this.wristBend(-5.0); // attempt to bed the wrist downward by 5 degrees
             },
-            "roll_left": size => {
+            "roll_left": (vsize, vscalesize) => {
                 this.wristRoll(-5.0); // attempt to roll the wrist to the left (clockwise) by 5 degrees
             },
-            "roll_right": size => {
+            "roll_right": (vsize, vscalesize) => {
                 this.wristRoll(5.0); // attempt to roll the wrist to the right (counterclockwise) by 5 degrees
             }
         },
@@ -129,10 +129,10 @@ export class Robot {
             "set_goal": goalWidthCm => {
                 this.gripperGoalAperture(goalWidthCm);
             },
-            "open": size => {
+            "open": (vsize, vscalesize) => {
                 this.gripperDeltaAperture(1.0);
             },
-            "close": size => {
+            "close": (vsize, vscalesize) => {
                 this.gripperDeltaAperture(-1.0);
             },
             "configure_camera": configuration => {
@@ -140,17 +140,17 @@ export class Robot {
             }
         },
         "head": {
-            "up": size => {
-                this.headTilt(HEAD_V[MODIFIERS[size]]);
+            "up": (vsize, vscalesize) => {
+                this.headTilt(HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "down": size => {
-                this.headTilt(-HEAD_V[MODIFIERS[size]]);
+            "down": (vsize, vscalesize) => {
+                this.headTilt(-HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "left": size => {
-                this.headPan(HEAD_V[MODIFIERS[size]]);
+            "left": (vsize, vscalesize) => {
+                this.headPan(HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
-            "right": size => {
-                this.headPan(-HEAD_V[MODIFIERS[size]]);
+            "right": (vsize, vscalesize) => {
+                this.headPan(-HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
             },
             "gripper_follow": value => {
                 this.setPanTiltFollowGripper(value);
@@ -460,9 +460,9 @@ export class Robot {
         generatePoseGoal(pose, this.trajectoryClient).send()
     }
 
-    executeCommand(type, name, modifier) {
-        console.info(type, name, modifier)
-        this.commands[type][name](modifier)
+    executeCommand(type, name, vmodifier, vscalemodifier) {
+        console.info(type, name, vmodifier, vscalemodifier)
+        this.commands[type][name](vmodifier, vscalemodifier)
     }
 
 }

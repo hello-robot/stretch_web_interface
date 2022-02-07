@@ -186,7 +186,7 @@ function handleMessage(message) {
     switch (message.type) {
         case "command":
             if ("type" in message && message.type === "command") {
-                robot.executeCommand(message.subtype, message.name, message.modifier)
+                robot.executeCommand(message.subtype, message.name, message.vmodifier, message.vscalemodifier)
             } else {
                 console.error("Malformed command", message)
             }
