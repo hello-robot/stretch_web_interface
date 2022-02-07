@@ -85,11 +85,12 @@ const template = `
     </div>
 
     <div class="d-flex flex-fill justify-content-end">
-        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#settings" data-ref="settings">
+        <button type="button" class="btn btn-primary btn-sm" data-ref="settings-button">
             Settings
         </button>
     </div>
 </div>
+<settings-modal data-ref="settings"></settings-modal>
 `;
 
 export class OperatorComponent extends PageComponent {
@@ -153,26 +154,30 @@ export class OperatorComponent extends PageComponent {
             this.connection.hangup()
         };
 
-        this.settings = new SettingsComponent();
-
-        this.refs.get("settings").addEventListener("click", () => {
-            this.settings.showModal()
+        this.refs.get("settings-button").addEventListener("click", () => {
+            this.refs.get("settings").showModal()
         })
-        
-        this.refs.get("velocity-slider").style.display = "none";
-        this.settings.refs.get("vmode-toggle").onchange = () => {
-            const speedMode = this.settings.getSpeedMode()
-            if (speedMode == "discrete") {
-                this.refs.get("velocity-toggle").style.display = "block";
-                this.refs.get("velocity-slider").style.display = "none";
-            } else { 
-                this.refs.get("velocity-toggle").style.display = "none";
-                this.refs.get("velocity-slider").style.display = "block";
-            }
-        }
 
-        this.settings.refs.get("step-size-toggle").addEventListener("click", () => {
-            this.shadowRoot.getElementById("slider").step = this.settings.getStepSize();
+        this.refs.get("settings").configureInputs(this.model.getSettings())
+        this.configureVelocityControls()
+        this.addEventListener("settingchanged", event => {
+            // Emitted when user has interactively changed a setting
+
+            const change = event.detail
+            console.log(change)
+            this.model.setSetting(change.key, change.value)
+            if (event.path[0].tagName === "SETTINGS-MODAL") {
+                // User changed this setting in the modal pane, so we may need to reflect changes here
+                if (change.key === "velocity-mode" || change.key === "stepsize") {
+                    this.configureVelocityControls()
+                } else if (change.key.startsWith("showPermanentIcons")) {
+                    let controlName = change.key.substring(18).toLowerCase()
+                    let control = this.controls[controlName]
+                    // Might not have controls on screen!
+                    if (!control) return;
+                    control.showIcons = change.value
+                }
+            }
         })
 
         this.refs.get("slider-step-up").addEventListener("click", () => {
@@ -320,6 +325,10 @@ export class OperatorComponent extends PageComponent {
         const gripper = new VideoControl('nav');
 
         this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
+        for (let [name, control] of Object.entries(this.controls)) {
+            let capitalizedName = name.substring(0, 1).toUpperCase() + name.substring(1)
+            control.showIcons = this.model.getSetting(`showPermanentIcons${capitalizedName}`) === "true"
+        }
 
         for (const [streamName, info] of this.allRemoteStreams) {
             this.controls[streamName].addRemoteStream(info.stream)
@@ -335,7 +344,6 @@ export class OperatorComponent extends PageComponent {
         let ptAspectRatio = panTiltTrack.getSettings().aspectRatio || .52
         const threeCamera = new THREE.PerspectiveCamera(69, ptAspectRatio, 0.1, 1000);
 
-        // FIXME: This is unreliable, and icons don't yet pop into the right place with the correct aspect ratio
         var ptNavOverlay = new PanTiltNavigationOverlay(1);
         var reachOverlayTHREE = new ReachOverlay(threeCamera);
         this.robot.sensors.listenToKeyChange("head", "transform", (transform) => {

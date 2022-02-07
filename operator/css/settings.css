@@ -23,11 +23,11 @@
     color: black
 }
 
-#vmode-toggle, #settings-vscale {
+.mode-toggle, #settings-vscale {
     padding-bottom: 10px;
 }
 
-#vmode-toggle .btn-check:checked + .btn-secondary {
+.mode-toggle .btn-check:checked + .btn-secondary {
     background-color: var(--bs-cyan) !important;
 }
 
