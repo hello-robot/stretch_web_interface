@@ -79,7 +79,7 @@ const template = `
                           <div class="d-flex flex-row">
                             <label>Step Size:&nbsp</label>
                                 <div class="btn-group step-size-toggle" role="group" data-ref="step-size-toggle">
-                                    <input type="radio" name="stepsize" id="speed-4" class="btn-check" value="small" autocomplete="off">
+                                    <input type="radio" name="stepsize" id="speed-4" class="btn-check" value="small" autocomplete="off" checked>
                                     <label class="btn btn-sm btn-outline-secondary" for="speed-4">Small</label>
                                     <input type="radio" name="stepsize" id="speed-5" class="btn-check" value="medium" autocomplete="off">
                                     <label class="btn btn-sm btn-outline-secondary" for="speed-5">Medium</label>
@@ -113,6 +113,7 @@ export class SettingsComponent extends BaseComponent {
         super(template, false);
         this.modalContainer = this.refs.get("modal-container")
         this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
+        this.step_size_modifiers = {"small": 0.05, "medium": 0.1, large: 0.15}
         // Discrete settings are the default
         this.hideContinuousSettings();
         
@@ -123,7 +124,6 @@ export class SettingsComponent extends BaseComponent {
                 this.showContinuousSettings();
             }
         })
-
     }
 
     getSpeedMode() {
@@ -146,6 +146,10 @@ export class SettingsComponent extends BaseComponent {
 
     getVScaleModifier() {
         return this.modalContainer.querySelector("input[name=velocity]:checked").value
+    }
+
+    getStepSize() {
+        return this.step_size_modifiers[this.modalContainer.querySelector("input[name=stepsize]:checked").value];
     }
 }
 

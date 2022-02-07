@@ -54,8 +54,8 @@ const template = `
         <div id="velocity-slider" data-ref="velocity-slider">
             <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
             <Input id="slider" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05></Input>
-            <button class="up-btn">&#8593;</button>
-            <button class="down-btn">&#8595;</button>
+            <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
+            <button class="down-btn" data-ref="slider-step-down">&#8595;</button>
         </div>
     </div>
 </div>
@@ -170,6 +170,22 @@ export class OperatorComponent extends PageComponent {
                 this.refs.get("velocity-slider").style.display = "block";
             }
         }
+
+        this.settings.refs.get("step-size-toggle").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").step = this.settings.getStepSize();
+        })
+
+        this.refs.get("slider-step-up").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").value = 
+                parseFloat(this.shadowRoot.getElementById("slider").value) + 
+                    parseFloat(this.shadowRoot.getElementById("slider").step);
+        })
+
+        this.refs.get("slider-step-down").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").value = 
+                parseFloat(this.shadowRoot.getElementById("slider").value) - 
+                    parseFloat(this.shadowRoot.getElementById("slider").step);
+        })
     }
 
     getVelocityModifier() {
@@ -177,7 +193,6 @@ export class OperatorComponent extends PageComponent {
     }
 
     getVelocityScaleModifier() {
-        console.log(this.settings.getVScaleModifier())
         return this.settings.getVScaleModifier()
     }
 
