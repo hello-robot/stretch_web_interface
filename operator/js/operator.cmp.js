@@ -1,12 +1,6 @@
 import {VideoControl} from "./video_control.cmp.js";
 import {Component} from '../../shared/base.cmp.js';
 import {PageComponent} from '../../shared/page.cmp.js';
-import {
-    OverlaySVG,
-    makeRectangle,
-    makeSquare,
-    rectToPoly
-} from "./overlay.js";
 import {RemoteRobot} from "./remoterobot.js";
 import {WebRTCConnection} from "../../shared/webrtcconnection.js";
 import {LocalStorageModel} from "./model.js";
@@ -100,7 +94,7 @@ export class OperatorComponent extends PageComponent {
     currentMode = undefined
     model
 
-    activeVelocityActionJoint
+    activeVelocityRegion
     activeVelocityAction
     velocityExecutionHeartbeat
 
@@ -120,11 +114,11 @@ export class OperatorComponent extends PageComponent {
     JOINT_VELOCITIES = {
         "joint_head_tilt": .3,
         "joint_head_pan": .3,
-        "wrist_extension": .02,
-        "joint_lift": .02,
+        "wrist_extension": .04,
+        "joint_lift": .04,
         "joint_wrist_yaw": .3,
         "translate_mobile_base": .2,
-        "rotate_mobile_base": .3
+        "rotate_mobile_base": .2
     }
 
     constructor() {
@@ -444,27 +438,32 @@ export class OperatorComponent extends PageComponent {
                 if (this.model.getSetting("control-mode") === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else {
-                    // Clicking for the first time starts a new action
-                    if (this.activeVelocityActionJoint !== jointName) {
-                        this.activeVelocityActionJoint = jointName
-                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            if (!this.activeVelocityAction) {
-                                // clean up
-                                clearInterval(this.velocityExecutionHeartbeat)
-                                this.velocityExecutionHeartbeat = null
-                            }
-                            this.activeVelocityAction.affirm()
-                        }, 100)
-                    } else {
-                        // Clicking the same region just stops the current action
+                    let lastActiveRegion = this.activeVelocityRegion
+                    if (this.activeVelocityAction) {
+                        // No matter what region this is, stop the currently running action
                         this.activeVelocityAction.stop()
                         this.activeVelocityAction = null
-                        this.activeVelocityActionJoint = null
-                        // Heartbeat will clean up after itself
+                        this.activeVelocityRegion = null
                     }
-
+                    // If they just clicked the joint that was active, assume that stopping was the point and return early
+                    if (lastActiveRegion === regionName) {
+                        return;
+                    }
+                    // If this is a new joint, start a new action!
+                    this.activeVelocityRegion = regionName
+                    this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                    this.velocityExecutionHeartbeat = window.setInterval(() => {
+                        if (!this.activeVelocityAction) {
+                            // clean up
+                            clearInterval(this.velocityExecutionHeartbeat)
+                            this.velocityExecutionHeartbeat = null
+                        } else {
+                            this.activeVelocityAction.affirm()
+                        }
+                    }, 100)
                 }
+
+
             }
         })
 

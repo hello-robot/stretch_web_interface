@@ -193,10 +193,10 @@ function handleMessage(message) {
             robot.executeCommand(message.subtype, message.name, message.modifier)
             break
         case "incrementalMove":
-            robot.executeIncrementalMove(message.jointName, message.direction, message.modifier)
+            robot.executeIncrementalMove(message.jointName, message.increment)
             break
         case "velocityMove":
-            robot.executeVelocityMove(message.jointName, message.direction, message.modifier)
+            robot.executeVelocityMove(message.jointName, message.velocity)
             break
         case "affirm":
             robot.affirmExecution()

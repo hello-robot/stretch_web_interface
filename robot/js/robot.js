@@ -5,7 +5,7 @@ const JOINT_LIMITS = {
     "joint_wrist_yaw": [-1.75, 4],
     "joint_lift": [0, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
-    "rotate_mobile_base": [-314, 314]
+    "rotate_mobile_base": [-3.14, 3.14]
 }
 
 
