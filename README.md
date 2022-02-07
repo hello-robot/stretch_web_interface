@@ -108,8 +108,9 @@ Browser features like camera and microphone access require that the page be runn
 
 To trust the certificates we've provided (which cover `forky.hcrlab.cs.washington.edu`, our robot's hostname within the University of Washington, as well as `localhost` and variants):
 
-  roscd stretch_web_interface/certificates &&
-  CAROOT=`pwd` mkcert --install
+````
+roscd stretch_web_interface/certificates && CAROOT=`pwd` mkcert --install
+````
 
 To make your own certificates for your preferred development hostnames, follow mkcert's instructions. We suggest something like `mkcert forky.hcrlab.cs.washington.edu forky.local forky.dev localhost 127.0.0.1 0.0.0.0 ::1`. Then copy the "Certificate Authority" that mkcert created on your machine under `~/.local/share/mkcert` to the other machines, then use the `CAROOT` environment variable (as in the previous invocation) to specify the authority and install the certificate you generated.
 
