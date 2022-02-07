@@ -22,10 +22,8 @@ const template = `
 
 export class VideoControl extends BaseComponent {
 
-    constructor(mode, buttonMappings = undefined) {
+    constructor(buttonMappings = undefined) {
         super(template);
-
-        this.currentMode = mode;
         this.overlays = new Map(); // key is mode id, values are a list of Overlay objects
         this.overlayResizeNotifier = new ResizeObserver(entries => {
             let entry = entries[0]
@@ -54,6 +52,16 @@ export class VideoControl extends BaseComponent {
 
     setExtraContents(html) {
         this.shadowRoot.getElementById("extra").appendChild(html)
+    }
+
+    set showIcons(value) {
+        // Idempotent: setting same value has no effect
+        if (value === this.showIcons) return;
+        this.classList.toggle("no-icons")
+    }
+
+    get showIcons() {
+        return !this.classList.contains("no-icons")
     }
 
     addRemoteStream(stream) {

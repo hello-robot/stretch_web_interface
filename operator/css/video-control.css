@@ -97,6 +97,10 @@ video {
     opacity: 0.15;
 }
 
+:host(.no-icons) .overlay-icon {
+    display: none;
+}
+
 .overlay-region {
     fill: white;
     fill-opacity: 0.0;
