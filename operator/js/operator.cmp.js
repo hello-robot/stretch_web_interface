@@ -1,7 +1,6 @@
 import {VideoControl} from "./video_control.cmp.js";
 import {Component} from '../../shared/base.cmp.js';
 import {PageComponent} from '../../shared/page.cmp.js';
-import {SettingsComponent} from './settings.cmp.js';
 import {
     OverlaySVG,
     makeRectangle,
@@ -20,8 +19,6 @@ import {
     ReachOverlay
 } from "./stretchoverlays.js";
 
-// FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
-// FIXME: Settings page not reintegrated
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
 <div class="px-2 py-3 d-flex justify-content-left">
@@ -40,20 +37,20 @@ const template = `
 
     <div class="d-flex flex-fill justify-content-end">
         <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
-            <input type="radio" name="velocity" id="speed-1" class="btn-check" value="verysmall" autocomplete="off">
+            <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
             <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
-            <input type="radio" name="velocity" id="speed-2" class="btn-check" value="small" autocomplete="off">
+            <input type="radio" name="velocity" id="speed-2" class="btn-check" value="1" autocomplete="off">
             <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
-            <input type="radio" name="velocity" id="speed-3" class="btn-check" value="medium" autocomplete="off" checked>
+            <input type="radio" name="velocity" id="speed-3" class="btn-check" value="2" autocomplete="off" checked>
             <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
-            <input type="radio" name="velocity" id="speed-4" class="btn-check" value="large" autocomplete="off">
+            <input type="radio" name="velocity" id="speed-4" class="btn-check" value="3" autocomplete="off">
             <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
-            <input type="radio" name="velocity" id="speed-5" class="btn-check" value="verylarge" autocomplete="off">
+            <input type="radio" name="velocity" id="speed-5" class="btn-check" value="4" autocomplete="off">
             <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
         </div>
         <div id="velocity-slider" data-ref="velocity-slider">
             <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
-            <Input id="slider" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05></Input>
+            <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05>
             <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
             <button class="down-btn" data-ref="slider-step-down">&#8595;</button>
         </div>
@@ -103,10 +100,37 @@ export class OperatorComponent extends PageComponent {
     currentMode = undefined
     model
 
+    activeVelocityActionJoint
+    activeVelocityAction
+    velocityExecutionHeartbeat
+
+    INCREMENT_SCALES = [0.25, 0.5, 1.0, 1.5, 2.0];
+    JOINT_INCREMENTS = {
+        "joint_head_tilt": 0.1,
+        "joint_head_pan": 0.1,
+        "gripper_aperture": .01,
+        "wrist_extension": 0.075,
+        "joint_lift": .075,
+        "joint_wrist_yaw": .2,
+        "translate_mobile_base": .1,
+        "rotate_mobile_base": .2
+    }
+
+    VELOCITY_SCALES = [0.25, 0.5, 1.0, 1.5, 2.0]
+    JOINT_VELOCITIES = {
+        "joint_head_tilt": .3,
+        "joint_head_pan": .3,
+        "wrist_extension": .02,
+        "joint_lift": .02,
+        "joint_wrist_yaw": .3,
+        "translate_mobile_base": .2,
+        "rotate_mobile_base": .3
+    }
+
     constructor() {
         super(template);
         this.model = new LocalStorageModel()
-
+        // Bind events from the pose library so that they actually do something to the model
         this.addEventListener("posecreated", event => {
             let pose = event.detail
             this.model.addPose(pose.name, pose)
@@ -181,24 +205,47 @@ export class OperatorComponent extends PageComponent {
         })
 
         this.refs.get("slider-step-up").addEventListener("click", () => {
-            this.shadowRoot.getElementById("slider").value = 
-                parseFloat(this.shadowRoot.getElementById("slider").value) + 
-                    parseFloat(this.shadowRoot.getElementById("slider").step);
+            this.shadowRoot.getElementById("slider").value =
+                parseFloat(this.shadowRoot.getElementById("slider").value) +
+                parseFloat(this.shadowRoot.getElementById("slider").step);
         })
 
         this.refs.get("slider-step-down").addEventListener("click", () => {
-            this.shadowRoot.getElementById("slider").value = 
-                parseFloat(this.shadowRoot.getElementById("slider").value) - 
-                    parseFloat(this.shadowRoot.getElementById("slider").step);
+            this.shadowRoot.getElementById("slider").value =
+                parseFloat(this.shadowRoot.getElementById("slider").value) -
+                parseFloat(this.shadowRoot.getElementById("slider").step);
         })
     }
 
-    getVelocityModifier() {
-        return this.shadowRoot.querySelector("input[name=velocity]:checked").value
+    configureVelocityControls() {
+        const controlType = this.model.getSetting("velocity-mode")
+        if (controlType === "continuous") {
+            this.refs.get("velocity-toggle").style.display = "none";
+            this.refs.get("velocity-slider").style.display = null;
+        } else {
+            this.refs.get("velocity-toggle").style.display = null;
+            this.refs.get("velocity-slider").style.display = "none";
+        }
+        const stepSize = parseFloat(this.model.getSetting("stepsize"))
+        this.shadowRoot.getElementById("slider").step = stepSize
     }
 
-    getVelocityScaleModifier() {
-        return this.settings.getVScaleModifier()
+    getVelocityForJoint(jointName) {
+        if (this.model.getSetting("velocity-mode") === "continuous") {
+            return this.refs.get("continuous-velocity-input").value
+        } else {
+            let scale = parseInt(this.shadowRoot.querySelector("input[name=velocity]:checked").value)
+            return this.JOINT_VELOCITIES[jointName] * this.VELOCITY_SCALES[scale]
+        }
+    }
+
+    getIncrementForJoint(jointName) {
+        if (this.model.getSetting("velocity-mode") === "continuous") {
+            return this.refs.get("continuous-velocity-input").value
+        } else {
+            let scale = parseInt(this.shadowRoot.querySelector("input[name=velocity]:checked").value)
+            return this.JOINT_INCREMENTS[jointName] * this.INCREMENT_SCALES[scale]
+        }
     }
 
     connectedCallback() {
@@ -298,21 +345,21 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("recorder").disabled = null
         this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
-        const overhead = new VideoControl('nav');
-        const pantilt = new VideoControl('nav', new Map([["left", {
+        const overhead = new VideoControl();
+        const pantilt = new VideoControl(new Map([["left", {
             title: "look left",
-            action: () => this.robot.lookLeft("medium")
+            action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
         }], ["right", {
             title: "look right",
-            action: () => this.robot.lookRight("medium")
+            action: () => this.robot.incrementalMove("joint_head_pan", -1, this.getIncrementForJoint("joint_head_pan"))
         }],
             ["top", {
                 title: "look up",
-                action: () => this.robot.lookUp("medium")
+                action: () => this.robot.incrementalMove("joint_head_tilt", 1, this.getIncrementForJoint("joint_head_tilt"))
             }],
             ["bottom", {
                 title: "look down",
-                action: () => this.robot.lookDown("medium")
+                action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
             }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
         extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
@@ -322,7 +369,7 @@ export class OperatorComponent extends PageComponent {
             this.robot.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
         }
         pantilt.setExtraContents(extraPanTiltButtons)
-        const gripper = new VideoControl('nav');
+        const gripper = new VideoControl();
 
         this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
         for (let [name, control] of Object.entries(this.controls)) {
@@ -380,17 +427,47 @@ export class OperatorComponent extends PageComponent {
         gripper.addOverlay(gripperOverlay, 'all');
         this.setMode('nav')
 
-        // FIXME: Add back mousedown and continuous actions
-
         this.refs.get("video-control-container").addEventListener("click", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
             let composedTarget = event.composedPath()[0]
-            if (composedTarget.tagName !== "path") return;
             let regionName = composedTarget.dataset.name
-            if (regionName === "doNothing") return;
-            // Treat region name as method name on robot
-            this.robot[regionName](this.getVelocityModifier(), this.getVelocityScaleModifier())
+            if (!regionName || regionName === "doNothing") return;
+
+            if (regionName in this.robot) {
+                // This region is named after a command we can call directly on the robot
+                this.robot[regionName](2)
+
+            } else {
+                // This region is named after a joint
+                let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
+                let jointName = regionName.substring(0, regionName.length - 4)
+                if (this.model.getSetting("control-mode") === "incremental") {
+                    this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                } else {
+                    // Clicking for the first time starts a new action
+                    if (this.activeVelocityActionJoint !== jointName) {
+                        this.activeVelocityActionJoint = jointName
+                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            if (!this.activeVelocityAction) {
+                                // clean up
+                                clearInterval(this.velocityExecutionHeartbeat)
+                                this.velocityExecutionHeartbeat = null
+                            }
+                            this.activeVelocityAction.affirm()
+                        }, 100)
+                    } else {
+                        // Clicking the same region just stops the current action
+                        this.activeVelocityAction.stop()
+                        this.activeVelocityAction = null
+                        this.activeVelocityActionJoint = null
+                        // Heartbeat will clean up after itself
+                    }
+
+                }
+            }
         })
+
     }
 
 }

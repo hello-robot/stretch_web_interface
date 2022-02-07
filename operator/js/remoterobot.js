@@ -49,11 +49,25 @@ export class RemoteRobot {
             type: "command",
             subtype: "head",
             name: "gripper_follow",
-            vmodifier: value,
-            vscalemodifier: "low"
+            modifier: value,
         };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
+    }
+
+    incrementalMove(jointName, direction, increment) {
+        this.robotChannel({type: "incrementalMove", jointName: jointName, increment: direction * increment})
+    }
+
+    velocityMove(jointName, velocity) {
+        this.robotChannel({type: "velocityMove", jointName: jointName, velocity: velocity})
+        return {
+            "affirm": () => {
+                this.robotChannel({type: "affirm"})
+            }, "stop": () => {
+                this.robotChannel({type: "stop"})
+            }
+        }
     }
 
     emitCommandEvent(cmd) {
@@ -67,13 +81,12 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
         if (methodName === null) {
             methodName = groupName + name[0].toUpperCase() + name.substr(1);
         }
-        RemoteRobot.prototype[methodName] = function (velvalue, velscalevalue) {
+        RemoteRobot.prototype[methodName] = function (modifier) {
             let cmd = {
                 type: "command",
                 subtype: groupName,
                 name: name,
-                vmodifier: velvalue,
-                vscalemodifier: velscalevalue
+                modifier: modifier,
             };
             this.robotChannel(cmd);
             this.emitCommandEvent(cmd);

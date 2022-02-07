@@ -1,45 +1,18 @@
-export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw'];
-const MODIFIERS = {"verysmall": 0, "small": 1, "medium": 2, "large": 3, "verylarge": 4};
-const V_SCALE_MODIFIERS = {"low":1, "medium":2, "high":3};
-/*
-* VELOCITY SETTINGS
-*/
+export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base"];
 
-const headMedDist = 0.1;
-const driveTransMedDist = 100.0;
-const driveRotMedDist = 10.0;
-const liftMedDist = 100.0;
-const extendMedDist = 100.0;
-const wristMedDist = 0.1;
-
-const headMedV = 0.1;
-const driveTransMedV = 0.1;
-const driveRotMedV = 0.1;
-const LIFT_MED_V = 0.02;
-const EXTEND_MED_V = 0.02;
-const WRIST_MED_V = 0.1;
-
-const V_SCALES = [0.1, 0.5, 1.0, 1.5, 2.0];
-
-const HEAD_V = [];
-const DRIVE_TRANS_V = [];
-const DRIVE_ROT_V = [];
-const LIFT_V = [];
-const EXTEND_V = [];
-const WRIST_V = [];
-
-for (let i = 0; i < V_SCALES.length; i++) {
-    let s = V_SCALES[i];
-    HEAD_V.push(s * headMedV);
-    DRIVE_TRANS_V.push(s * driveTransMedV);
-    DRIVE_ROT_V.push(s * driveRotMedV);
-    LIFT_V.push(s * LIFT_MED_V);
-    EXTEND_V.push(s * EXTEND_MED_V);
-    WRIST_V.push(s * WRIST_MED_V);
+const JOINT_LIMITS = {
+    "wrist_extension": [0, .52],
+    "joint_wrist_yaw": [-1.75, 4],
+    "joint_lift": [0, 1.1],
+    "translate_mobile_base": [-30.0, 30.0],
+    "rotate_mobile_base": [-314, 314]
 }
+
 
 export class Robot {
     ros
+    currentJointTrajectoryGoal
+    currentTrajectoryKillInterval
     panOffset = 0;
     tiltOffset = 0;
 
@@ -47,10 +20,10 @@ export class Robot {
     trajectoryClient
     jointStateTopic
 
-    linkGripperFingerLeftTF;
-    linkHeadTiltTF;
+    linkGripperFingerLeftTF
+    linkHeadTiltTF
     cameraColorFrameTF
-    baseTF;
+    baseTF
 
     videoTopics = []
 
@@ -58,47 +31,47 @@ export class Robot {
 
     commands = {
         "drive": {
-            "forward": (vsize, vscalesize) => {
-                this.baseTranslate(100, -DRIVE_TRANS_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])            
+            "forward": size => {
+                this.executeIncrementalMove("translate_mobile_base", size)
             },
-            "backward": (vsize, vscalesize) => {
-                this.baseTranslate(100, DRIVE_TRANS_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
+            "backward": size => {
+                this.executeIncrementalMove("translate_mobile_base", -size)
             },
-            "turn_right": (vsize, vscalesize) => {
-                this.baseTurn(driveRotMedDist, DRIVE_ROT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "turn_right": size => {
+                this.executeIncrementalMove("rotate_mobile_base", -size)
             },
-            "turn_left": (vsize, vscalesize) => {
-                this.baseTurn(driveRotMedDist, -DRIVE_ROT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "turn_left": size => {
+                this.executeIncrementalMove("rotate_mobile_base", size)
             },
-            "turn_ccw": (vsize, vscalesize) => {
-                this.baseTurn(driveRotMedDist, -Math.PI / 2);
+            "turn_ccw": _ => {
+                this.baseTurn(Math.PI / 2);
             },
-            "turn_cw": (vsize, vscalesize) => {
-                this.baseTurn(driveRotMedDist, Math.PI / 2);
+            "turn_cw": _ => {
+                this.baseTurn(-Math.PI / 2);
             }
         },
         "lift": {
-            "up": (vsize, vscalesize) => {
-                this.liftMove(liftMedDist, -1, LIFT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "up": size => {
+                this.executeIncrementalMove("joint_lift", size)
             },
-            "down": (vsize, vscalesize) => {
-                this.liftMove(liftMedDist, -1, -LIFT_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "down": size => {
+                this.executeIncrementalMove("joint_lift", -size)
             }
         },
         "arm": {
-            "extend": (vsize, vscalesize) => {
-                this.armMove(extendMedDist, -1, EXTEND_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "extend": size => {
+                this.executeIncrementalMove("wrist_extension", size)
             },
-            "retract": (vsize, vscalesize) => {
-                this.armMove(extendMedDist, -1, -EXTEND_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "retract": size => {
+                this.executeIncrementalMove("wrist_extension", -size)
             }
         },
         "wrist": {
-            "in": (vsize, vscalesize) => {
-                this.wristMove(wristMedDist, WRIST_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
+            "in": size => {
+                this.executeIncrementalMove("joint_wrist_yaw", size)
             },
-            "out": (vsize, vscalesize) => {
-                this.wristMove(wristMedDist, -WRIST_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize])
+            "out": size => {
+                this.executeIncrementalMove("joint_wrist_yaw", -size)
             },
             "stop_all_motion": () => {
                 this.wristStopMotion();
@@ -140,17 +113,17 @@ export class Robot {
             }
         },
         "head": {
-            "up": (vsize, vscalesize) => {
-                this.headTilt(HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "up": size => {
+                this.executeIncrementalMove("joint_head_tilt", size)
             },
-            "down": (vsize, vscalesize) => {
-                this.headTilt(-HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "down": size => {
+                this.executeIncrementalMove("joint_head_tilt", -size)
             },
-            "left": (vsize, vscalesize) => {
-                this.headPan(HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "left": size => {
+                this.executeIncrementalMove("joint_head_pan", size)
             },
-            "right": (vsize, vscalesize) => {
-                this.headPan(-HEAD_V[MODIFIERS[vsize]]*V_SCALE_MODIFIERS[vscalesize]);
+            "right": size => {
+                this.executeIncrementalMove("joint_head_pan", -size)
             },
             "gripper_follow": value => {
                 this.setPanTiltFollowGripper(value);
@@ -252,43 +225,6 @@ export class Robot {
         })
     }
 
-    robotModeOn(modeKey) {
-        console.log('robotModeOn called with modeKey = ' + modeKey)
-
-        let debugDiv = document.getElementById("debug-text");
-        debugDiv.innerHTML = "Robot mode: " + modeKey;
-        this.backendRobotMode = modeKey;
-
-        // This is where the head pose gets set when mode is switched.
-
-        if (modeKey === 'nav') {
-            var headNavPoseGoal = generatePoseGoal({
-                'joint_head_pan': 0.0,
-                'joint_head_tilt': -1.2
-            }, this.trajectoryClient);
-            headNavPoseGoal.send();
-            console.log('sending navigation pose to head');
-        } else if (modeKey === 'manip') {
-            resetOffset();
-            lookAtGripper();
-            console.log('sending end-effector pose to head');
-        } else if (modeKey === 'low_arm') {
-            var headManPoseGoal = generatePoseGoal({
-                'joint_head_pan': -1.57,
-                'joint_head_tilt': -0.9
-            }, this.trajectoryClient);
-            headManPoseGoal.send();
-
-        } else if (modeKey === 'high_arm') {
-            var headManPoseGoal = generatePoseGoal({
-                'joint_head_pan': -1.57,
-                'joint_head_tilt': -0.45
-            }, this.trajectoryClient);
-            headManPoseGoal.send();
-            console.log('sending manipulation pose to head');
-        }
-    }
-
     subscribeToVideo(topicName, callback) {
         let topic = new ROSLIB.Topic({
             ros: this.ros,
@@ -303,67 +239,57 @@ export class Robot {
 
 //Called from button click
     baseTranslate(dist, vel) {
-        // distance in centimeters
-        // velocity in centimeters / second
-        if (dist > 0.0) {
-            var baseForwardPoseGoal = generatePoseGoal({'translate_mobile_base': -vel}, this.trajectoryClient)
-            baseForwardPoseGoal.send()
-        } else if (dist < 0.0) {
-            var baseBackwardPoseGoal = generatePoseGoal({'translate_mobile_base': vel}, this.trajectoryClient)
-            baseBackwardPoseGoal.send()
-        }
+        makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send()
     }
 
     baseTurn(ang_deg, vel) {
         // angle in degrees
         // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
-        if (ang_deg > 0.0) {
-            var baseTurnLeftPoseGoal = generatePoseGoal({'rotate_mobile_base': -vel}, this.trajectoryClient)
-            baseTurnLeftPoseGoal.send()
-        } else if (ang_deg < 0.0) {
-            var baseTurnRightPoseGoal = generatePoseGoal({'rotate_mobile_base': vel}, this.trajectoryClient)
-            baseTurnRightPoseGoal.send()
-        }
+
+        makePoseGoal({'rotate_mobile_base': ang_deg}, this.trajectoryClient).send()
+
     }
 
-    sendIncrementalMove(jointName, jointValueInc) {
+    makeIncrementalMoveGoal(jointName, jointValueInc) {
         if (this.jointState === null) {
             console.warn("Couldn't send incremental move without joint states")
             return false
         }
         let newJointValue = getJointValue(this.jointState, jointName)
+        // Paper over Hello's fake joints
+        if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
+            // These imaginary joints are floating, always have 0 as their reference
+            newJointValue = 0
+        } else if (jointName === "gripper_aperture") {
+            newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
+        }
         newJointValue = newJointValue + jointValueInc
         let pose = {[jointName]: newJointValue}
-        let poseGoal = generatePoseGoal(pose, this.trajectoryClient)
-        poseGoal.send()
-        return true;
-
+        return makePoseGoal(pose, this.trajectoryClient)
     }
 
     setPanTiltFollowGripper(value) {
+        // Idempotent: setting same value has no effect
         if (this.isWristFollowingActive === value) return;
         this.isWristFollowingActive = value;
         if (value) {
-            this.resetOffset();
-            this.lookAtGripper()
-            this.lookAtGripperInterval = window.setInterval(() => {
+            this.panOffset = 0;
+            this.tiltOffset = 0;
+            let lookIfReadyAndRepeat = () => {
                 if (this.linkGripperFingerLeftTF && this.linkHeadTiltTF) {
-                    this.lookAtGripper();
+                    this.lookAtGripper(this.panOffset, this.tiltOffset);
                 }
-            }, 500);
+                this.lookAtGripperInterval = window.setTimeout(lookIfReadyAndRepeat, 500)
+            }
+            lookIfReadyAndRepeat()
         } else {
-            clearInterval(this.lookAtGripperInterval)
+            clearTimeout(this.lookAtGripperInterval)
             this.lookAtGripperInterval = null
         }
         return true;
     }
 
-    resetOffset() {
-        this.panOffset = 0;
-        this.tiltOffset = 0;
-    }
-
-    lookAtGripper() {
+    lookAtGripper(panOffset, tiltOffset) {
         let posDifference = {
             x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
             y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
@@ -386,59 +312,24 @@ export class Robot {
         if (panDiff < 0.02 && tiltDiff < 0.02) {
             return
         }
-        let headFollowPoseGoal = generatePoseGoal({
-            'joint_head_pan': pan,
-            'joint_head_tilt': tilt
+        let headFollowPoseGoal = makePoseGoal({
+            'joint_head_pan': pan + panOffset,
+            'joint_head_tilt': tilt + tiltOffset
         }, this.trajectoryClient)
         headFollowPoseGoal.send()
     }
 
-    armMove(dist, timeout, vel) {
-        var jointValueInc = 0.0
-        if (dist > 0.0) {
-            jointValueInc = vel;
-        } else if (dist < 0.0) {
-            jointValueInc = -vel;
-        }
-        this.sendIncrementalMove('wrist_extension', jointValueInc)
-    }
-
-    liftMove(dist, timeout, vel) {
-        var jointValueInc = 0.0
-        if (dist > 0.0) {
-            jointValueInc = vel;
-        } else if (dist < 0.0) {
-            jointValueInc = -vel;
-        }
-        this.sendIncrementalMove('joint_lift', jointValueInc)
-    }
-
     gripperDeltaAperture(deltaWidthCm) {
         // attempt to change the gripper aperture
-        var jointValueInc = 0.0
-        if (deltaWidthCm > 0.0) {
-            jointValueInc = 0.05
-        } else if (deltaWidthCm < 0.0) {
-            jointValueInc = -0.05
-        }
-        this.sendIncrementalMove('joint_gripper_finger_left', jointValueInc)
+        this.makeIncrementalMoveGoal('joint_gripper_finger_left', deltaWidthCm).send()
     }
 
-    wristMove(angRad, vel) {
-        var jointValueInc = 0.0
-        if (angRad > 0.0) {
-            jointValueInc = vel;
-        } else if (angRad < 0.0) {
-            jointValueInc = -vel;
-        }
-        this.sendIncrementalMove('joint_wrist_yaw', jointValueInc)
-    }
 
     headTilt(angRad) {
         if (this.isWristFollowingActive) {
             this.tiltOffset += angRad;
         } else {
-            this.sendIncrementalMove('joint_head_tilt', angRad);
+            this.makeIncrementalMoveGoal('joint_head_tilt', angRad).send()
         }
     }
 
@@ -446,7 +337,7 @@ export class Robot {
         if (this.isWristFollowingActive) {
             this.panOffset += angRad;
         } else {
-            this.sendIncrementalMove('joint_head_pan', angRad);
+            this.makeIncrementalMoveGoal('joint_head_pan', angRad).send()
         }
     }
 
@@ -457,17 +348,50 @@ export class Robot {
                 return
             }
         }
-        generatePoseGoal(pose, this.trajectoryClient).send()
+        makePoseGoal(pose, this.trajectoryClient).send()
     }
 
-    executeCommand(type, name, vmodifier, vscalemodifier) {
-        console.info(type, name, vmodifier, vscalemodifier)
-        this.commands[type][name](vmodifier, vscalemodifier)
+    executeCommand(type, name, modifier) {
+        console.info(type, name, modifier)
+        this.commands[type][name](modifier)
     }
 
+    executeIncrementalMove(jointName, increment) {
+        this.makeIncrementalMoveGoal(jointName, increment).send()
+    }
+
+    executeVelocityMove(jointName, velocity) {
+        this.stopExecution()
+        let velocities = [{}, {}]
+        velocities[0][jointName] = velocity
+        velocities[1][jointName] = velocity
+        let positions = [{}, {}]
+        positions[0][jointName] = getJointValue(this.jointState, jointName)
+        positions[1][jointName] = JOINT_LIMITS[jointName][Math.sign(velocity) === -1 ? 0 : 1]
+        makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
+        this.affirmExecution()
+    }
+
+    affirmExecution() {
+        if (this.currentTrajectoryKillInterval) {
+            clearTimeout(this.currentTrajectoryKillInterval)
+        }
+        this.currentTrajectoryKillInterval = window.setTimeout(() => {
+            this.stopExecution()
+        }, 200)
+    }
+
+    stopExecution() {
+        this.trajectoryClient.cancel()
+        this.currentJointTrajectoryGoal = null
+        if (this.currentTrajectoryKillInterval) {
+            clearTimeout(this.currentTrajectoryKillInterval)
+            this.currentTrajectoryKillInterval = null
+        }
+    }
 }
 
-function generatePoseGoal(pose, trajectoryClient) {
+function makePoseGoal(pose, trajectoryClient) {
     let jointNames = []
     let jointPositions = []
     for (let key in pose) {
@@ -502,11 +426,62 @@ function generatePoseGoal(pose, trajectoryClient) {
     });
 
     newGoal.on('feedback', function (feedback) {
-        console.log('Feedback: ' + feedback);
+        //console.log('Feedback: ' + feedback);
     });
 
     newGoal.on('result', function (result) {
         console.log('Final Result: ' + result);
+    });
+
+    return newGoal
+
+}
+
+function makeVelocityGoal(positions, velocities, trajectoryClient) {
+
+    let points = []
+    let jointNames
+    for (let i = 0; i < positions.length; i++) {
+        let positionsT = positions[i]
+        let velocitiesT = velocities[i]
+        let positionsOut = []
+        let velocitiesOut = []
+        let names = []
+        for (let key in positionsT) {
+            names.push(key)
+            positionsOut.push(positionsT[key])
+            velocitiesOut.push(velocitiesT[key])
+        }
+        points.push({
+            positions: positionsOut, velocities: velocitiesOut, time_from_start: {
+                secs: i * 60,
+                nsecs: 1
+            }
+        })
+        jointNames = names
+    }
+    let newGoal = new ROSLIB.Goal({
+        actionClient: trajectoryClient,
+        goalMessage: {
+            trajectory: {
+                header: {
+                    stamp: {
+                        secs: 0,
+                        nsecs: 0
+                    }
+                },
+                joint_names: jointNames,
+                points: points
+            }
+        }
+    });
+
+    newGoal.on('feedback', function (feedback) {
+        //console.log('Feedback: ', feedback);
+    });
+
+    newGoal.on('result', function (result) {
+        console.log('Final Result: ', result);
     });
 
     return newGoal
@@ -519,6 +494,15 @@ export function getJointEffort(jointStateMessage, jointName) {
 }
 
 export function getJointValue(jointStateMessage, jointName) {
+    // Paper over Hello's fake joint implementation
+    if (jointName === "wrist_extension") {
+        return getJointValue(jointStateMessage, "joint_arm_l0") +
+            getJointValue(jointStateMessage, "joint_arm_l1") +
+            getJointValue(jointStateMessage, "joint_arm_l2") +
+            getJointValue(jointStateMessage, "joint_arm_l3")
+    } else if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
+        return 0
+    }
     let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
 }

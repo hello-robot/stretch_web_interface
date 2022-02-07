@@ -113,22 +113,22 @@ export class GripperOverlay extends OverlaySVG {
             iconImage: icon('gripper_open'),
             iconPosition: {x: 70, y: 50}
         });
-        this.createRegion("wristIn", {
+        this.createRegion("joint_wrist_yaw_pos", {
             label: 'turn wrist in',
             poly: rectToPoly(wristInRect),
             iconImage: icon('turn_left')
         });
-        this.createRegion("wristOut", {
+        this.createRegion("joint_wrist_yaw_neg", {
             label: 'turn wrist out',
             poly: rectToPoly(wristOutRect),
             iconImage: icon('turn_right')
         });
-        this.createRegion("liftUp", {
+        this.createRegion("joint_lift_pos", {
             label: 'lift arm up',
             poly: rectToPoly(liftUpRect),
             iconImage: icon('arrow_up'),
         });
-        this.createRegion("liftDown", {
+        this.createRegion("joint_lift_neg", {
             label: 'lower arm down',
             poly: rectToPoly(liftDownRect),
             iconImage: icon('arrow_down'),
@@ -155,32 +155,32 @@ export class OverheadNavigationOverlay extends OverlaySVG {
             mobile_base_width, mobile_base_height);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
-        this.createRegion("driveForward", {
+        this.createRegion("translate_mobile_base_pos", {
             label: 'drive forward',
             poly: [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul],
             iconImage: icon("arrow_up")
         });
-        this.createRegion("driveBackward", {
+        this.createRegion("translate_mobile_base_neg", {
             label: 'drive back',
             poly: [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],
             iconImage: icon("arrow_down")
         });
-        this.createRegion("turnLeft", {
+        this.createRegion("rotate_mobile_base_pos", {
             label: 'turn left',
             poly: [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
             iconImage: icon("turn_left")
         });
-        this.createRegion("turnRight", {
+        this.createRegion("rotate_mobile_base_neg", {
             label: 'turn right',
             poly: [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
             iconImage: icon("turn_right")
         });
-        this.createRegion("armRetract", {
+        this.createRegion("wrist_extension_neg", {
             label: 'retract arm',
             poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
             iconImage: icon("arrow_left")
         });
-        this.createRegion("armExtend", {
+        this.createRegion("wrist_extension_pos", {
             label: 'extend arm',
             poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
             iconImage: icon("arrow_right")
@@ -213,32 +213,32 @@ export class OverheadManipulationOverlay extends OverlaySVG {
         let baseBackwardRect = makeRectangle(turn_region_width + base_region_width, arm_region_height,
             base_region_width, h - (2.0 * arm_region_height));
 
-        this.createRegion("wristIn", {
+        this.createRegion("joint_wrist_yaw_pos", {
             label: 'turn wrist in',
             poly: rectToPoly(turnLeftRect),
             iconImage: icon('turn_left')
         });
-        this.createRegion("wristOut", {
+        this.createRegion("joint_wrist_yaw_neg", {
             label: 'turn wrist out',
             poly: rectToPoly(turnRightRect),
             iconImage: icon('turn_right')
         });
-        this.createRegion("driveForward", {
+        this.createRegion("translate_mobile_base_pos", {
             label: 'drive base forward',
             poly: rectToPoly(baseForwardRect),
             iconImage: icon('arrow_left')
         });
-        this.createRegion("driveBackward", {
+        this.createRegion("translate_mobile_base_neg", {
             label: 'drive base backward',
             poly: rectToPoly(baseBackwardRect),
             iconImage: icon('arrow_right')
         });
-        this.createRegion("armRetract", {
+        this.createRegion("wrist_extension_neg", {
             label: 'retract arm',
             poly: rectToPoly(armRetractRect),
             iconImage: icon('arrow_down_left')
         });
-        this.createRegion("armExtend", {
+        this.createRegion("wrist_extension_pos", {
             label: 'extend arm',
             poly: rectToPoly(armExtendRect),
             iconImage: icon('arrow_up_right')
@@ -260,22 +260,22 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
         let rightRect = makeSquare(w - cornerRectSize, h - cornerRectSize, cornerRectSize);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(smRect)});
-        this.createRegion("driveForward", {
+        this.createRegion("translate_mobile_base_pos", {
             label: 'drive forward',
             poly: [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul],
             iconImage: icon("arrow_up")
         });
-        this.createRegion("driveBackward", {
+        this.createRegion("translate_mobile_base_neg", {
             label: 'drive backward',
             poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
             iconImage: icon("arrow_down")
         });
-        this.createRegion("turnLeft", {
+        this.createRegion("rotate_mobile_base_pos", {
             label: 'turn left',
             poly: [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul],
             iconImage: icon("turn_left")
         });
-        this.createRegion("turnRight", {
+        this.createRegion("rotate_mobile_base_neg", {
             label: 'turn right',
             poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
             iconImage: icon("turn_right")
@@ -312,42 +312,42 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let leftRect2 = makeRectangle(0, 5.0 * h / 6.0, w / 2.0, h / 6.0);
         let rightRect2 = makeRectangle(w / 2.0, 5.0 * h / 6.0, w / 2.0, h / 6.0);
 
-        this.createRegion("liftUp", {
+        this.createRegion("joint_lift_pos", {
             label: 'lift arm',
             poly: rectToPoly(tpRect),
             iconImage: icon('arrow_up')
         })
-        this.createRegion("liftDown", {
+        this.createRegion("joint_lift_neg", {
             label: 'lower arm',
             poly: rectToPoly(btRect),
             iconImage: icon('arrow_down')
         });
-        this.createRegion("armExtend", {
+        this.createRegion("wrist_extension_pos", {
             label: 'extend arm',
             poly: [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul],
             iconImage: icon('arrow_up_right')
         });
-        this.createRegion("armRetract", {
+        this.createRegion("wrist_extension_neg", {
             label: 'retract arm',
             poly: [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll],
             iconImage: icon('arrow_down_left')
         });
-        this.createRegion("driveForward", {
+        this.createRegion("translate_mobile_base_pos", {
             label: 'drive forward',
             poly: [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll],
             iconImage: icon('arrow_left')
         });
-        this.createRegion("driveBackward", {
+        this.createRegion("translate_mobile_base_neg", {
             label: 'drive backward',
             poly: [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr],
             iconImage: icon('arrow_right')
         });
-        this.createRegion("wristIn", {
+        this.createRegion("joint_wrist_yaw_pos", {
             label: 'turn hand in',
             poly: rectToPoly(leftRect),
             iconImage: icon('turn_left')
         });
-        this.createRegion("wristOut", {
+        this.createRegion("joint_wrist_yaw_neg", {
             label: 'turn hand out',
             poly: rectToPoly(rightRect),
             iconImage: icon('turn_right')
@@ -368,8 +368,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         // adjust for the effort needed to hold the arm in place
         // against gravity
         let adjusted_value = value - 53.88;
-        let armUpRegion1 = this.regions.get("liftUp").path
-        let armDownRegion1 = this.regions.get("liftDown").path
+        let armUpRegion1 = this.regions.get("joint_lift_pos").path
+        let armDownRegion1 = this.regions.get("joint_lift_neg").path
         let redRegion1;
         let nothingRegion1;
 
@@ -397,8 +397,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let redRegion1;
         let nothingRegion1;
 
-        let armExtendRegion1 = this.regions.get("armExtend").path
-        let armRetractRegion1 = this.regions.get("armRetract").path
+        let armExtendRegion1 = this.regions.get("wrist_extension_pos").path
+        let armRetractRegion1 = this.regions.get("wrist_extension_neg").path
 
         if (value > 0.0) {
             redRegion1 = armExtendRegion1;
@@ -450,8 +450,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateWristEffort(value) {
-        let yawInRegion = this.regions.get("wristIn").path
-        let yawOutRegion = this.regions.get("wristOut").path
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
         if (yawInRegion && yawOutRegion) {
             let redRegion;
             let nothingRegion;

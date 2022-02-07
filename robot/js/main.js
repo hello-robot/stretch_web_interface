@@ -15,7 +15,7 @@ let overheadStream, gripperStream, pantiltStream, audioStream;
 
 robot.connect().then(() => {
     return navigator.mediaDevices.enumerateDevices()
-}).then(findDevices).catch(handleError).then(() => {
+}).then(findDevices).then(() => {
     pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
     robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
 
@@ -65,7 +65,7 @@ robot.connect().then(() => {
         });
         return processedJointPositions
     })
-})
+}).catch(handleError)
 
 
 function findDevices(deviceInfos) {
@@ -183,14 +183,27 @@ function handleSessionStart() {
 }
 
 function handleMessage(message) {
+    if (!"type" in message) {
+        console.error("Malformed message:", message)
+        return
+    }
+    console.log(message)
     switch (message.type) {
         case "command":
-            if ("type" in message && message.type === "command") {
-                robot.executeCommand(message.subtype, message.name, message.vmodifier, message.vscalemodifier)
-            } else {
-                console.error("Malformed command", message)
-            }
-            break;
+            robot.executeCommand(message.subtype, message.name, message.modifier)
+            break
+        case "incrementalMove":
+            robot.executeIncrementalMove(message.jointName, message.direction, message.modifier)
+            break
+        case "velocityMove":
+            robot.executeVelocityMove(message.jointName, message.direction, message.modifier)
+            break
+        case "affirm":
+            robot.affirmExecution()
+            break
+        case "stop":
+            robot.stopExecution()
+            break
         default:
             console.error("Unknown message type received", message.type)
     }
