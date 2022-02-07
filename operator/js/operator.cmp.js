@@ -1,6 +1,7 @@
 import {VideoControl} from "./video_control.cmp.js";
 import {Component} from '../../shared/base.cmp.js';
 import {PageComponent} from '../../shared/page.cmp.js';
+import {SettingsComponent} from './settings.cmp.js';
 import {
     OverlaySVG,
     makeRectangle,
@@ -38,18 +39,24 @@ const template = `
     <command-recorder data-ref="recorder" disabled></command-recorder>
 
     <div class="d-flex flex-fill justify-content-end">
-    <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
-        <input type="radio" name="velocity" id="speed-1" class="btn-check" value="verysmall" autocomplete="off">
-        <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
-        <input type="radio" name="velocity" id="speed-2" class="btn-check" value="small" autocomplete="off">
-        <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
-        <input type="radio" name="velocity" id="speed-3" class="btn-check" value="medium" autocomplete="off" checked>
-        <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
-        <input type="radio" name="velocity" id="speed-4" class="btn-check" value="large" autocomplete="off">
-        <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
-        <input type="radio" name="velocity" id="speed-5" class="btn-check" value="verylarge" autocomplete="off">
-        <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
-    </div>
+        <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
+            <input type="radio" name="velocity" id="speed-1" class="btn-check" value="verysmall" autocomplete="off">
+            <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
+            <input type="radio" name="velocity" id="speed-2" class="btn-check" value="small" autocomplete="off">
+            <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
+            <input type="radio" name="velocity" id="speed-3" class="btn-check" value="medium" autocomplete="off" checked>
+            <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
+            <input type="radio" name="velocity" id="speed-4" class="btn-check" value="large" autocomplete="off">
+            <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
+            <input type="radio" name="velocity" id="speed-5" class="btn-check" value="verylarge" autocomplete="off">
+            <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
+        </div>
+        <div id="velocity-slider" data-ref="velocity-slider">
+            <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
+            <Input id="slider" class="range" type="range" value="0.1" min="0.1" max="2.0" step=0.05></Input>
+            <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
+            <button class="down-btn" data-ref="slider-step-down">&#8595;</button>
+        </div>
     </div>
 </div>
 
@@ -78,7 +85,7 @@ const template = `
     </div>
 
     <div class="d-flex flex-fill justify-content-end">
-        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#settings" disabled>
+        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#settings" data-ref="settings">
             Settings
         </button>
     </div>
@@ -142,14 +149,51 @@ export class OperatorComponent extends PageComponent {
             })
         })
         this.connection.availableRobots()
-
         window.onbeforeunload = () => {
             this.connection.hangup()
         };
+
+        this.settings = new SettingsComponent();
+
+        this.refs.get("settings").addEventListener("click", () => {
+            this.settings.showModal()
+        })
+        
+        this.refs.get("velocity-slider").style.display = "none";
+        this.settings.refs.get("vmode-toggle").onchange = () => {
+            const speedMode = this.settings.getSpeedMode()
+            if (speedMode == "discrete") {
+                this.refs.get("velocity-toggle").style.display = "block";
+                this.refs.get("velocity-slider").style.display = "none";
+            } else { 
+                this.refs.get("velocity-toggle").style.display = "none";
+                this.refs.get("velocity-slider").style.display = "block";
+            }
+        }
+
+        this.settings.refs.get("step-size-toggle").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").step = this.settings.getStepSize();
+        })
+
+        this.refs.get("slider-step-up").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").value = 
+                parseFloat(this.shadowRoot.getElementById("slider").value) + 
+                    parseFloat(this.shadowRoot.getElementById("slider").step);
+        })
+
+        this.refs.get("slider-step-down").addEventListener("click", () => {
+            this.shadowRoot.getElementById("slider").value = 
+                parseFloat(this.shadowRoot.getElementById("slider").value) - 
+                    parseFloat(this.shadowRoot.getElementById("slider").step);
+        })
     }
 
     getVelocityModifier() {
         return this.shadowRoot.querySelector("input[name=velocity]:checked").value
+    }
+
+    getVelocityScaleModifier() {
+        return this.settings.getVScaleModifier()
     }
 
     connectedCallback() {
@@ -337,7 +381,7 @@ export class OperatorComponent extends PageComponent {
             let regionName = composedTarget.dataset.name
             if (regionName === "doNothing") return;
             // Treat region name as method name on robot
-            this.robot[regionName](this.getVelocityModifier())
+            this.robot[regionName](this.getVelocityModifier(), this.getVelocityScaleModifier())
         })
     }
 

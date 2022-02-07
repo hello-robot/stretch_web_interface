@@ -49,7 +49,8 @@ export class RemoteRobot {
             type: "command",
             subtype: "head",
             name: "gripper_follow",
-            modifier: value
+            vmodifier: value,
+            vscalemodifier: "low"
         };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
@@ -66,12 +67,13 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
         if (methodName === null) {
             methodName = groupName + name[0].toUpperCase() + name.substr(1);
         }
-        RemoteRobot.prototype[methodName] = function (value) {
+        RemoteRobot.prototype[methodName] = function (velvalue, velscalevalue) {
             let cmd = {
                 type: "command",
                 subtype: groupName,
                 name: name,
-                modifier: value
+                vmodifier: velvalue,
+                vscalemodifier: velscalevalue
             };
             this.robotChannel(cmd);
             this.emitCommandEvent(cmd);
