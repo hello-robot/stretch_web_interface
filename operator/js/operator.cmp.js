@@ -56,27 +56,31 @@ const template = `
     </div>
 </section>
 <template id="pantilt-extra-controls">
-<div class="d-flex justify-content-around mt-2">
-<div class='form-check form-check-inline'> <input type='checkbox' class="form-check-input" value='follow' id="follow-check"><label class="form-check-label" for="follow-check">Follow gripper</label></div><button class='btn btn-secondary btn-sm'>Reset view</button></div></template>
+    <div class="d-flex justify-content-around mt-2">
+        <div class='form-check form-check-inline'>
+            <input type='checkbox' class="form-check-input" value='follow' id="follow-check" />
+            <label class="form-check-label" for="follow-check">Follow gripper</label>
+        </div>
+        <button class='btn btn-secondary btn-sm'>Reset view</button>
+    </div>
+</template>
+
+<section class="container-fluid px-sm-2" data-ref="map-interactive"></section>
 
 <section class="container-fluid px-sm-2">
-<map-interactive data-ref="map-interactive" disabled></map-interactive>
-</section>
-
-<section class="container-fluid px-sm-2">
-<pose-library data-ref="pose-library" disabled></pose-library>
+    <pose-library data-ref="pose-library" disabled></pose-library>
 </section>
 
 <hr />
 
 <div class="container-fluid d-flex flex-row">
     <div class="d-flex justify-content-start">
-    <div class="input-group input-group-sm" >
-        <select data-ref="select-robot" class="form-select" aria-label="Select robot">
-            <option value="no robot connected">no robot connected</option>
-        </select>
-        <input id="hangup" type="button" class="btn btn-sm btn-warning" value="hang up" data-ref="hangup" disabled/>
-    </div>
+        <div class="input-group input-group-sm" >
+            <select data-ref="select-robot" class="form-select" aria-label="Select robot">
+                <option value="no robot connected">no robot connected</option>
+            </select>
+            <input id="hangup" type="button" class="btn btn-sm btn-warning" value="hang up" data-ref="hangup" disabled/>
+        </div>
     </div>
 
     <div class="d-flex flex-fill justify-content-end">
@@ -478,7 +482,6 @@ export class OperatorComponent extends PageComponent {
         const mapInteractive = new MapInteractive();
         this.refs.get("map-interactive").append(mapInteractive);
         this.connection.makeRequest("mapView").then( ( {mapData, mapWidth, mapHeight, mapScale} ) => {
-            console.log(mapData, mapWidth, mapHeight, mapScale)
             mapInteractive.updateMap(mapData, mapWidth, mapHeight, mapScale);
         });
     }

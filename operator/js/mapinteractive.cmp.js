@@ -1,9 +1,9 @@
 import {BaseComponent, Component} from "../../shared/base.cmp.js";
 
 const template = `
-<div>
+<div id="container-div">
     <img data-ref="map-img" />
-    <canvas data-ref="map-canvas" width="600" height="500"></canvas>
+    <canvas id="map-canvas" data-ref="map-canvas" width="600" height="500"></canvas>
 </div>
 `
 
@@ -21,6 +21,7 @@ export class MapInteractive extends BaseComponent {
     }
 
     updateMap(mapData, mapWidth, mapHeight, mapScale) {
+        console.log(mapData, mapWidth, mapHeight, mapScale)
         this.mapImg.src = mapData;
 
         this.mapCanvas.width = mapWidth;
@@ -32,4 +33,4 @@ export class MapInteractive extends BaseComponent {
     }
 }
 
-Component("map-interactive", MapInteractive);
+Component("map-interactive", MapInteractive, '/operator/css/map-interactive.css');
