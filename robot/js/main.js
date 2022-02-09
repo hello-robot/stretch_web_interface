@@ -74,7 +74,7 @@ robot.connect().then(() => {
         return processedJointPositions
     });
     connection.registerRequestResponder('mapView', async () => {
-        const mapData = await mapROS.getMapData();
+        const mapData = await mapROS.getMapB64();
         return {
             mapData: mapData,
             mapWidth: mapROS.width,
