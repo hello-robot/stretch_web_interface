@@ -172,12 +172,10 @@ export class SettingsModal extends BaseComponent {
     }
 
     hideContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = null;
         this.refs.get("settings-step-size").style.display = "none";
     }
 
     showContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = "none";
         this.refs.get("settings-step-size").style.display = null;
     }
 

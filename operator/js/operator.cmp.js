@@ -237,7 +237,7 @@ export class OperatorComponent extends PageComponent {
         if (this.model.getSetting("velocity-mode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
-            let scale = parseInt(this.shadowRoot.querySelector("input[name=velocity]:checked").value)
+            let scale = parseInt(this.model.getSetting("velocity-scale"))
             return this.JOINT_VELOCITIES[jointName] * this.VELOCITY_SCALES[scale]
         }
     }
@@ -246,7 +246,7 @@ export class OperatorComponent extends PageComponent {
         if (this.model.getSetting("velocity-mode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
-            let scale = parseInt(this.shadowRoot.querySelector("input[name=velocity]:checked").value)
+            let scale = parseInt(this.model.getSetting("velocity-scale"))
             return this.JOINT_INCREMENTS[jointName] * this.INCREMENT_SCALES[scale]
         }
     }
