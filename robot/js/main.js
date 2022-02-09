@@ -78,7 +78,7 @@ robot.connect().then(() => {
             mapData: mapROS.getMapB64(),
             mapWidth: mapROS.width,
             mapHeight: mapROS.height,
-            mapScale: mapROS.scale,
+            mapScale: mapROS.mapScale,
         };
     });
 }).catch(handleError)
