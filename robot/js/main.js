@@ -37,7 +37,7 @@ robot.connect().then(() => {
 
 
     // TODO (kavi): get this value from the map file or map server
-    mapROS = new MapROS(600, 500);
+    mapROS = new MapROS(600, 500, 1);
     displayContainer.appendChild(mapROS);
     mapROS.init(robot.ros);
 
@@ -74,7 +74,12 @@ robot.connect().then(() => {
         return processedJointPositions
     });
     connection.registerRequestResponder('mapView', () => {
-        return mapROS.getMapB64();
+        return { 
+            mapData: mapROS.getMapB64(),
+            mapWidth: mapROS.width,
+            mapHeight: mapROS.height,
+            mapScale: mapROS.scale,
+        };
     });
 }).catch(handleError)
 
