@@ -1,7 +1,8 @@
-import {ALL_JOINTS, getJointEffort, getJointValue, Robot} from "./robot.js";
-import {WebRTCConnection} from "../../shared/webrtcconnection.js";
-import {TransformedVideoStream} from "./videostream.cmp.js";
-import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../shared/video_dimensions.js";
+import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot.js";
+import { WebRTCConnection } from "../../shared/webrtcconnection.js";
+import { TransformedVideoStream } from "./videostream.cmp.js";
+import { MapROS } from "./mapros.cmp.js";
+import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../shared/video_dimensions.js";
 
 let audioInId;
 let audioOutId;
@@ -12,6 +13,7 @@ const robot = new Robot({
 })
 
 let overheadStream, gripperStream, pantiltStream, audioStream;
+let mapROS;
 
 robot.connect().then(() => {
     return navigator.mediaDevices.enumerateDevices()
@@ -26,34 +28,40 @@ robot.connect().then(() => {
     robot.subscribeToVideo('/gripper_camera/image_raw/compressed', gripperStream.imageCallback.bind(gripperStream))
     pantiltStream.start();
     overheadStream.start();
-        gripperStream.start();
+    gripperStream.start();
 
-        const displayContainer = document.getElementById("video-display")
-        displayContainer.appendChild(pantiltStream)
-        displayContainer.appendChild(overheadStream)
-        displayContainer.appendChild(gripperStream)
+    const displayContainer = document.getElementById("video-display")
+    displayContainer.appendChild(pantiltStream)
+    displayContainer.appendChild(overheadStream)
+    displayContainer.appendChild(gripperStream)
 
-        // Audio stuff
-        if (audioOutId) {
-            // NOTE(nickswalker12-1-21): Setting the audio output is failing consistently for me. Disabling
-            // until I can debug
-            //changeAudioDestination(pantiltStream.displayElement);
-        } else {
-            console.log('no audio output found or selected');
-        }
-        if (audioInId) {
-            let constraints = {
-                audio: {deviceId: {exact: audioInId}},
-                video: false
-            };
-            console.log('attempting to acquire audio input stream');
-            navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-                console.log('setting up audioStream for the microphone');
-                audioStream = stream.getAudioTracks()[0]; // get audio track from robot microphone
-            }).catch(handleError);
-        } else {
-            console.warn('the robot audio input was not found!');
-        }
+
+    // TODO (kavi): get this value from the map file or map server
+    mapROS = new MapROS(600, 500);
+    displayContainer.appendChild(mapROS);
+    mapROS.init(robot.ros);
+
+    // Audio stuff
+    if (audioOutId) {
+        // NOTE(nickswalker12-1-21): Setting the audio output is failing consistently for me. Disabling
+        // until I can debug
+        //changeAudioDestination(pantiltStream.displayElement);
+    } else {
+        console.log('no audio output found or selected');
+    }
+    if (audioInId) {
+        let constraints = {
+            audio: { deviceId: { exact: audioInId } },
+            video: false
+        };
+        console.log('attempting to acquire audio input stream');
+        navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+            console.log('setting up audioStream for the microphone');
+            audioStream = stream.getAudioTracks()[0]; // get audio track from robot microphone
+        }).catch(handleError);
+    } else {
+        console.warn('the robot audio input was not found!');
+    }
     connection = new WebRTCConnection('ROBOT', false, {
         onConnectionStart: handleSessionStart,
         onMessage: handleMessage
@@ -64,7 +72,10 @@ robot.connect().then(() => {
             processedJointPositions[key] = getJointValue(robot.jointState, key)
         });
         return processedJointPositions
-    })
+    });
+    connection.registerRequestResponder('mapView', () => {
+        return mapROS.getMapB64();
+    });
 }).catch(handleError)
 
 
@@ -141,16 +152,16 @@ function forwardJointStates(jointState) {
     let messages = []
     // send wrist joint effort
     let effort = getJointEffort(jointState, 'joint_wrist_yaw');
-    messages.push({'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort})
+    messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort })
 
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
-    messages.push({'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort})
+    messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
 
     effort = getJointEffort(jointState, 'joint_lift');
-    messages.push({'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort})
+    messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort })
 
     effort = getJointEffort(jointState, 'joint_arm_l0');
-    messages.push({'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort})
+    messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort })
     connection.sendData(messages);
 }
 

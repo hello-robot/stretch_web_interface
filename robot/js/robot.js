@@ -221,6 +221,7 @@ export class Robot {
                 serverName: '/stretch_controller/follow_joint_trajectory',
                 actionName: 'control_msgs/FollowJointTrajectoryAction'
             });
+
             return Promise.resolve()
         })
     }

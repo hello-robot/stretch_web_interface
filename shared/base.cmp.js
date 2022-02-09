@@ -29,15 +29,17 @@ export class BaseComponent extends HTMLElement {
     cssLink;
     refs = new Map();
 
-    constructor(html = '', makeVisible = true) {
+    constructor(html = '', makeVisible = true, useShadowRoot = true) {
         // Call parent
         super();
 
-        // Create a shadow root
-        this.attachShadow({mode: 'open'});
+        if (useShadowRoot) {
+            // Create a shadow root
+            this.attachShadow({ mode: 'open' });
+        }
 
         // Create some CSS to apply to the shadow dom
-        const {cssLink} = this.constructor.prototype;
+        const { cssLink } = this.constructor.prototype;
         if (cssLink) {
             const link = document.createElement('link');
             link.setAttribute('rel', 'stylesheet');
@@ -51,7 +53,11 @@ export class BaseComponent extends HTMLElement {
                 throw new Error(`Fail to load stylesheet for ${this.constructor.name}. 
         CSS Link : ${cssLink}`);
             };
-            this.shadowRoot?.append(link);
+            if (useShadowRoot) {
+                this.shadowRoot?.append(link);
+            } else {
+                this.append(link);
+            }
         }
 
         // Build the node
@@ -73,8 +79,12 @@ export class BaseComponent extends HTMLElement {
             this.refs.set(bitName, bit);
         });
 
-        // Append child
-        this.shadowRoot?.append(...container.children);
+        if (useShadowRoot) {
+            // Append child
+            this.shadowRoot?.append(...container.children);
+        } else {
+            this.append(...container.children);
+        }
 
         // Either this element is meant to be hidden, or we need
         // to make it visible later after css loads
