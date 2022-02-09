@@ -285,7 +285,7 @@ export class WebRTCConnection {
         this.requestResponders.set(requestType, responder)
     }
 
-    processRequestResponse(message) {
+    async processRequestResponse(message) {
         message = safelyParseJSON(message.data)
         if (message.type === "request") {
             let response = {
@@ -294,7 +294,7 @@ export class WebRTCConnection {
                 requestType: message.requestType
             }
             if (this.requestResponders.has(message.requestType)) {
-                response.data = this.requestResponders.get(message.requestType)()
+                response.data = await this.requestResponders.get(message.requestType)()
                 this.requestChannel.send(JSON.stringify(response))
             } else {
                 console.error("Heard request with no responder")

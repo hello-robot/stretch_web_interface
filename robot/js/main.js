@@ -66,16 +66,17 @@ robot.connect().then(() => {
         onConnectionStart: handleSessionStart,
         onMessage: handleMessage
     })
-    connection.registerRequestResponder("jointState", () => {
+    connection.registerRequestResponder("jointState", async () => {
         let processedJointPositions = {};
         ALL_JOINTS.forEach((key, i) => {
             processedJointPositions[key] = getJointValue(robot.jointState, key)
         });
         return processedJointPositions
     });
-    connection.registerRequestResponder('mapView', () => {
-        return { 
-            mapData: mapROS.getMapB64(),
+    connection.registerRequestResponder('mapView', async () => {
+        const mapData = await mapROS.getMapData();
+        return {
+            mapData: mapData,
             mapWidth: mapROS.width,
             mapHeight: mapROS.height,
             mapScale: mapROS.mapScale,
