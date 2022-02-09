@@ -30,7 +30,8 @@ export class WebRTCConnection {
         onMessage,
         onMessageChannelOpen,
         onTrackAdded,
-        onAvailableRobotsChanged
+        onAvailableRobotsChanged,
+        onRequestChannelOpen
     } = {}) {
         this.onConnectionStart = onConnectionStart
         // Fired when the disconnection is NOT manually triggered, but happens for an external reason
@@ -38,6 +39,7 @@ export class WebRTCConnection {
         this.onMessage = onMessage
         this.onMessageChannelOpen = onMessageChannelOpen
         this.onTrackAdded = onTrackAdded
+        this.onRequestChannelOpen = onRequestChannelOpen
         this.createPeerConnection()
         this.socket = io.connect();
 
@@ -144,6 +146,8 @@ export class WebRTCConnection {
                 } else if (event.channel.label === "requestresponse") {
                     this.requestChannel = event.channel
                     this.requestChannel.onmessage = this.processRequestResponse.bind(this)
+
+                    if (this.onRequestChannelOpen) this.onRequestChannelOpen();
                 } else {
                     console.error("Unknown channel opened:", event.channel.label)
                 }

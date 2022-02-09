@@ -12,6 +12,7 @@ import {
     PanTiltNavigationOverlay,
     ReachOverlay
 } from "./stretchoverlays.js";
+import { MapInteractive } from "./mapinteractive.cmp.js";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -58,6 +59,9 @@ const template = `
 <div class="d-flex justify-content-around mt-2">
 <div class='form-check form-check-inline'> <input type='checkbox' class="form-check-input" value='follow' id="follow-check"><label class="form-check-label" for="follow-check">Follow gripper</label></div><button class='btn btn-secondary btn-sm'>Reset view</button></div></template>
 
+<section class="container-fluid px-sm-2">
+<map-interactive data-ref="map-interactive" disabled></map-interactive>
+</section>
 
 <section class="container-fluid px-sm-2">
 <pose-library data-ref="pose-library" disabled></pose-library>
@@ -142,7 +146,8 @@ export class OperatorComponent extends PageComponent {
             onMessage: this.handleMessage.bind(this),
             onTrackAdded: this.handleRemoteTrackAdded.bind(this),
             onAvailableRobotsChanged: this.availableRobotsChanged.bind(this),
-            onMessageChannelOpen: this.configureRobot.bind(this)
+            onMessageChannelOpen: this.configureRobot.bind(this),
+            onRequestChannelOpen: this.requestChannelReadyCallback.bind(this),
         })
 
         this.refs.get("hangup").addEventListener("click", () => {
@@ -466,7 +471,16 @@ export class OperatorComponent extends PageComponent {
 
             }
         })
+    }
 
+    requestChannelReadyCallback() {
+        this.refs.get("map-interactive").disabled = null;
+        const mapInteractive = new MapInteractive();
+        this.refs.get("map-interactive").append(mapInteractive);
+        this.connection.makeRequest("mapView").then( ( {mapData, mapWidth, mapHeight, mapScale} ) => {
+            console.log(mapData, mapWidth, mapHeight, mapScale)
+            mapInteractive.updateMap(mapData, mapWidth, mapHeight, mapScale);
+        });
     }
 
 }
