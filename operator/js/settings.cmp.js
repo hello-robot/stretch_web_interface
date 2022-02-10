@@ -161,6 +161,7 @@ export class SettingsModal extends BaseComponent {
             } else if (inputForSetting.type === "radio") {
                 inputForSetting = this.shadowRoot.querySelector(`input[value='${value}']`)
                 inputForSetting.checked = "true"
+                console.log(inputForSetting)
             } else {
                 console.warn(inputForSetting)
             }
@@ -172,10 +173,12 @@ export class SettingsModal extends BaseComponent {
     }
 
     hideContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = null;
         this.refs.get("settings-step-size").style.display = "none";
     }
 
     showContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = "none";
         this.refs.get("settings-step-size").style.display = null;
     }
 
