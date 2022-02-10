@@ -1,3 +1,21 @@
+const DEFAULTS = {
+    "pose": {},
+    "setting": {
+        "armReachVisualization": false,
+        "actionMode": "incremental",
+        "continuousVelocityStepSize": 0.15,
+        "velocityControlMode": "discrete",
+        "velocityScale": 2,
+        "showPermanentIconsGripper": true,
+        "showPermanentIconsOverhead": true,
+        "showPermanentIconsPantilt": true,
+    },
+    // Set a flag so that we know whether a model was initialized from defaults
+    "reserved": {
+        "initialized": true
+    }
+}
+
 class Model {
     addPose(id, pose) {
         console.error("Not implemented")
@@ -13,6 +31,14 @@ class Model {
 }
 
 export class LocalStorageModel extends Model {
+
+    constructor() {
+        super();
+        if (localStorage.getItem("reserved.initialized") !== "true") {
+            console.warn("Detected that LocalStorageModel isn't initialized. Reinitializing.")
+            this.reset()
+        }
+    }
 
     addPose(name, pose) {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose))
@@ -53,5 +79,14 @@ export class LocalStorageModel extends Model {
             }
         }
         return items
+    }
+
+    reset() {
+        localStorage.clear()
+        for (let [key, subkeys] of Object.entries(DEFAULTS)) {
+            for (let [subkey, value] of Object.entries(subkeys)) {
+                localStorage.setItem(`${key}.${subkey}`, value)
+            }
+        }
     }
 }

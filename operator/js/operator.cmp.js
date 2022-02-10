@@ -195,7 +195,7 @@ export class OperatorComponent extends PageComponent {
             this.model.setSetting(change.key, change.value)
             if (event.path[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
-                if (change.key === "velocity-mode" || change.key === "stepsize") {
+                if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls()
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -221,7 +221,7 @@ export class OperatorComponent extends PageComponent {
     }
 
     configureVelocityControls() {
-        const controlType = this.model.getSetting("velocity-mode")
+        const controlType = this.model.getSetting("velocityControlMode")
         if (controlType === "continuous") {
             this.refs.get("velocity-toggle").style.display = "none";
             this.refs.get("velocity-slider").style.display = null;
@@ -229,24 +229,24 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("velocity-toggle").style.display = null;
             this.refs.get("velocity-slider").style.display = "none";
         }
-        const stepSize = parseFloat(this.model.getSetting("stepsize"))
+        const stepSize = parseFloat(this.model.getSetting("continuousVelocityStepSize"))
         this.shadowRoot.getElementById("slider").step = stepSize
     }
 
     getVelocityForJoint(jointName) {
-        if (this.model.getSetting("velocity-mode") === "continuous") {
+        if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
-            let scale = parseInt(this.model.getSetting("velocity-scale"))
+            let scale = parseInt(this.model.getSetting("velocityScale"))
             return this.JOINT_VELOCITIES[jointName] * this.VELOCITY_SCALES[scale]
         }
     }
 
     getIncrementForJoint(jointName) {
-        if (this.model.getSetting("velocity-mode") === "continuous") {
+        if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
-            let scale = parseInt(this.model.getSetting("velocity-scale"))
+            let scale = parseInt(this.model.getSetting("velocityScale"))
             return this.JOINT_INCREMENTS[jointName] * this.INCREMENT_SCALES[scale]
         }
     }
@@ -444,7 +444,7 @@ export class OperatorComponent extends PageComponent {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
                 let jointName = regionName.substring(0, regionName.length - 4)
-                if (this.model.getSetting("control-mode") === "incremental") {
+                if (this.model.getSetting("actionMode") === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else {
                     let lastActiveRegion = this.activeVelocityRegion
