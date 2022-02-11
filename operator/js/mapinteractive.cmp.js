@@ -2,8 +2,8 @@ import {BaseComponent, Component} from "../../shared/base.cmp.js";
 
 const template = `
 <div id="container-div">
-    <img data-ref="map-img" />
     <canvas id="map-canvas" data-ref="map-canvas" width="600" height="500"></canvas>
+    <img data-ref="map-img" />
 </div>
 `
 
@@ -14,7 +14,7 @@ export class MapInteractive extends BaseComponent {
         this.mapImg = this.refs.get("map-img");
         this.mapCanvas = this.refs.get("map-canvas");
 
-        this.mapCanvas.addEventListener("onclick", this.navigateOnClick);
+        this.mapImg.onclick = this.navigateOnClick.bind(this);
 
         this.navGoalCallback = navGoalCallback;
     }
@@ -32,12 +32,11 @@ export class MapInteractive extends BaseComponent {
     }
 
     navigateOnClick(event) {
-        console.log(event.offsetX, event.offsetY);
         const x = event.offsetX;
         const y = event.offsetY;
 
-        const x_in_map = (x / this.mapResolution) + this.mapOrigin.x;
-        const y_in_map = (y / this.mapResolution) + this.mapOrigin.y;
+        const x_in_map = (x * this.mapResolution) + this.mapOrigin.position.x;
+        const y_in_map = (y * this.mapResolution) + this.mapOrigin.position.y;
 
         const goal = {
             x: x_in_map,
