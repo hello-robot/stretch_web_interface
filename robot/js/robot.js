@@ -520,20 +520,15 @@ function makeNavGoal(pos, moveBaseClient) {
                         y: pos.y,
                         z: 0
                     },
-                    orientation: {
-                        x: 0,
-                        y: 0,
-                        z: 1,
-                        w: 0
-                    }//eulerToQuaternion(0, 0, pos.theta)
+                    orientation: eulerToQuaternion(0, 0, pos.theta)
                 }
             }
         }
     });
 
     newGoal.on('feedback', function (feedback) {
-        console.log('Feedback:');
-        console.log(feedback)
+        // console.log('Feedback:');
+        // console.log(feedback)
     });
 
     newGoal.on('result', function (result) {
@@ -607,19 +602,15 @@ function quaternionToEuler(q, order) {
 }
 
 // Modified from: https://math.stackexchange.com/a/2975462
-function eulerToQuaternion(x, y, z) {
-    var c1 = Math.cos(y / 2);
-    var s1 = Math.sin(y / 2);
-    var c2 = Math.cos(z / 2);
-    var s2 = Math.sin(z / 2);
-    var c3 = Math.cos(x / 2);
-    var s3 = Math.sin(x / 2);
-    var c1c2 = c1 * c2;
-    var s1s2 = s1 * s2;
+function eulerToQuaternion(yaw, pitch, roll) {
+    const qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+    const qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
+    const qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)
+    const qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
     return {
-        x: c1c2 * s3 - s1s2 * c3,
-        y: c1c2 * c3 + s1s2 * s3,
-        z: s1 * c2 * c3 + c1 * s2 * s3,
-        w: c1 * s2 * c3 - s1 * c2 * s3
+        x: qx,
+        y: qy,
+        z: qz,
+        w: qw
     }
 }
