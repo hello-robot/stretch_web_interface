@@ -184,7 +184,19 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("settings-button").addEventListener("click", () => {
             this.refs.get("settings").showModal()
         })
+        this.refs.get("settings").refs.get("btn-save-settings").addEventListener("click", event => {
+            this.model.saveSettings();
+        })
+        this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
+            this.refs.get("settings").configureInputs(this.model.loadSavedSettings())
+        })
+        this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
+            this.model.reset();
+            this.refs.get("settings").configureInputs(this.model.getSettings())
 
+        })
+
+        this.model.reset()
         this.refs.get("settings").configureInputs(this.model.getSettings())
         this.configureVelocityControls()
         this.addEventListener("settingchanged", event => {

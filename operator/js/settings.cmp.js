@@ -1,8 +1,6 @@
 import {BaseComponent, Component} from "../../shared/base.cmp.js";
 
 
-// FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
-// FIXME: Settings page not reintegrated
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
 <!-- SETTINGS -->
@@ -53,7 +51,7 @@ const template = `
                         <div class="btn-group mode-toggle" role="group" id="control-mode-toggle" data-ref="control-mode-toggle">
                             <input type="radio" id="control-incremental" class="btn-check" name="actionMode" autocomplete="off" value="incremental" checked />
                             <label class="btn btn-secondary btn-sm" for="control-incremental">Incremental</label>
-                            <input type="radio" id="control-continuous" class="btn-check" name="actionMode" autocomplete="off" value="continuous"/>
+                            <input type="radio" id="control-continuous" class="btn-check" name="actionMode" autocomplete="off" value="control-continuous"/>
                             <label class="btn btn-secondary btn-sm" for="control-continuous">Continuous</label>
                         </div>
                     </div>
@@ -110,6 +108,24 @@ const template = `
                     </div>
                 </div>
         
+                <div class="d-flex flex-fill justify-content-left">
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-default-settings">
+                            Default Settings
+                        </button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-save-settings">
+                            Save Settings
+                        </button>
+                    </div>
+                    <div class="col-sm-3">
+                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-load-settings">
+                            Load Settings
+                        </button>
+                    </div>
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -156,27 +172,29 @@ export class SettingsModal extends BaseComponent {
                 }
             })
         })
-
     }
 
     configureInputs(values) {
         for (let [key, value] of values) {
-            let inputForSetting = this.shadowRoot.querySelector(`input[name='${key}']`)
-            if (key === "velocityControlMode" && value === "continuous") {
-                // FIXME: This doesn't work, maybe because of the modal cloning before display
-                this.showContinuousSettings()
-            } else {
+            let inputForSetting = this.modalContainer.querySelector(`input[name='${key}']`)
+            if (key === "velocityControlMode" && value === "discrete") {
                 this.hideContinuousSettings()
+            } else if (key === "velocityControlMode" && value === "continuous") {
+                this.showContinuousSettings()
             }
+
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null
             } else if (inputForSetting.type === "radio") {
-                inputForSetting = this.shadowRoot.querySelector(`input[value='${value}']`)
+                inputForSetting = this.modalContainer.querySelector(`input[value='${value}']`)
                 inputForSetting.checked = "true"
-                console.log(inputForSetting)
             } else {
                 console.warn(inputForSetting)
             }
+
+            var event = new Event('change', { target: inputForSetting });
+            event.initEvent('change', true, false);
+            inputForSetting.dispatchEvent(event);
         }
     }
 
