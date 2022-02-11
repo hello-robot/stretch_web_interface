@@ -9,27 +9,45 @@ const template = `
 
 export class MapInteractive extends BaseComponent {
 
-    constructor() {
+    constructor(navGoalCallback) {
         super(template);
         this.mapImg = this.refs.get("map-img");
         this.mapCanvas = this.refs.get("map-canvas");
 
-        this.width = 600;
-        this.height = 500;
+        this.mapCanvas.addEventListener("onclick", this.navigateOnClick);
 
-        this.mapScale = 1;
+        this.navGoalCallback = navGoalCallback;
     }
 
-    updateMap(mapData, mapWidth, mapHeight, mapScale) {
-        console.log(mapData, mapWidth, mapHeight, mapScale)
+    updateMap({mapData, mapWidth, mapHeight, mapResolution, mapOrigin}) {
         this.mapImg.src = mapData;
 
         this.mapCanvas.width = mapWidth;
         this.mapCanvas.height = mapHeight;
 
-        this.mapScale = mapScale;
-        this.width = mapWidth;
-        this.height = mapHeight;
+        this.mapResolution = mapResolution;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
+        this.mapOrigin = mapOrigin;
+    }
+
+    navigateOnClick(event) {
+        console.log(event.offsetX, event.offsetY);
+        const x = event.offsetX;
+        const y = event.offsetY;
+
+        const x_in_map = (x / this.mapResolution) + this.mapOrigin.x;
+        const y_in_map = (y / this.mapResolution) + this.mapOrigin.y;
+
+        const goal = {
+            x: x_in_map,
+            y: y_in_map,
+            theta: 0
+        };
+
+        console.log(goal);
+
+        this.navGoalCallback(goal);
     }
 }
 

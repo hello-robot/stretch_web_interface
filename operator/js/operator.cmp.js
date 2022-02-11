@@ -493,8 +493,8 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("map-interactive").disabled = null;
         const mapInteractive = new MapInteractive();
         this.refs.get("map-interactive").append(mapInteractive);
-        this.connection.makeRequest("mapView").then( ( {mapData, mapWidth, mapHeight, mapScale} ) => {
-            mapInteractive.updateMap(mapData, mapWidth, mapHeight, mapScale);
+        this.connection.makeRequest("mapView").then( ( map ) => {
+            mapInteractive.updateMap({...map});
         });
     }
 
