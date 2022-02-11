@@ -549,3 +549,16 @@ function quaternionToEuler(q, order) {
         x: bank
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+
+function deprojectPixeltoWorldPoint(px, py, depth) {
+    var K = [343.1590576171875, 0.0, 320.0, 0.0, 343.1590576171875, 240.0, 0.0, 0.0, 1.0];
+    var fx = K[0];
+    var fy = K[4];
+    var cx = K[2];
+    var cy = K[5];
+
+    var x = ((px - cx) / fx) * depth;
+    var y = ((py - cy) / fy) * depth;
+}
