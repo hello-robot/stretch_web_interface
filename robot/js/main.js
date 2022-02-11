@@ -79,7 +79,8 @@ robot.connect().then(() => {
             mapData: mapData,
             mapWidth: mapROS.width,
             mapHeight: mapROS.height,
-            mapScale: mapROS.mapScale,
+            mapResolution: mapROS.resolution,
+            mapOrigin: mapROS.origin,
         };
     });
 }).catch(handleError)
@@ -221,6 +222,9 @@ function handleMessage(message) {
         case "stop":
             robot.stopExecution()
             break
+        case "navGoal":
+            robot.executeNavGoal(message.goal);
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }

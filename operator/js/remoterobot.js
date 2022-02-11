@@ -70,6 +70,10 @@ export class RemoteRobot {
         }
     }
 
+    setNavGoal(goal) {
+        this.robotChannel({type: "navGoal", goal: goal})
+    }
+
     emitCommandEvent(cmd) {
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }

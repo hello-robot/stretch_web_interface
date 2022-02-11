@@ -23,6 +23,7 @@ export class MapROS extends BaseComponent {
             this.width = message.width;
             this.height = message.height;
             this.resolution = message.resolution;
+            this.origin = message.origin;
 
             this.mapViewer = new ROS2D.Viewer({
                 divID: 'map_viewer',
