@@ -491,7 +491,9 @@ export class OperatorComponent extends PageComponent {
 
     requestChannelReadyCallback() {
         this.refs.get("map-interactive").disabled = null;
-        const mapInteractive = new MapInteractive();
+        const mapInteractive = new MapInteractive((goal) => {
+            this.robot.setNavGoal(goal);
+        });
         this.refs.get("map-interactive").append(mapInteractive);
         this.connection.makeRequest("mapView").then( ( map ) => {
             mapInteractive.updateMap({...map});

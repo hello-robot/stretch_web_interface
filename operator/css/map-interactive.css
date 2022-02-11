@@ -8,3 +8,7 @@
     left: 0;
     pointer-events: none;
 }
+
+#map-img {
+    cursor: crosshair;
+}

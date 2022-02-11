@@ -18,6 +18,7 @@ export class Robot {
 
     tfClient
     trajectoryClient
+    moveBaseClient
     jointStateTopic
 
     linkGripperFingerLeftTF
@@ -222,6 +223,12 @@ export class Robot {
                 actionName: 'control_msgs/FollowJointTrajectoryAction'
             });
 
+            this.moveBaseClient = new ROSLIB.ActionClient({
+                ros: this.ros,
+                serverName: '/move_base',
+                actionName: 'move_base_msgs/MoveBaseAction'
+            })
+
             return Promise.resolve()
         })
     }
@@ -384,11 +391,17 @@ export class Robot {
 
     stopExecution() {
         this.trajectoryClient.cancel()
+        // TODO (kavidey): it seems like this variable is unused. remove it?
         this.currentJointTrajectoryGoal = null
         if (this.currentTrajectoryKillInterval) {
             clearTimeout(this.currentTrajectoryKillInterval)
             this.currentTrajectoryKillInterval = null
         }
+        this.moveBaseClient.cancel()
+    }
+
+    executeNavGoal(goal) {
+        makeNavGoal(goal, this.moveBaseClient).send()
     }
 }
 
@@ -489,6 +502,49 @@ function makeVelocityGoal(positions, velocities, trajectoryClient) {
 
 }
 
+function makeNavGoal(pos, moveBaseClient) {
+    let newGoal = new ROSLIB.Goal({
+        actionClient: moveBaseClient,
+        goalMessage: {
+            target_pose: {
+                header: {
+                    stamp: {
+                        secs: 0,
+                        nsecs: 0
+                    },
+                    frame_id: 'map'
+                },
+                pose: {
+                    position: {
+                        x: pos.x,
+                        y: pos.y,
+                        z: 0
+                    },
+                    orientation: {
+                        x: 0,
+                        y: 0,
+                        z: 1,
+                        w: 0
+                    }//eulerToQuaternion(0, 0, pos.theta)
+                }
+            }
+        }
+    });
+
+    newGoal.on('feedback', function (feedback) {
+        console.log('Feedback:');
+        console.log(feedback)
+    });
+
+    newGoal.on('result', function (result) {
+        console.log('Final Result:');
+        console.log(result);
+    });
+
+    return newGoal
+
+}
+
 export function getJointEffort(jointStateMessage, jointName) {
     let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.effort[jointIndex]
@@ -547,5 +603,23 @@ function quaternionToEuler(q, order) {
         y: heading,
         z: attitude,
         x: bank
+    }
+}
+
+// Modified from: https://math.stackexchange.com/a/2975462
+function eulerToQuaternion(x, y, z) {
+    var c1 = Math.cos(y / 2);
+    var s1 = Math.sin(y / 2);
+    var c2 = Math.cos(z / 2);
+    var s2 = Math.sin(z / 2);
+    var c3 = Math.cos(x / 2);
+    var s3 = Math.sin(x / 2);
+    var c1c2 = c1 * c2;
+    var s1s2 = s1 * s2;
+    return {
+        x: c1c2 * s3 - s1s2 * c3,
+        y: c1c2 * c3 + s1s2 * s3,
+        z: s1 * c2 * c3 + c1 * s2 * s3,
+        w: c1 * s2 * c3 - s1 * c2 * s3
     }
 }

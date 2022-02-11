@@ -222,6 +222,9 @@ function handleMessage(message) {
         case "stop":
             robot.stopExecution()
             break
+        case "navGoal":
+            robot.executeNavGoal(message.goal);
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }

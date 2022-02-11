@@ -3,7 +3,7 @@ import {BaseComponent, Component} from "../../shared/base.cmp.js";
 const template = `
 <div id="container-div">
     <canvas id="map-canvas" data-ref="map-canvas" width="600" height="500"></canvas>
-    <img data-ref="map-img" />
+    <img id="map-img" data-ref="map-img" />
 </div>
 `
 
