@@ -37,7 +37,7 @@ robot.connect().then(() => {
 
 
     // TODO (kavi): get this value from the map file or map server
-    mapROS = new MapROS(600, 500, 1);
+    mapROS = new MapROS();
     displayContainer.appendChild(mapROS);
     mapROS.init(robot.ros);
 

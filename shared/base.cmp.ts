@@ -5,7 +5,7 @@
  * @param name Component name for element registry
  * @param cssLink Link to the CSS style sheet
  */
-export function Component(name, constructor, cssLink) {
+export function Component(name, constructor, cssLink?) {
     constructor.prototype.cssLink = cssLink;
 
     // Register component

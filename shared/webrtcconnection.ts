@@ -15,8 +15,8 @@ const pcConfig = {
 
 export class WebRTCConnection {
     socket
-    pc
-    onConnectionStart
+    pc: RTCPeerConnection
+    onConnectionStart: () => void
     requestResponders = new Map()
     pendingRequests = new Map()
     cameraInfo = {}
@@ -24,14 +24,23 @@ export class WebRTCConnection {
     ignoreOffer = false
     isSettingRemoteAnswerPending = false
 
+    onConnectionEnd: () => void
+    onMessage: () => void
+    onMessageChannelOpen: () => void
+    onTrackAdded: () => void
+    onRequestChannelOpen: () => void
+
+    messageChannel: RTCDataChannel
+    requestChannel: RTCDataChannel
+
     constructor(peerName, polite, {
-        onConnectionStart,
-        onConnectionEnd,
-        onMessage,
-        onMessageChannelOpen,
-        onTrackAdded,
-        onAvailableRobotsChanged,
-        onRequestChannelOpen
+        onConnectionStart = () => {},
+        onConnectionEnd = () => {},
+        onMessage = () => {},
+        onMessageChannelOpen = () => {},
+        onTrackAdded = () => {},
+        onAvailableRobotsChanged = () => {},
+        onRequestChannelOpen = () => {}
     } = {}) {
         this.onConnectionStart = onConnectionStart
         // Fired when the disconnection is NOT manually triggered, but happens for an external reason
@@ -198,7 +207,7 @@ export class WebRTCConnection {
         this.pc = pc
     }
 
-    sendSignallingMessage(sessionDescription, mediaStreamMetadata) {
+    sendSignallingMessage(sessionDescription, mediaStreamMetadata?) {
         let message = {
             sessionDescription: sessionDescription
         }

@@ -3,6 +3,12 @@ import { BaseComponent, Component } from "../../shared/base.cmp.js";
 const template = `<div id="map_viewer"></div>`;
 
 export class MapROS extends BaseComponent {
+    width: number
+    height: number
+    resolution: number
+    mapViewer
+    mapGridClient
+
     constructor() {
         super(template, true, false);
     }

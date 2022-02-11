@@ -239,11 +239,11 @@ export class Robot {
 ////////////////////////////////////////////////////////////////////////////////////
 
 //Called from button click
-    baseTranslate(dist, vel) {
+    baseTranslate(dist: number) {
         makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send()
     }
 
-    baseTurn(ang_deg, vel) {
+    baseTurn(ang_deg: number) {
         // angle in degrees
         // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
 
