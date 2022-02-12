@@ -5,6 +5,8 @@
 // initial code licensed with Apache License 2.0
 //
 
+import { io, Socket } from "socket.io-client";
+import { Robot } from "../robot/js/robot";
 
 // Free STUN server offered by Google
 const pcConfig = {
@@ -12,9 +14,8 @@ const pcConfig = {
         'urls': 'stun:stun.l.google.com:19302'
     }]
 };
-
 export class WebRTCConnection {
-    socket
+    socket: Socket
     pc: RTCPeerConnection
     onConnectionStart: () => void
     requestResponders = new Map()
@@ -25,7 +26,7 @@ export class WebRTCConnection {
     isSettingRemoteAnswerPending = false
 
     onConnectionEnd: () => void
-    onMessage: () => void
+    onMessage: (obj) => void
     onMessageChannelOpen: () => void
     onTrackAdded: () => void
     onRequestChannelOpen: () => void
@@ -34,23 +35,24 @@ export class WebRTCConnection {
     requestChannel: RTCDataChannel
 
     constructor(peerName, polite, {
-        onConnectionStart = () => {},
-        onConnectionEnd = () => {},
-        onMessage = () => {},
-        onMessageChannelOpen = () => {},
-        onTrackAdded = () => {},
-        onAvailableRobotsChanged = () => {},
-        onRequestChannelOpen = () => {}
+        onConnectionStart = () => { },
+        onConnectionEnd = () => { },
+        onMessage = () => { },
+        onMessageChannelOpen = () => { },
+        onTrackAdded = () => { },
+        onAvailableRobotsChanged = () => { },
+        onRequestChannelOpen = () => { }
     } = {}) {
-        this.onConnectionStart = onConnectionStart
+        this.onConnectionStart = onConnectionStart;
         // Fired when the disconnection is NOT manually triggered, but happens for an external reason
-        this.onConnectionEnd = onConnectionEnd
-        this.onMessage = onMessage
-        this.onMessageChannelOpen = onMessageChannelOpen
-        this.onTrackAdded = onTrackAdded
-        this.onRequestChannelOpen = onRequestChannelOpen
-        this.createPeerConnection()
-        this.socket = io.connect();
+        this.onConnectionEnd = onConnectionEnd;
+        this.onMessage = onMessage;
+        this.onMessageChannelOpen = onMessageChannelOpen;
+        this.onTrackAdded = onTrackAdded;
+        this.onRequestChannelOpen = onRequestChannelOpen;
+        this.createPeerConnection();
+
+        this.socket = io();
 
         this.socket.on('created', room => {
             console.log('Created room ' + room);
@@ -77,7 +79,7 @@ export class WebRTCConnection {
         })
 
         this.socket.on('signalling', message => {
-            let {sessionDescription, mediaStreamMetadata} = message
+            let { sessionDescription, mediaStreamMetadata } = message
             console.log('Received message:', sessionDescription, mediaStreamMetadata);
             if (mediaStreamMetadata) {
                 this.cameraInfo = mediaStreamMetadata
@@ -129,17 +131,15 @@ export class WebRTCConnection {
 
     createPeerConnection() {
         console.log('Creating peer connection');
-
-        let pc
         try {
-            pc = new RTCPeerConnection(pcConfig);
-            pc.onicecandidate = (event) => {
+            this.pc = new RTCPeerConnection(pcConfig);
+            this.pc.onicecandidate = (event) => {
                 this.sendSignallingMessage({
                     type: 'candidate',
                     candidate: event.candidate
                 });
             };
-            pc.ondatachannel = event => {
+            this.pc.ondatachannel = event => {
                 if (event.channel.label === "messages") {
                     this.messageChannel = event.channel;
                     this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
@@ -162,17 +162,17 @@ export class WebRTCConnection {
                 }
 
             };
-            pc.onopen = () => {
+            this.pc.onopen = () => {
                 console.log('RTC channel opened.');
             };
 
-            pc.ontrack = this.onTrackAdded
+            this.pc.ontrack = this.onTrackAdded
 
-            pc.onremovestream = (event) => {
+            this.pc.onremovestream = (event) => {
                 console.log('Remote stream removed. Event: ', event);
             };
 
-            pc.onnegotiationneeded = async () => {
+            this.pc.onnegotiationneeded = async () => {
                 console.log("Negotiation needed")
                 try {
                     this.makingOffer = true;
@@ -185,13 +185,13 @@ export class WebRTCConnection {
                 }
             };
 
-            pc.oniceconnectionstatechange = () => {
+            this.pc.oniceconnectionstatechange = () => {
                 if (this.pc.iceConnectionState === "failed") {
                     this.pc.restartIce();
                 }
             };
 
-            pc.onconnectionstatechange = () => {
+            this.pc.onconnectionstatechange = () => {
                 if (this.pc.connectionState === "failed" || this.pc.connectionState === "disconnected") {
                     console.error(this.pc.connectionState, "Resetting the PeerConnection")
                     this.createPeerConnection()
@@ -199,20 +199,17 @@ export class WebRTCConnection {
                 }
             }
 
-            console.log('Created RTCPeerConnnection');
+            console.log('Created RTCPeerConnection');
         } catch (e) {
             console.error('Failed to create PeerConnection, exception: ' + e.message);
             return;
         }
-        this.pc = pc
     }
 
-    sendSignallingMessage(sessionDescription, mediaStreamMetadata?) {
+    sendSignallingMessage(sessionDescription: RTCSessionDescription, mediaStreamMetadata?) {
         let message = {
-            sessionDescription: sessionDescription
-        }
-        if (mediaStreamMetadata) {
-            message.mediaStreamMetadata = mediaStreamMetadata
+            sessionDescription: sessionDescription,
+            mediaStreamMetadata: mediaStreamMetadata
         }
         this.socket.emit('signalling', message);
     }
@@ -222,7 +219,7 @@ export class WebRTCConnection {
         this.socket.emit('what robots are available');
     }
 
-    connectToRobot(robot) {
+    connectToRobot(robot: Robot) {
         console.log('attempting to connect to robot =');
         console.log(robot);
         this.socket.emit('join', robot);
@@ -241,7 +238,7 @@ export class WebRTCConnection {
 
     }
 
-    addTrack(track, stream, streamName) {
+    addTrack(track: MediaStreamTrack, stream: MediaStream, streamName: string) {
         this.cameraInfo[stream.id] = streamName
         this.pc.addTrack(track, stream)
     }
@@ -253,12 +250,12 @@ export class WebRTCConnection {
         this.createPeerConnection()
     }
 
-////////////////////////////////////////////////////////////
-// RTCDataChannel
-// on Sept. 15, 2017 copied initial code from
-// https://github.com/googlecodelabs/webrtc-web/blob/master/step-03/js/main.js
-// initial code licensed with Apache License 2.0
-////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    // RTCDataChannel
+    // on Sept. 15, 2017 copied initial code from
+    // https://github.com/googlecodelabs/webrtc-web/blob/master/step-03/js/main.js
+    // initial code licensed with Apache License 2.0
+    ////////////////////////////////////////////////////////////
 
     sendData(obj) {
         if (!this.messageChannel || (this.messageChannel.readyState !== 'open')) {
