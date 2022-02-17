@@ -20,6 +20,7 @@ export class Robot {
     trajectoryClient
     moveBaseClient
     jointStateTopic
+    cmdVel
 
     linkGripperFingerLeftTF
     linkHeadTiltTF
@@ -186,6 +187,12 @@ export class Robot {
                 if (this.jointStateCallback) this.jointStateCallback(message)
             });
 
+            this.cmdVel = new ROSLIB.Topic({
+                ros : ros,
+                name : '/stretch/cmd_vel',
+                messageType : 'geometry_msgs/Twist'
+              });
+
             this.tfClient = new ROSLIB.TFClient({
                 ros: this.ros,
                 fixedFrame: 'base_link',
@@ -228,7 +235,6 @@ export class Robot {
                 serverName: '/move_base',
                 actionName: 'move_base_msgs/MoveBaseAction'
             })
-
             return Promise.resolve()
         })
     }
@@ -380,6 +386,38 @@ export class Robot {
         this.affirmExecution()
     }
 
+    executeClickMove(lin_vel, ang_vel) {
+        var twist = new ROSLIB.Message({
+            linear : {
+              x : lin_vel,
+              y : 0,
+              z : 0
+            },
+            angular : {
+              x : 0,
+              y : 0,
+              z : ang_vel
+            }
+        });
+      this.cmdVel.publish(twist);
+    }
+
+    stopClickMove() {
+        var twist = new ROSLIB.Message({
+            linear : {
+              x : 0,
+              y : 0,
+              z : 0
+            },
+            angular : {
+              x : 0,
+              y : 0,
+              z : 0
+            }
+        });
+        this.cmdVel.publish(twist);   
+    }
+
     affirmExecution() {
         if (this.currentTrajectoryKillInterval) {
             clearTimeout(this.currentTrajectoryKillInterval)
@@ -489,7 +527,6 @@ function makeVelocityGoal(positions, velocities, trajectoryClient) {
             }
         }
     });
-
     newGoal.on('feedback', function (feedback) {
         //console.log('Feedback: ', feedback);
     });
@@ -613,15 +650,4 @@ function eulerToQuaternion(yaw, pitch, roll) {
         z: qz,
         w: qw
     }
-}
-
-function deprojectPixeltoWorldPoint(px, py, depth) {
-    var K = [343.1590576171875, 0.0, 320.0, 0.0, 343.1590576171875, 240.0, 0.0, 0.0, 1.0];
-    var fx = K[0];
-    var fy = K[4];
-    var cx = K[2];
-    var cy = K[5];
-
-    var x = ((px - cx) / fx) * depth;
-    var y = ((py - cy) / fy) * depth;
 }

@@ -225,6 +225,12 @@ function handleMessage(message) {
         case "navGoal":
             robot.executeNavGoal(message.goal);
             break;
+        case "clickMove":
+            robot.executeClickMove(message.lin_vel, message.ang_vel);
+            break;
+        case "stopClickMove":
+            robot.stopClickMove();
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }
