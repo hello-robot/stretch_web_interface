@@ -13,7 +13,7 @@ export const overheadNavCrop = ((x, y) => {
             dh: wideVideoDimensions.h * y
         }
     }
-)(0.7, 0.8)
+)(0.6, 0.8)
 
 export const overheadManipCrop = ((x, y) => {
     return {

@@ -138,7 +138,6 @@ export class TransformedVideoStream extends VideoStream {
         super(inDim, outDim);
         this.crop = crop;
         this.rotate = rotate
-
     }
 
     renderVideo() {
@@ -170,7 +169,6 @@ export class TransformedVideoStream extends VideoStream {
         if (this.rotate) {
             this.context.restore()
         }
-
     }
 }
 

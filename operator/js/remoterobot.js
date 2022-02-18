@@ -91,6 +91,10 @@ export class RemoteRobot {
             }
         }
     }
+
+    setCameraView(mode) {
+        this.robotChannel({type: "setCameraView", mode: mode});
+    }
 }
 
 for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {

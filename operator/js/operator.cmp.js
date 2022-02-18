@@ -213,6 +213,7 @@ export class OperatorComponent extends PageComponent {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
                     if (change.value == "click-navigate") {
                         this.setMode('clickNav')
+                        this.shadowRoot.getElementById('mode-navigation').checked = true;
                     } else {
                         this.setMode(currMode)
                     }
@@ -286,13 +287,12 @@ export class OperatorComponent extends PageComponent {
 
         if (modeId === 'nav') {
             // FIXME: use configure camera to set crop for overhead stream
-            //this.robot.setCameraView('nav', true);
-
+            this.robot.setCameraView('nav');
         } else if (modeId === 'manip') {
             // FIXME: use configure camera to set crop for overhead stream
-            //this.robot.setCameraView('manip', true);
+            this.robot.setCameraView('manip');
         } else if (modeId === 'clickNav') {
-            // Fixme
+            this.robot.setCameraView('nav');
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -455,21 +455,23 @@ export class OperatorComponent extends PageComponent {
             if (this.model.getSetting("actionMode") === "click-navigate") {
                 let position = 
                     overheadClickNavOverlay.deprojectPixeltoWorldPoint(event.offsetX, event.offsetY);
+                position.x += 0.25; // offset
+                position.y -= 0.2; // offset
                 let magnitude = Math.sqrt(position.x*position.x + position.y*position.y);
                 let heading = Math.atan2(-position.y, -position.x)
-                // console.log(position.x, position.y, Math.atan2(-position.y, -position.x));
+                console.log(magnitude, heading);
                 this.velocityExecutionHeartbeat = window.setInterval(() => {
                     // If click on the robot, rotate in place
-                    if (Math.abs(magnitude) <= 0.2){
+                    if (Math.abs(magnitude) <= 0.2) {
                         this.activeVelocityAction = this.robot.clickMove(0, 0.2);
                     } 
                     // If clicking behind the robot, move backward
-                    else if (Math.abs(heading) > 1.2) {
+                    else if (heading < 0) {
                         this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
                     } 
                     // Otherwise move based off heading and magnitude of vector
                     else {
-                        this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -heading*0.4);
+                        this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
                     }
                 }, 100)
             }
