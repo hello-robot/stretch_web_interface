@@ -143,15 +143,17 @@ function forwardTF(frame, transform) {
         type: 'sensor',
         name: 'transform',
         value: transform
-    }
+    };
     if (frame === "link_gripper_finger_left") {
-        toSend.subtype = "gripper"
+        toSend.subtype = "gripper";
     } else if (frame === "camera_color_frame") {
-        toSend.subtype = "head"
+        toSend.subtype = "head";
+    } else if (frame === "base_frame") {
+        toSend.subtype = "base";
     } else {
         return;
     }
-    connection.sendData(toSend)
+    connection.sendData(toSend);
 }
 
 function forwardJointStates(jointState) {

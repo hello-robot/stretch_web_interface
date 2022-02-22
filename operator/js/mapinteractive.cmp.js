@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../shared/base.cmp.js";
+import { BaseComponent, Component } from "../../shared/base.cmp.js";
 
 const template = `
 <div id="container-div">
@@ -13,13 +13,16 @@ export class MapInteractive extends BaseComponent {
         super(template);
         this.mapImg = this.refs.get("map-img");
         this.mapCanvas = this.refs.get("map-canvas");
+        this.mapCanvasCxt = this.mapCanvas.getContext("2d");
 
         this.mapImg.onclick = this.navigateOnClick.bind(this);
 
         this.navGoalCallback = navGoalCallback;
+
+        this.robotTransform = {};
     }
 
-    updateMap({mapData, mapWidth, mapHeight, mapResolution, mapOrigin}) {
+    updateMap({ mapData, mapWidth, mapHeight, mapResolution, mapOrigin }) {
         this.mapImg.src = mapData;
 
         this.mapCanvas.width = mapWidth;
@@ -47,6 +50,21 @@ export class MapInteractive extends BaseComponent {
         console.log(goal);
 
         this.navGoalCallback(goal);
+    }
+
+    updateRobotTransform(robotTransform) {
+        this.robotTransform = robotTransform;
+
+        this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);4
+        this.mapCanvasCxt.beginPath();
+        this.mapCanvasCxt.arc(
+            (this.robotTransform.translation.x - this.mapOrigin.position.x) / this.mapResolution,
+            this.mapHeight - ((this.robotTransform.translation.y - this.mapOrigin.position.y) / this.mapResolution), 4, 0, 2 * Math.PI);
+        this.mapCanvasCxt.fillStyle = "blue";
+        this.mapCanvasCxt.fill();
+
+        console.log(this.robotTransform);
+        console.log((this.robotTransform.translation.x - this.mapOrigin.position.x) / this.mapResolution, (-this.robotTransform.translation.y) / this.mapResolution);
     }
 }
 
