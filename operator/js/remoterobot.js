@@ -78,6 +78,23 @@ export class RemoteRobot {
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
+    clickMove(lin_vel, ang_vel) {
+        let cmd = {
+            type: "clickMove", 
+            lin_vel: lin_vel,
+            ang_vel: ang_vel
+        };
+        this.robotChannel(cmd);
+        return {
+            "stop": () => {
+                this.robotChannel({type: "stop"})
+            }
+        }
+    }
+
+    setCameraView(mode) {
+        this.robotChannel({type: "setCameraView", mode: mode});
+    }
 }
 
 for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {

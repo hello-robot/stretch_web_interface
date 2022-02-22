@@ -8,6 +8,7 @@ import {
     GripperOverlay,
     OverheadManipulationOverlay,
     OverheadNavigationOverlay,
+    OverheadClickNavigationOverlay,
     PanTiltManipulationOverlay,
     PanTiltNavigationOverlay,
     ReachOverlay
@@ -193,7 +194,6 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
             this.model.reset();
             this.refs.get("settings").configureInputs(this.model.getSettings())
-
         })
 
         this.model.reset()
@@ -209,6 +209,14 @@ export class OperatorComponent extends PageComponent {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls()
+                } else if (change.key == "actionMode") {
+                    var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                    if (change.value == "click-navigate") {
+                        this.setMode('clickNav')
+                        this.shadowRoot.getElementById('mode-navigation').checked = true;
+                    } else {
+                        this.setMode(currMode)
+                    }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
                     let control = this.controls[controlName]
@@ -279,11 +287,12 @@ export class OperatorComponent extends PageComponent {
 
         if (modeId === 'nav') {
             // FIXME: use configure camera to set crop for overhead stream
-            //this.robot.setCameraView('nav', true);
-
+            this.robot.setCameraView('nav');
         } else if (modeId === 'manip') {
             // FIXME: use configure camera to set crop for overhead stream
-            //this.robot.setCameraView('manip', true);
+            this.robot.setCameraView('manip');
+        } else if (modeId === 'clickNav') {
+            this.robot.setCameraView('nav');
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -400,7 +409,6 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("video-control-container").appendChild(control)
         })
 
-
         let panTiltTrack = this.allRemoteStreams.get("pantilt").stream.getVideoTracks()[0]
 
         let ptAspectRatio = panTiltTrack.getSettings().aspectRatio || .52
@@ -434,13 +442,52 @@ export class OperatorComponent extends PageComponent {
 
         let overheadNavOverlay = new OverheadNavigationOverlay(1);
         let overheadManipOverlay = new OverheadManipulationOverlay(1);
-
+        let overheadClickNavOverlay = new OverheadClickNavigationOverlay(1);
         overhead.addOverlay(overheadNavOverlay, 'nav');
         overhead.addOverlay(overheadManipOverlay, 'manip');
+        overhead.addOverlay(overheadClickNavOverlay, 'clickNav');
 
         let gripperOverlay = new GripperOverlay(1);
         gripper.addOverlay(gripperOverlay, 'all');
         this.setMode('nav')
+
+        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+            if (this.model.getSetting("actionMode") === "click-navigate") {
+                let position = 
+                    overheadClickNavOverlay.deprojectPixeltoWorldPoint(event.offsetX, event.offsetY);
+                position.x += 0.25; // offset
+                position.y -= 0.2; // offset
+                let magnitude = Math.sqrt(position.x*position.x + position.y*position.y);
+                let heading = Math.atan2(-position.y, -position.x)
+                console.log(magnitude, heading);
+                this.velocityExecutionHeartbeat = window.setInterval(() => {
+                    // If click on the robot, rotate in place
+                    if (Math.abs(magnitude) <= 0.2) {
+                        this.activeVelocityAction = this.robot.clickMove(0, 0.2);
+                    } 
+                    // If clicking behind the robot, move backward
+                    else if (heading < 0) {
+                        this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
+                    } 
+                    // Otherwise move based off heading and magnitude of vector
+                    else {
+                        this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
+                    }
+                }, 100)
+            }
+        });
+
+        this.refs.get("video-control-container").addEventListener("mouseup", event => {
+            if (this.model.getSetting("actionMode") === "click-navigate") {
+                if (this.activeVelocityAction) {
+                    // No matter what region this is, stop the currently running action
+                    this.activeVelocityAction.stop()
+                    this.activeVelocityAction = null
+                    clearInterval(this.velocityExecutionHeartbeat)
+                    this.velocityExecutionHeartbeat = null
+                }
+            }
+        });
 
         this.refs.get("video-control-container").addEventListener("click", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
@@ -456,9 +503,10 @@ export class OperatorComponent extends PageComponent {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
                 let jointName = regionName.substring(0, regionName.length - 4)
+                
                 if (this.model.getSetting("actionMode") === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
-                } else {
+                } else if (this.model.getSetting("actionMode") === "control-continuous") {
                     let lastActiveRegion = this.activeVelocityRegion
                     if (this.activeVelocityAction) {
                         // No matter what region this is, stop the currently running action

@@ -246,6 +246,40 @@ export class OverheadManipulationOverlay extends OverlaySVG {
     }
 }
 
+export class OverheadClickNavigationOverlay extends OverlaySVG {
+    constructor(aspectRatio) {
+        super(aspectRatio);
+        let w = 100 * aspectRatio
+        let h = 100
+        let cornerRectSize = 20
+        let mobile_base_width = w / 10.0;
+        let mobile_base_height = h / 10.0;
+
+        let baseRect = makeSquare(0, 0, w, h);
+
+        this.createRegion("clickNavigate", {label: 'clickNavigate', poly: rectToPoly(baseRect)});
+    }
+
+    deprojectPixeltoWorldPoint(px, py) {
+        // TODO: subscribe to camera info topic
+        var K = [343.1590576171875, 0.0, 320.0, 0.0, 343.1590576171875, 240.0, 0.0, 0.0, 1.0];
+        var fx = K[0];
+        var fy = K[4];
+        var cx = K[2];
+        var cy = K[5];
+        var depth = 1
+
+        var x = ((px - cx) / fx) * depth;
+        var y = ((py - cy) / fy) * depth;
+        const pose = {
+            x: x,
+            y: y,
+            theta: 0
+        }
+        return pose;
+    }
+}
+
 export class PanTiltNavigationOverlay extends OverlaySVG {
     constructor(aspectRatio) {
         super(aspectRatio);

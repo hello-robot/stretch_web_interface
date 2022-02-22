@@ -2,7 +2,7 @@ import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot.js";
 import { WebRTCConnection } from "../../shared/webrtcconnection.js";
 import { TransformedVideoStream } from "./videostream.cmp.js";
 import { MapROS } from "./mapros.cmp.js";
-import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../shared/video_dimensions.js";
+import { gripperCrop, overheadNavCrop, overheadManipCrop, realsenseDimensions, wideVideoDimensions } from "../../shared/video_dimensions.js";
 
 let audioInId;
 let audioOutId;
@@ -21,7 +21,7 @@ robot.connect().then(() => {
     pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
     robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
 
-    overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop);
+    overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop, true);
     robot.subscribeToVideo('/navigation_camera/image_raw/compressed', overheadStream.imageCallback.bind(overheadStream))
 
     gripperStream = new TransformedVideoStream(wideVideoDimensions, gripperCrop);
@@ -226,6 +226,22 @@ function handleMessage(message) {
             break
         case "navGoal":
             robot.executeNavGoal(message.goal);
+            break;
+        case "clickMove":
+            robot.executeClickMove(message.lin_vel, message.ang_vel);
+            break;
+        case "stopClickMove":
+            robot.stopClickMove();
+            break;
+        case "setCameraView":            
+            if (message.mode == 'nav') {
+                overheadStream.rotate = true;
+                // overheadStream.crop = overheadNavCrop;
+            } else {
+                overheadStream.rotate = false;
+                // overheadStream.crop = overheadManipCrop;
+            }
+            overheadStream.start();
             break;
         default:
             console.error("Unknown message type received", message.type)

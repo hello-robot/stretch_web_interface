@@ -49,6 +49,8 @@ const template = `
                     <legend class="col-form-label col-sm-2 pt-0">Action Mode</legend>
                     <div class="col-sm-10">
                         <div class="btn-group mode-toggle" role="group" id="control-mode-toggle" data-ref="control-mode-toggle">
+                            <input type="radio" id="control-click-navigate" class="btn-check" name="actionMode" autocomplete="off" value="click-navigate"/>
+                            <label class="btn btn-secondary btn-sm" for="control-click-navigate">Click Navigate</label>
                             <input type="radio" id="control-incremental" class="btn-check" name="actionMode" autocomplete="off" value="incremental" checked />
                             <label class="btn btn-secondary btn-sm" for="control-incremental">Incremental</label>
                             <input type="radio" id="control-continuous" class="btn-check" name="actionMode" autocomplete="off" value="control-continuous"/>
