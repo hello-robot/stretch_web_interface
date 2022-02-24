@@ -18,12 +18,12 @@ const pcConfig = {
 };
 export class WebRTCConnection {
     private socket: Socket
-    private pc: RTCPeerConnection
+    private pc!: RTCPeerConnection
     private onConnectionStart: () => void
     private requestResponders: Map<string, Responder> = new Map()
     private pendingRequests = new Map()
     // TODO (kavidey): Figure out how to tell typescript that we will define these later
-    private cameraInfo: CameraInfo
+    private cameraInfo!: CameraInfo
     private makingOffer = false
     private ignoreOffer = false
     private isSettingRemoteAnswerPending = false
@@ -34,8 +34,8 @@ export class WebRTCConnection {
     private onTrackAdded: () => void
     private onRequestChannelOpen: () => void
 
-    private messageChannel: RTCDataChannel
-    private requestChannel: RTCDataChannel
+    private messageChannel!: RTCDataChannel
+    private requestChannel!: RTCDataChannel
 
     constructor(peerName: string, polite: boolean, {
         // TODO: make these placeholder functions match the definitions above
@@ -169,6 +169,7 @@ export class WebRTCConnection {
                 }
 
             };
+            // TODO (kavidey): Figure out why typescript doesn't think that these callbacks exist
             this.pc.onopen = () => {
                 console.log('RTC channel opened.');
             };

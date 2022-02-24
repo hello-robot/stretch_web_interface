@@ -32,12 +32,12 @@ export function safelyParseJSON(json: string): any {
 function quaternionToEuler(q: Quaternion, order: string) {
     order = order || "YZX";
 
-    var heading, attitude, bank;
-    var x = q.x, y = q.y, z = q.z, w = q.w;
+    let heading: number, attitude: number, bank: number;
+    let x = q.x, y = q.y, z = q.z, w = q.w;
 
     switch (order) {
         case "YZX":
-            var test = x * y + z * w;
+            let test = x * y + z * w;
             if (test > 0.499) { // singularity at north pole
                 heading = 2 * Math.atan2(x, w);
                 attitude = Math.PI / 2;
@@ -49,9 +49,9 @@ function quaternionToEuler(q: Quaternion, order: string) {
                 bank = 0;
             }
             if (isNaN(heading)) {
-                var sqx = x * x;
-                var sqy = y * y;
-                var sqz = z * z;
+                let sqx = x * x;
+                let sqy = y * y;
+                let sqz = z * z;
                 heading = Math.atan2(2 * y * w - 2 * x * z, 1 - 2 * sqy - 2 * sqz); // Heading
                 attitude = Math.asin(2 * test); // attitude
                 bank = Math.atan2(2 * x * w - 2 * y * z, 1 - 2 * sqx - 2 * sqz); // bank
@@ -96,8 +96,8 @@ export interface SignallingMessage {
 
 }
 
-// TODO (kavidey): this is currently a duplicate of `ALL_JOINTS` in `robot.ts`, find a way to define them both in the same place
-export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_finger_left' | 'wrist_extension' | 'joint_lift' | 'joint_wrist_yaw' | "translate_mobile_base" | "rotate_mobile_base"
+// TODO (kavidey): this is currently a modified version of `ALL_JOINTS` in `robot.ts`, find a way to define them both in the same place
+export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_finger_left' | 'wrist_extension' | 'joint_lift' | 'joint_wrist_yaw' | "translate_mobile_base" | "rotate_mobile_base" | 'gripper_aperture' | 'joint_arm_l0' | 'joint_arm_l1' | 'joint_arm_l2' | 'joint_arm_l3';
 export interface Pose {
     [key: string]: number // key should be validJoints
 }

@@ -4,17 +4,18 @@ import { TransformedVideoStream } from "./videostream.cmp.js";
 import { MapROS } from "./mapros.cmp.js";
 import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../shared/video_dimensions.js";
 import { Transform } from "roslib";
+import { ROSJointState } from "../../shared/util.js";
 
 let audioInId;
 let audioOutId;
-let connection
+let connection: WebRTCConnection;
 const robot = new Robot(
     forwardJointStates,
     forwardTF,
 )
 
-let overheadStream, gripperStream, pantiltStream, audioStream;
-let mapROS;
+let overheadStream: TransformedVideoStream, gripperStream: TransformedVideoStream, pantiltStream: TransformedVideoStream, audioStream: TransformedVideoStream;
+let mapROS: MapROS;
 
 robot.connect().then(() => {
     return navigator.mediaDevices.enumerateDevices()
@@ -80,7 +81,7 @@ robot.connect().then(() => {
             mapData: mapData,
             mapWidth: mapROS.width,
             mapHeight: mapROS.height,
-            mapScale: mapROS.mapScale,
+            mapScale: mapROS.resolution,
         };
     });
 }).catch(handleError)
@@ -154,7 +155,7 @@ function forwardTF(frame: string, transform: Transform) {
     connection.sendData(toSend)
 }
 
-function forwardJointStates(jointState) {
+function forwardJointStates(jointState: ROSJointState) {
     if (!connection) return;
     let messages = []
     // send wrist joint effort
