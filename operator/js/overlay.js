@@ -30,6 +30,7 @@ export class OverlaySVG extends Overlay {
         super();
         this.regions = new Map();
         this.type = 'control';
+        this.traj = null;
 
         // The parent has now viewbox and will take the size of the container. Place children
         // using percentage units to have them be responsive to dimension changes
@@ -56,6 +57,33 @@ export class OverlaySVG extends Overlay {
         const region = new Region(args)
         this.addRegion(name, region)
         return region
+    }
+
+    removeTraj() {
+        if (this.traj) {
+            for (const [key, value] of Object.entries(this.traj)) {
+                if (value) {
+                    this.stretchContainer.removeChild(value);
+                }
+            }
+            this.traj = null
+        }
+    }
+
+    addTraj(traj) {
+        this.removeTraj();
+        this.traj = traj
+        for (const [key, value] of Object.entries(this.traj)) {
+            if (value) {
+                this.stretchContainer.appendChild(value);
+            }
+        }
+    }
+
+    createTraj(args) {
+        const traj = new Trajectory(args)
+        this.addTraj(traj)
+        return traj
     }
 
     hide() {
@@ -189,6 +217,55 @@ export class Region {
     }
 }
 
+export class Trajectory {
+    leftPath
+    centerPath
+    rightPath
+    circle
+    icon
+    constructor({leftTraj, centerTraj, rightTraj, center, iconImage}) {
+        if (iconImage) {
+            let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            // icon.setAttribute("class", "overlay-icon")
+            icon.setAttribute('href', iconImage);
+            icon.setAttribute('x', "38%");
+            icon.setAttribute('y', "52%");
+            icon.setAttribute('width', "15")
+            this.icon = icon
+        } else {
+            let leftPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            leftPath.setAttribute('stroke', '#4169E1')
+            leftPath.setAttribute('fill', 'none')
+            leftPath.setAttribute('stroke-width', '1')
+            leftPath.setAttribute('d', leftTraj);
+            this.leftPath = leftPath
+
+            let centerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            centerPath.setAttribute('stroke', '#4169E1')
+            centerPath.setAttribute('fill', 'none')
+            centerPath.setAttribute('stroke-dasharray', "4 1")
+            centerPath.setAttribute('stroke-width', '1')
+            centerPath.setAttribute('d', centerTraj);
+            this.centerPath = centerPath
+
+            let rightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            rightPath.setAttribute('stroke', '#4169E1')
+            rightPath.setAttribute('fill', 'none')
+            rightPath.setAttribute('stroke-width', '1')
+            rightPath.setAttribute('d', rightTraj);
+            this.rightPath = rightPath
+
+            let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', String(center.x));
+            circle.setAttribute('cy', String(center.y));
+            circle.setAttribute('stroke', 'none')
+            circle.setAttribute('fill', '#4169E1')
+            circle.setAttribute('r', '6');
+            circle.setAttribute('fill-opacity', '0.3');
+            this.circle = circle;
+        }
+    }
+}
 
 function getPolyCenter(points) {
     let avgX = 0;

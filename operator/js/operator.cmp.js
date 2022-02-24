@@ -452,29 +452,47 @@ export class OperatorComponent extends PageComponent {
         this.setMode('nav')
 
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
+            let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
+            let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
+            let overlayWidth = overheadClickNavOverlay.w;
+            let overlayHeight = overheadClickNavOverlay.h;
+            let scaleWidth = videoWidth/overlayWidth;
+            let scaleHeight = videoHeight/overlayHeight;
+            let px = event.offsetX/scaleWidth;
+            let py = event.offsetY/scaleHeight;
+
             if (this.model.getSetting("actionMode") === "click-navigate") {
-                let position = 
-                    overheadClickNavOverlay.deprojectPixeltoWorldPoint(event.offsetX, event.offsetY);
-                position.x += 0.25; // offset
-                position.y -= 0.2; // offset
-                let magnitude = Math.sqrt(position.x*position.x + position.y*position.y);
-                let heading = Math.atan2(-position.y, -position.x)
-                console.log(magnitude, heading);
+                if (this.activeVelocityAction) {
+                    // No matter what region this is, stop the currently running action
+                    this.activeVelocityAction.stop()
+                    this.activeVelocityAction = null
+                    clearInterval(this.velocityExecutionHeartbeat)
+                    this.velocityExecutionHeartbeat = null
+                }
+            
+                let dx = px - 45; // robot position x offset
+                let dy = py - 60; // robot position y offset
+                let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
+                let heading = Math.atan2(-dy, -dx)
+                console.log(px, py, magnitude, heading);
                 this.velocityExecutionHeartbeat = window.setInterval(() => {
                     // If click on the robot, rotate in place
                     if (Math.abs(magnitude) <= 0.2) {
                         this.activeVelocityAction = this.robot.clickMove(0, 0.2);
+                        overheadClickNavOverlay.drawRotateIcon()
                     } 
                     // If clicking behind the robot, move backward
                     else if (heading < 0) {
                         this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
+                        overheadClickNavOverlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001);
                     } 
                     // Otherwise move based off heading and magnitude of vector
                     else {
                         this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
+                        overheadClickNavOverlay.drawArc(px, py, Math.PI/2, heading);
                     }
                 }, 100)
-            }
+            }   
         });
 
         this.refs.get("video-control-container").addEventListener("mouseup", event => {
@@ -486,6 +504,7 @@ export class OperatorComponent extends PageComponent {
                     clearInterval(this.velocityExecutionHeartbeat)
                     this.velocityExecutionHeartbeat = null
                 }
+                overheadClickNavOverlay.removeTraj();
             }
         });
 
@@ -531,8 +550,6 @@ export class OperatorComponent extends PageComponent {
                         }
                     }, 100)
                 }
-
-
             }
         })
     }
