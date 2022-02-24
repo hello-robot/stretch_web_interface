@@ -234,10 +234,8 @@ function handleMessage(message) {
         case "setCameraView":            
             if (message.mode == 'nav') {
                 overheadStream.rotate = true;
-                // overheadStream.crop = overheadNavCrop;
             } else {
                 overheadStream.rotate = false;
-                // overheadStream.crop = overheadManipCrop;
             }
             overheadStream.start();
             break;
