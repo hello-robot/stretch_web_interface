@@ -7,6 +7,8 @@
 
 import { io, Socket } from "socket.io-client";
 import { Robot } from "../robot/js/robot";
+import { generateUUID, safelyParseJSON } from "./util";
+import type { WebRTCMessage, Request, Response, Responder, CameraInfo, SignallingMessage } from "./util";
 
 // Free STUN server offered by Google
 const pcConfig = {
@@ -18,15 +20,16 @@ export class WebRTCConnection {
     socket: Socket
     pc: RTCPeerConnection
     onConnectionStart: () => void
-    requestResponders = new Map()
+    requestResponders: Map<string, Responder> = new Map()
     pendingRequests = new Map()
-    cameraInfo = {}
+    // TODO (kavidey): Figure out how to tell typescript that we will define these later
+    cameraInfo: CameraInfo
     makingOffer = false
     ignoreOffer = false
     isSettingRemoteAnswerPending = false
 
     onConnectionEnd: () => void
-    onMessage: (obj) => void
+    onMessage: (obj: WebRTCMessage) => void
     onMessageChannelOpen: () => void
     onTrackAdded: () => void
     onRequestChannelOpen: () => void
@@ -34,7 +37,8 @@ export class WebRTCConnection {
     messageChannel: RTCDataChannel
     requestChannel: RTCDataChannel
 
-    constructor(peerName, polite, {
+    constructor(peerName: string, polite: boolean, {
+        // TODO: make these placeholder functions match the definitions above
         onConnectionStart = () => { },
         onConnectionEnd = () => { },
         onMessage = () => { },
@@ -79,10 +83,10 @@ export class WebRTCConnection {
         })
 
         this.socket.on('signalling', message => {
-            let { sessionDescription, mediaStreamMetadata } = message
-            console.log('Received message:', sessionDescription, mediaStreamMetadata);
-            if (mediaStreamMetadata) {
-                this.cameraInfo = mediaStreamMetadata
+            let { sessionDescription, cameraInfo } = message;
+            console.log('Received message:', sessionDescription, cameraInfo);
+            if (cameraInfo) {
+                this.cameraInfo = cameraInfo
             }
             if (sessionDescription.type === 'offer' || sessionDescription.type === 'answer') {
                 const readyForOffer =
@@ -98,7 +102,7 @@ export class WebRTCConnection {
                 }
                 this.isSettingRemoteAnswerPending = sessionDescription.type === "answer";
 
-                this.pc.setRemoteDescription(sessionDescription).then(() => {
+                this.pc.setRemoteDescription(sessionDescription).then(async () => {
                     this.isSettingRemoteAnswerPending = false;
                     if (sessionDescription.type === "offer") {
                         return this.pc.setLocalDescription();
@@ -126,7 +130,9 @@ export class WebRTCConnection {
         this.requestChannel = this.pc.createDataChannel('requestresponse');
 
         this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
-        this.requestChannel.onmessage = this.processRequestResponse.bind(this)
+        // FIXME (kavidey): I think this error is due to how we are passing the function reference 
+        // Additionally this exact same line of code appears in `createPeerConnection`, need to test if both are necessary
+        // this.requestChannel.onmessage = this.processRequestResponse.bind(this);
     }
 
     createPeerConnection() {
@@ -135,6 +141,7 @@ export class WebRTCConnection {
             this.pc = new RTCPeerConnection(pcConfig);
             this.pc.onicecandidate = (event) => {
                 this.sendSignallingMessage({
+                    // FIXME (kavidey): According to the TS documentation, this is an invalid type
                     type: 'candidate',
                     candidate: event.candidate
                 });
@@ -154,7 +161,7 @@ export class WebRTCConnection {
                     this.messageChannel.onclose = onDataChannelStateChange;
                 } else if (event.channel.label === "requestresponse") {
                     this.requestChannel = event.channel
-                    this.requestChannel.onmessage = this.processRequestResponse.bind(this)
+                    this.requestChannel.onmessage = this.processRequestResponse.bind(this);
 
                     if (this.onRequestChannelOpen) this.onRequestChannelOpen();
                 } else {
@@ -168,7 +175,7 @@ export class WebRTCConnection {
 
             this.pc.ontrack = this.onTrackAdded
 
-            this.pc.onremovestream = (event) => {
+            this.pc.onremovestream = (event: any) => {
                 console.log('Remote stream removed. Event: ', event);
             };
 
@@ -177,7 +184,9 @@ export class WebRTCConnection {
                 try {
                     this.makingOffer = true;
                     await this.pc.setLocalDescription();
-                    this.sendSignallingMessage(this.pc.localDescription, this.cameraInfo);
+                    if (this.pc.localDescription) {
+                        this.sendSignallingMessage(this.pc.localDescription, this.cameraInfo);
+                    }
                 } catch (err) {
                     console.error(err);
                 } finally {
@@ -200,16 +209,16 @@ export class WebRTCConnection {
             }
 
             console.log('Created RTCPeerConnection');
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to create PeerConnection, exception: ' + e.message);
             return;
         }
     }
 
-    sendSignallingMessage(sessionDescription: RTCSessionDescription, mediaStreamMetadata?) {
+    sendSignallingMessage(sessionDescription: RTCSessionDescription, cameraInfo?: CameraInfo) {
         let message = {
             sessionDescription: sessionDescription,
-            mediaStreamMetadata: mediaStreamMetadata
+            cameraInfo: cameraInfo
         }
         this.socket.emit('signalling', message);
     }
@@ -257,7 +266,7 @@ export class WebRTCConnection {
     // initial code licensed with Apache License 2.0
     ////////////////////////////////////////////////////////////
 
-    sendData(obj) {
+    sendData(obj: WebRTCMessage) {
         if (!this.messageChannel || (this.messageChannel.readyState !== 'open')) {
             //console.warn("Trying to send data, but data channel isn't ready")
             return;
@@ -266,12 +275,12 @@ export class WebRTCConnection {
         this.messageChannel.send(data)
     }
 
-    onReceiveMessageCallback(event) {
-        const obj = safelyParseJSON(event.data);
+    onReceiveMessageCallback(event: {data: string}) {
+        const obj: WebRTCMessage = safelyParseJSON(event.data);
         if (this.onMessage) this.onMessage(obj)
     }
 
-    makeRequest(type) {
+    makeRequest(type: string) {
         return new Promise((resolve, reject) => {
             let id = generateUUID();
             this.requestChannel.send(JSON.stringify({
@@ -280,27 +289,27 @@ export class WebRTCConnection {
                 requestType: type
             }));
 
-            this.pendingRequests.set(id, (responseData) => {
+            this.pendingRequests.set(id, (responseData: any) => {
                 resolve(responseData);
                 this.pendingRequests.delete(id);
             });
         });
     }
 
-    registerRequestResponder(requestType, responder) {
+    registerRequestResponder(requestType: string, responder: Responder) {
         this.requestResponders.set(requestType, responder)
     }
 
-    async processRequestResponse(message) {
+    processRequestResponse(message: Request | Response): void {
         message = safelyParseJSON(message.data)
         if (message.type === "request") {
-            let response = {
+            let response: Response = {
                 type: "response",
                 id: message.id,
                 requestType: message.requestType
             }
             if (this.requestResponders.has(message.requestType)) {
-                response.data = await this.requestResponders.get(message.requestType)()
+                //response.data = await this.requestResponders.get(message.requestType)();
                 this.requestChannel.send(JSON.stringify(response))
             } else {
                 console.error("Heard request with no responder")
@@ -317,32 +326,3 @@ export class WebRTCConnection {
         }
     }
 }
-
-
-// From: https://stackoverflow.com/a/2117523/6454085
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
-
-
-////////////////////////////////////////////////////////////
-// safelyParseJSON code copied from
-// https://stackoverflow.com/questions/29797946/handling-bad-json-parse-in-node-safely
-// on August 18, 2017
-function safelyParseJSON(json) {
-    // This function cannot be optimised, it's best to
-    // keep it small!
-    var parsed;
-
-    try {
-        parsed = JSON.parse(json);
-    } catch (e) {
-        // Oh well, but whatever...
-    }
-
-    return parsed; // Could be undefined!
-}
-
