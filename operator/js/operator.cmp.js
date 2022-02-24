@@ -563,6 +563,9 @@ export class OperatorComponent extends PageComponent {
         this.connection.makeRequest("mapView").then( ( map ) => {
             mapInteractive.updateMap({...map});
         });
+        this.robot.sensors.listenToKeyChange("base", "transform", value => {
+            mapInteractive.updateMapDisplay(value);
+        })
     }
 
 }

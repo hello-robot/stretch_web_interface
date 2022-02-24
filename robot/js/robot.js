@@ -16,7 +16,7 @@ export class Robot {
     panOffset = 0;
     tiltOffset = 0;
 
-    tfClient
+    robotFrameTfClient
     trajectoryClient
     moveBaseClient
     jointStateTopic
@@ -193,36 +193,46 @@ export class Robot {
                 messageType : 'geometry_msgs/Twist'
               });
 
-            this.tfClient = new ROSLIB.TFClient({
+            this.robotFrameTfClient = new ROSLIB.TFClient({
                 ros: this.ros,
                 fixedFrame: 'base_link',
                 angularThres: 0.01,
                 transThres: 0.01
             });
 
-            this.tfClient.subscribe('link_gripper_finger_left', transform => {
+            this.globalFrameTfClient = new ROSLIB.TFClient({
+                ros: this.ros,
+                fixedFrame: 'map',
+                angularThres: 0.01,
+                transThres: 0.01
+            });
+
+            this.robotFrameTfClient.subscribe('link_gripper_finger_left', transform => {
                 this.linkGripperFingerLeftTF = transform;
                 if (this.tfCallback) {
                     this.tfCallback('link_gripper_finger_left', transform)
                 }
             });
 
-            this.tfClient.subscribe('link_head_tilt', transform => {
+            this.robotFrameTfClient.subscribe('link_head_tilt', transform => {
                 this.linkHeadTiltTF = transform;
                 if (this.tfCallback) {
                     this.tfCallback('link_head_tilt', transform)
                 }
             });
 
-            this.tfClient.subscribe('camera_color_frame', transform => {
+            this.robotFrameTfClient.subscribe('camera_color_frame', transform => {
                 this.cameraColorFrameTF = transform;
                 if (this.tfCallback) {
                     this.tfCallback('camera_color_frame', transform)
                 }
             });
 
-            this.tfClient.subscribe('odom', transform => {
+            this.globalFrameTfClient.subscribe('base_link', transform => {
                 this.baseTF = transform;
+                if (this.tfCallback) {
+                    this.tfCallback('base_frame', transform)
+                }
             });
             this.trajectoryClient = new ROSLIB.ActionClient({
                 ros: this.ros,
