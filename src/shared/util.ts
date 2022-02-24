@@ -121,3 +121,5 @@ export interface ROSJointState extends Message {
     effort: [number],
     velocity: [number],
 }
+
+export type VelocityGoalArray = [{[key in ValidJoints]?: number}, {[key in ValidJoints]?: number}]

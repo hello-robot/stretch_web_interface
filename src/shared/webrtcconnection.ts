@@ -18,12 +18,12 @@ const pcConfig = {
 };
 export class WebRTCConnection {
     private socket: Socket
-    private pc!: RTCPeerConnection
+    private pc?: RTCPeerConnection
     private onConnectionStart: () => void
     private requestResponders: Map<string, Responder> = new Map()
     private pendingRequests = new Map()
     // TODO (kavidey): Figure out how to tell typescript that we will define these later
-    private cameraInfo!: CameraInfo
+    private cameraInfo?: CameraInfo
     private makingOffer = false
     private ignoreOffer = false
     private isSettingRemoteAnswerPending = false
@@ -34,8 +34,8 @@ export class WebRTCConnection {
     private onTrackAdded: () => void
     private onRequestChannelOpen: () => void
 
-    private messageChannel!: RTCDataChannel
-    private requestChannel!: RTCDataChannel
+    private messageChannel?: RTCDataChannel
+    private requestChannel?: RTCDataChannel
 
     constructor(peerName: string, polite: boolean, {
         // TODO: make these placeholder functions match the definitions above
@@ -89,6 +89,7 @@ export class WebRTCConnection {
                 this.cameraInfo = cameraInfo
             }
             if (sessionDescription.type === 'offer' || sessionDescription.type === 'answer') {
+                if (!this.pc) throw 'pc is undefined';
                 const readyForOffer =
                     !this.makingOffer &&
                     (this.pc.signalingState === "stable" || this.isSettingRemoteAnswerPending);
@@ -105,11 +106,15 @@ export class WebRTCConnection {
                 this.pc.setRemoteDescription(sessionDescription).then(async () => {
                     this.isSettingRemoteAnswerPending = false;
                     if (sessionDescription.type === "offer") {
+                        if (!this.pc) throw 'pc is undefined';
                         return this.pc.setLocalDescription();
                     } else {
                         return false;
                     }
-                }).then(() => this.sendSignallingMessage(this.pc.localDescription));
+                }).then(() => {
+                    if (!this.pc?.localDescription) throw 'pc is undefined';
+                    this.sendSignallingMessage(this.pc.localDescription);
+                });
             } else if (sessionDescription.type === 'candidate' && this.pc) {
                 this.pc.addIceCandidate(sessionDescription.candidate).catch(e => {
                     if (!this.ignoreOffer) {
@@ -126,6 +131,7 @@ export class WebRTCConnection {
     }
 
     openDataChannel() {
+        if (!this.pc) throw 'pc is undefined';
         this.messageChannel = this.pc.createDataChannel('messages');
         this.requestChannel = this.pc.createDataChannel('requestresponse');
 
@@ -151,6 +157,7 @@ export class WebRTCConnection {
                     this.messageChannel = event.channel;
                     this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
                     let onDataChannelStateChange = () => {
+                        if (!this.messageChannel) throw 'messageChannel is undefined';
                         const readyState = this.messageChannel.readyState;
                         console.log('Data channel state is: ' + readyState);
                         if (readyState === 'open') {
@@ -184,6 +191,7 @@ export class WebRTCConnection {
                 console.log("Negotiation needed")
                 try {
                     this.makingOffer = true;
+                    if (!this.pc) throw 'pc is undefined';
                     await this.pc.setLocalDescription();
                     if (this.pc.localDescription) {
                         this.sendSignallingMessage(this.pc.localDescription, this.cameraInfo);
@@ -196,12 +204,14 @@ export class WebRTCConnection {
             };
 
             this.pc.oniceconnectionstatechange = () => {
+                if (!this.pc) throw 'pc is undefined';
                 if (this.pc.iceConnectionState === "failed") {
                     this.pc.restartIce();
                 }
             };
 
             this.pc.onconnectionstatechange = () => {
+                if (!this.pc) throw 'pc is undefined';
                 if (this.pc.connectionState === "failed" || this.pc.connectionState === "disconnected") {
                     console.error(this.pc.connectionState, "Resetting the PeerConnection")
                     this.createPeerConnection()
@@ -239,6 +249,7 @@ export class WebRTCConnection {
         // Tell the other end that we're ending the call so they can stop, and get us kicked out of the robot room
         console.warn("Honging up")
         this.socket.emit('bye');
+        if (!this.pc) throw 'pc is undefined';
         if (this.pc.connectionState === "new") {
             // Don't reset PCs that don't have any state to reset
             return;
@@ -249,13 +260,16 @@ export class WebRTCConnection {
     }
 
     addTrack(track: MediaStreamTrack, stream: MediaStream, streamName: string) {
+        if (!this.cameraInfo) throw 'cameraInfo is undefined';
         this.cameraInfo[stream.id] = streamName
+        if (!this.pc) throw 'pc is undefined';
         this.pc.addTrack(track, stream)
     }
 
     stop() {
+        if (!this.pc) throw 'pc is undefined';
         const senders = this.pc.getSenders();
-        senders.forEach((sender) => this.pc.removeTrack(sender));
+        senders.forEach((sender) => this.pc?.removeTrack(sender));
         this.pc.close();
         this.createPeerConnection()
     }
@@ -284,6 +298,7 @@ export class WebRTCConnection {
     makeRequest(type: string) {
         return new Promise((resolve, reject) => {
             let id = generateUUID();
+            if (!this.requestChannel) throw 'requestChannel is undefined';
             this.requestChannel.send(JSON.stringify({
                 type: "request",
                 id: id,
@@ -309,6 +324,7 @@ export class WebRTCConnection {
                 id: message.id,
                 requestType: message.requestType
             }
+            if (!this.requestChannel) throw 'requestChannel is undefined';
             if (this.requestResponders.has(message.requestType)) {
                 //response.data = await this.requestResponders.get(message.requestType)();
                 this.requestChannel.send(JSON.stringify(response))

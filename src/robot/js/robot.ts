@@ -249,43 +249,31 @@ export class Robot {
     ////////////////////////////////////////////////////////////////////////////////////
 
     baseTranslate(dist: number) {
-        if (this.trajectoryClient) {
-            makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send()
-        } else {
-            throw 'Cannot translate base, trajectory client is undefined'
-        }
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send();
     }
 
     baseTurn(ang_deg: number) {
         // angle in degrees
         // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
-        if (this.trajectoryClient) {
-            makePoseGoal({'rotate_mobile_base': ang_deg}, this.trajectoryClient).send()
-        } else {
-            throw 'Cannot turn base, trajectory client is undefined'
-        }
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        makePoseGoal({'rotate_mobile_base': ang_deg}, this.trajectoryClient).send();
     }
 
     makeIncrementalMoveGoal(jointName: ValidJoints, jointValueInc: number): Goal {
-        if (this.jointState) {
-            let newJointValue = getJointValue(this.jointState, jointName)
-            // Paper over Hello's fake joints
-            if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
-                // These imaginary joints are floating, always have 0 as their reference
-                newJointValue = 0
-            } else if (jointName === "gripper_aperture") {
-                newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
-            }
-            newJointValue = newJointValue + jointValueInc
-            let pose = {[jointName]: newJointValue}
-            if (this.trajectoryClient) {
-                return makePoseGoal(pose, this.trajectoryClient)
-            } else {
-                throw 'Cannot make incremental move goal, trajectory client is undefined'
-            }
-        } else {
-            throw "Couldn't send incremental move without joint states" 
+        if (!this.jointState) throw 'jointState is undefined';
+        let newJointValue = getJointValue(this.jointState, jointName)
+        // Paper over Hello's fake joints
+        if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
+            // These imaginary joints are floating, always have 0 as their reference
+            newJointValue = 0
+        } else if (jointName === "gripper_aperture") {
+            newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
         }
+        newJointValue = newJointValue + jointValueInc
+        let pose = {[jointName]: newJointValue}
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        return makePoseGoal(pose, this.trajectoryClient)
     }
 
     setPanTiltFollowGripper(value: boolean) {
@@ -310,37 +298,38 @@ export class Robot {
     }
 
     lookAtGripper(panOffset: number, tiltOffset: number) {
-        if (this.linkGripperFingerLeftTF && this.linkHeadTiltTF && this.jointState && this.trajectoryClient) {
-            let posDifference = {
-                x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
-                y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
-                z: this.linkGripperFingerLeftTF.translation.z - this.linkHeadTiltTF.translation.z
-            };
-    
-            // Normalize posDifference
-            const scalar = Math.sqrt(posDifference.x ** 2 + posDifference.y ** 2 + posDifference.z ** 2);
-            posDifference.x /= scalar;
-            posDifference.y /= scalar;
-            posDifference.z /= scalar;
-    
-            const pan = Math.atan2(posDifference.y, posDifference.x) + this.panOffset;
-            const tilt = Math.atan2(posDifference.z, -posDifference.y) + this.tiltOffset;
-            let panDiff = Math.abs(getJointValue(this.jointState, "joint_head_pan") - pan)
-            let tiltDiff = Math.abs(getJointValue(this.jointState, "joint_head_tilt") - tilt)
-            // FIXME(nickswalker,2-1-22): Goals really close to current state cause some whiplash
-            //   these joints in simulation. Ignoring small goals hacks around this for now
-            // console.log(panDiff, tiltDiff)
-            if (panDiff < 0.02 && tiltDiff < 0.02) {
-                return
-            }
-            let headFollowPoseGoal = makePoseGoal({
-                'joint_head_pan': pan + panOffset,
-                'joint_head_tilt': tilt + tiltOffset
-            }, this.trajectoryClient)
-            headFollowPoseGoal.send()
-        } else {
-            throw 'Cannot look at gripper, linkGripperFingerLeftTF, linkHeadTiltTF, jointState, or trajectoryClient is undefined'
+        if (!this.linkGripperFingerLeftTF) throw 'linkGripperFingerLeftTF is undefined';
+        if (!this.linkHeadTiltTF) throw 'linkHeadTiltTF is undefined';
+        let posDifference = {
+            x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
+            y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
+            z: this.linkGripperFingerLeftTF.translation.z - this.linkHeadTiltTF.translation.z
+        };
+
+        // Normalize posDifference
+        const scalar = Math.sqrt(posDifference.x ** 2 + posDifference.y ** 2 + posDifference.z ** 2);
+        posDifference.x /= scalar;
+        posDifference.y /= scalar;
+        posDifference.z /= scalar;
+
+        const pan = Math.atan2(posDifference.y, posDifference.x) + this.panOffset;
+        const tilt = Math.atan2(posDifference.z, -posDifference.y) + this.tiltOffset;
+        if (!this.jointState) throw 'jointState is undefined';
+        let panDiff = Math.abs(getJointValue(this.jointState, "joint_head_pan") - pan);
+        let tiltDiff = Math.abs(getJointValue(this.jointState, "joint_head_tilt") - tilt);
+        // FIXME(nickswalker,2-1-22): Goals really close to current state cause some whiplash
+        //   these joints in simulation. Ignoring small goals hacks around this for now
+        // console.log(panDiff, tiltDiff)
+        if (panDiff < 0.02 && tiltDiff < 0.02) {
+            return
         }
+
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        let headFollowPoseGoal = makePoseGoal({
+            'joint_head_pan': pan + panOffset,
+            'joint_head_tilt': tilt + tiltOffset
+        }, this.trajectoryClient)
+        headFollowPoseGoal.send()
     }
 
     gripperDeltaAperture(deltaWidthCm: number) {
@@ -377,17 +366,14 @@ export class Robot {
     }
 
     goToPose(pose: Pose) {
-        if (this.trajectoryClient) {
-            for (let key in pose) {
-                if (ALL_JOINTS.indexOf(key) === -1) {
-                    console.error(`No such joint '${key}' from pose goal`)
-                    return
-                }
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        for (let key in pose) {
+            if (ALL_JOINTS.indexOf(key) === -1) {
+                console.error(`No such joint '${key}' from pose goal`)
+                return
             }
-            makePoseGoal(pose, this.trajectoryClient).send()
-        } else {
-            throw 'Cannot goto pose, trajectoryClient is undefined'
         }
+        makePoseGoal(pose, this.trajectoryClient).send();
     }
 
     executeCommand(type: string, name: string, modifier: any[]) {
@@ -400,23 +386,22 @@ export class Robot {
     }
 
     executeVelocityMove(jointName: ValidJoints, velocity: number) {
-        if (this.jointState && this.trajectoryClient) {
-            this.stopExecution()
-            let velocities: VelocityGoalArray = [{}, {}];
-            velocities[0][jointName] = velocity;
-            velocities[1][jointName] = velocity;
-            let positions: VelocityGoalArray = [{}, {}];
-            positions[0][jointName] = getJointValue(this.jointState, jointName)
-            const jointLimit = JOINT_LIMITS[jointName];
-            if (!jointLimit) {
-                throw `Joint ${jointName} does not have limits`
-            }
-            positions[1][jointName] = jointLimit[Math.sign(velocity) === -1 ? 0 : 1]
-            makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
-            this.affirmExecution()
-        } else {
-            throw 'Cannot executeVelocityMove, jointState or trajectoryClient is undefined'
-        }   
+        this.stopExecution();
+
+        let velocities: VelocityGoalArray = [{}, {}];
+        velocities[0][jointName] = velocity;
+        velocities[1][jointName] = velocity;
+        let positions: VelocityGoalArray = [{}, {}];
+        if (!this.jointState) throw 'jointState is undefined';
+        positions[0][jointName] = getJointValue(this.jointState, jointName)
+
+        const jointLimit = JOINT_LIMITS[jointName];
+        if (!jointLimit) throw `Joint ${jointName} does not have limits`
+        positions[1][jointName] = jointLimit[Math.sign(velocity) === -1 ? 0 : 1]
+
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
+        this.affirmExecution() 
     }
 
     affirmExecution() {
@@ -429,15 +414,12 @@ export class Robot {
     }
 
     stopExecution() {
-        if (this.trajectoryClient) {
-            this.trajectoryClient.cancel()
-            // this.currentJointTrajectoryGoal = null
-            if (this.currentTrajectoryKillInterval) {
-                clearTimeout(this.currentTrajectoryKillInterval)
-                // this.currentTrajectoryKillInterval = null
-            }
-        } else {
-            throw 'Cannot stopExecution, trajectoryClient is undefined'
+        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        this.trajectoryClient.cancel()
+        // this.currentJointTrajectoryGoal = null
+        if (this.currentTrajectoryKillInterval) {
+            clearTimeout(this.currentTrajectoryKillInterval)
+            // this.currentTrajectoryKillInterval = null
         }
     }
 }
