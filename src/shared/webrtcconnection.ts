@@ -17,25 +17,25 @@ const pcConfig = {
     }]
 };
 export class WebRTCConnection {
-    socket: Socket
-    pc: RTCPeerConnection
-    onConnectionStart: () => void
-    requestResponders: Map<string, Responder> = new Map()
-    pendingRequests = new Map()
+    private socket: Socket
+    private pc: RTCPeerConnection
+    private onConnectionStart: () => void
+    private requestResponders: Map<string, Responder> = new Map()
+    private pendingRequests = new Map()
     // TODO (kavidey): Figure out how to tell typescript that we will define these later
-    cameraInfo: CameraInfo
-    makingOffer = false
-    ignoreOffer = false
-    isSettingRemoteAnswerPending = false
+    private cameraInfo: CameraInfo
+    private makingOffer = false
+    private ignoreOffer = false
+    private isSettingRemoteAnswerPending = false
 
-    onConnectionEnd: () => void
-    onMessage: (obj: WebRTCMessage) => void
-    onMessageChannelOpen: () => void
-    onTrackAdded: () => void
-    onRequestChannelOpen: () => void
+    private onConnectionEnd: () => void
+    private onMessage: (obj: WebRTCMessage) => void
+    private onMessageChannelOpen: () => void
+    private onTrackAdded: () => void
+    private onRequestChannelOpen: () => void
 
-    messageChannel: RTCDataChannel
-    requestChannel: RTCDataChannel
+    private messageChannel: RTCDataChannel
+    private requestChannel: RTCDataChannel
 
     constructor(peerName: string, polite: boolean, {
         // TODO: make these placeholder functions match the definitions above

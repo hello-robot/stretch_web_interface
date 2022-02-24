@@ -11,34 +11,34 @@ const JOINT_LIMITS: {[key: ValidJoints]: [number, number]} = {
 }
 
 export class Robot {
-    ros: Ros
-    inSim: boolean
+    private ros: Ros
+    private inSim: boolean
 
     tfCallback: (frame: string, tranform: Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
     
-    currentJointTrajectoryGoal
-    currentTrajectoryKillInterval
-    panOffset = 0;
-    tiltOffset = 0;
+    private currentJointTrajectoryGoal
+    private currentTrajectoryKillInterval
+    private panOffset = 0;
+    private tiltOffset = 0;
 
-    tfClient: TFClient
-    trajectoryClient: ActionClient
-    jointStateTopic: Topic<ROSJointState>
+    private tfClient: TFClient
+    private trajectoryClient: ActionClient
+    private jointStateTopic: Topic<ROSJointState>
 
-    linkGripperFingerLeftTF
-    linkHeadTiltTF
-    cameraColorFrameTF
-    baseTF
-    jointState
+    private linkGripperFingerLeftTF
+    private linkHeadTiltTF
+    private cameraColorFrameTF
+    private baseTF
+    private jointState
 
-    videoTopics: [Topic<ROSCompressedImage>]
+    private videoTopics: [Topic<ROSCompressedImage>]
 
-    isWristFollowingActive = false
+    private isWristFollowingActive = false
     // TODO (kavidey): this should be `typeof setTimeout`, but TS wants it to be number
-    lookAtGripperInterval: number
+    private lookAtGripperInterval: number
 
-    commands: {[key: string]: ([key: string]: (any) => void)} = {
+    private commands: {[key: string]: {[key: string]: (...args: any[]) => void}} = {
         "drive": {
             "forward": (size: number) => {
                 this.executeIncrementalMove("translate_mobile_base", size)
