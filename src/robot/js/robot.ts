@@ -1,6 +1,8 @@
+import { Ros, Param, Topic, TFClient, ActionClient, Goal, Transform, Message } from "roslib"
+import { Pose, ValidJoints, JointState, ROSCompressedImage, ROSJointState } from "../../shared/util";
 export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base"];
 
-const JOINT_LIMITS = {
+const JOINT_LIMITS: {[key: ValidJoints]: [number, number]} = {
     "wrist_extension": [0, .52],
     "joint_wrist_yaw": [-1.75, 4],
     "joint_lift": [0, 1.1],
@@ -8,226 +10,233 @@ const JOINT_LIMITS = {
     "rotate_mobile_base": [-3.14, 3.14]
 }
 
-
 export class Robot {
-    ros
+    ros: Ros
+    inSim: boolean
+
+    tfCallback: (frame: string, tranform: Transform) => void
+    jointStateCallback: (jointState: ROSJointState) => void
+    
     currentJointTrajectoryGoal
     currentTrajectoryKillInterval
     panOffset = 0;
     tiltOffset = 0;
 
-    tfClient
-    trajectoryClient
-    jointStateTopic
+    tfClient: TFClient
+    trajectoryClient: ActionClient
+    jointStateTopic: Topic<ROSJointState>
 
     linkGripperFingerLeftTF
     linkHeadTiltTF
     cameraColorFrameTF
     baseTF
+    jointState
 
-    videoTopics = []
+    videoTopics: [Topic<ROSCompressedImage>]
 
     isWristFollowingActive = false
+    // TODO (kavidey): this should be `typeof setTimeout`, but TS wants it to be number
+    lookAtGripperInterval: number
 
-    commands = {
+    commands: {[key: string]: ([key: string]: (any) => void)} = {
         "drive": {
-            "forward": size => {
+            "forward": (size: number) => {
                 this.executeIncrementalMove("translate_mobile_base", size)
             },
-            "backward": size => {
+            "backward": (size: number) => {
                 this.executeIncrementalMove("translate_mobile_base", -size)
             },
-            "turn_right": size => {
+            "turn_right": (size: number) => {
                 this.executeIncrementalMove("rotate_mobile_base", -size)
             },
-            "turn_left": size => {
+            "turn_left": (size: number) => {
                 this.executeIncrementalMove("rotate_mobile_base", size)
             },
-            "turn_ccw": _ => {
+            "turn_ccw": (_: any) => {
                 this.baseTurn(Math.PI / 2);
             },
-            "turn_cw": _ => {
+            "turn_cw": (_: any) => {
                 this.baseTurn(-Math.PI / 2);
             }
         },
         "lift": {
-            "up": size => {
+            "up": (size: number) => {
                 this.executeIncrementalMove("joint_lift", size)
             },
-            "down": size => {
+            "down": (size: number) => {
                 this.executeIncrementalMove("joint_lift", -size)
             }
         },
         "arm": {
-            "extend": size => {
+            "extend": (size: number) => {
                 this.executeIncrementalMove("wrist_extension", size)
             },
-            "retract": size => {
+            "retract": (size: number) => {
                 this.executeIncrementalMove("wrist_extension", -size)
             }
         },
         "wrist": {
-            "in": size => {
+            "in": (size: number) => {
                 this.executeIncrementalMove("joint_wrist_yaw", size)
             },
-            "out": size => {
+            "out": (size: number) => {
                 this.executeIncrementalMove("joint_wrist_yaw", -size)
             },
             "stop_all_motion": () => {
                 this.wristStopMotion();
             },
-            "bend_velocity": deg_per_sec => {
+            "bend_velocity": (deg_per_sec: number) => {
                 this.wristBendVelocity(deg_per_sec);
             },
-            "auto_bend": ang_deg => {
+            "auto_bend": (ang_deg: number) => {
                 this.wristAutoBend(ang_deg);
             },
-            "init_fixed_wrist": (vsize, vscalesize) => {
+            "init_fixed_wrist": (vsize: number, vscalesize: number) => {
                 this.initFixedWrist();
             },
-            "bend_up": (vsize, vscalesize) => {
+            "bend_up": (vsize: number, vscalesize: number) => {
                 this.wristBend(5.0); // attempt to bed the wrist upward by 5 degrees
             },
-            "bend_down": (vsize, vscalesize) => {
+            "bend_down": (vsize: number, vscalesize: number) => {
                 this.wristBend(-5.0); // attempt to bed the wrist downward by 5 degrees
             },
-            "roll_left": (vsize, vscalesize) => {
+            "roll_left": (vsize: number, vscalesize: number) => {
                 this.wristRoll(-5.0); // attempt to roll the wrist to the left (clockwise) by 5 degrees
             },
-            "roll_right": (vsize, vscalesize) => {
+            "roll_right": (vsize: number, vscalesize: number) => {
                 this.wristRoll(5.0); // attempt to roll the wrist to the right (counterclockwise) by 5 degrees
             }
         },
         "gripper": {
-            "set_goal": goalWidthCm => {
+            "set_goal": (goalWidthCm: number) => {
                 this.gripperGoalAperture(goalWidthCm);
             },
-            "open": (vsize, vscalesize) => {
+            "open": (vsize: number, vscalesize: number) => {
                 this.gripperDeltaAperture(1.0);
             },
-            "close": (vsize, vscalesize) => {
+            "close": (vsize: number, vscalesize: number) => {
                 this.gripperDeltaAperture(-1.0);
             },
-            "configure_camera": configuration => {
-
+            "configure_camera": (configuration: any) => {
+                // TODO (kavidey): Implement or remove this
             }
         },
         "head": {
-            "up": size => {
+            "up": (size: number) => {
                 this.executeIncrementalMove("joint_head_tilt", size)
             },
-            "down": size => {
+            "down": (size: number) => {
                 this.executeIncrementalMove("joint_head_tilt", -size)
             },
-            "left": size => {
+            "left": (size: number) => {
                 this.executeIncrementalMove("joint_head_pan", size)
             },
-            "right": size => {
+            "right": (size: number) => {
                 this.executeIncrementalMove("joint_head_pan", -size)
             },
-            "gripper_follow": value => {
+            "gripper_follow": (value: number) => {
                 this.setPanTiltFollowGripper(value);
             },
-            "configure_overhead_camera": configuration => {
-
+            "configure_overhead_camera": (configuration: any) => {
+                // TODO (kavidey): Implement or remove this
             }
         },
         "full": {
-            "pose": pose => {
+            "pose": (pose: Pose) => {
                 this.goToPose(pose);
             }
         }
     }
 
-    constructor({jointStateCallback, tfCallback}) {
+    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: Transform) => void) {
         this.jointStateCallback = jointStateCallback
         this.tfCallback = tfCallback
 
     }
 
-    connect() {
-        return new Promise((res, rej) => {
-            // connect to rosbridge websocket
-            let ros = new ROSLIB.Ros({
-                url: 'wss://localhost:9090'
-            });
-            ros.on('connection', () => {
-                let simTime = new ROSLIB.Param({
-                    ros: ros,
-                    name: '/use_sim_time'
-                });
-
-                simTime.get(value => {
-                    this.inSim = value
-                });
-                res(ros)
+    async connect(): Promise<void> {
+        // connect to rosbridge websocket
+        let ros = new Ros({
+            url: 'wss://localhost:9090'
+        });
+        ros.on('connection', () => {
+            let simTime = new Param({
+                ros: ros,
+                name: '/use_sim_time'
             });
 
-            ros.on('error', (error) => {
-                rej(error)
+            simTime.get(value => {
+                this.inSim = value
             });
+            this.onConnect(ros);
+        });
 
-            ros.on('close', () => {
-                rej('Connection to websocket has been closed.')
-            });
-        }).then(ros => {
-            this.ros = ros
-            this.jointStateTopic = new ROSLIB.Topic({
-                ros: this.ros,
-                name: '/stretch/joint_states/',
-                messageType: 'sensor_msgs/JointState'
-            });
-            this.jointStateTopic.subscribe(message => {
-                if (this.jointState === null) {
-                    console.log('Received first joint state from ROS topic ' + this.jointStateTopic.name);
-                }
-                this.jointState = message;
-                if (this.jointStateCallback) this.jointStateCallback(message)
-            });
+        ros.on('error', (error) => {
+            throw error
+        });
 
-            this.tfClient = new ROSLIB.TFClient({
-                ros: this.ros,
-                fixedFrame: 'base_link',
-                angularThres: 0.01,
-                transThres: 0.01
-            });
-
-            this.tfClient.subscribe('link_gripper_finger_left', transform => {
-                this.linkGripperFingerLeftTF = transform;
-                if (this.tfCallback) {
-                    this.tfCallback('link_gripper_finger_left', transform)
-                }
-            });
-
-            this.tfClient.subscribe('link_head_tilt', transform => {
-                this.linkHeadTiltTF = transform;
-                if (this.tfCallback) {
-                    this.tfCallback('link_head_tilt', transform)
-                }
-            });
-
-            this.tfClient.subscribe('camera_color_frame', transform => {
-                this.cameraColorFrameTF = transform;
-                if (this.tfCallback) {
-                    this.tfCallback('camera_color_frame', transform)
-                }
-            });
-
-            this.tfClient.subscribe('odom', transform => {
-                this.baseTF = transform;
-            });
-            this.trajectoryClient = new ROSLIB.ActionClient({
-                ros: this.ros,
-                serverName: '/stretch_controller/follow_joint_trajectory',
-                actionName: 'control_msgs/FollowJointTrajectoryAction'
-            });
-
-            return Promise.resolve()
-        })
+        ros.on('close', () => {
+            throw 'Connection to websocket has been closed.'
+        });
     }
 
-    subscribeToVideo(topicName, callback) {
-        let topic = new ROSLIB.Topic({
+    async onConnect(ros: Ros) {
+        this.ros = ros;
+        this.jointStateTopic = new Topic({
+            ros: this.ros,
+            name: '/stretch/joint_states/',
+            messageType: 'sensor_msgs/JointState'
+        });
+        this.jointStateTopic.subscribe(message => {
+            if (this.jointState === null) {
+                console.log('Received first joint state from ROS topic ' + this.jointStateTopic.name);
+            }
+            this.jointState = message;
+            if (this.jointStateCallback) this.jointStateCallback(message)
+        });
+
+        this.tfClient = new TFClient({
+            ros: this.ros,
+            fixedFrame: 'base_link',
+            angularThres: 0.01,
+            transThres: 0.01
+        });
+
+        this.tfClient.subscribe('link_gripper_finger_left', transform => {
+            this.linkGripperFingerLeftTF = transform;
+            if (this.tfCallback) {
+                this.tfCallback('link_gripper_finger_left', transform)
+            }
+        });
+
+        this.tfClient.subscribe('link_head_tilt', transform => {
+            this.linkHeadTiltTF = transform;
+            if (this.tfCallback) {
+                this.tfCallback('link_head_tilt', transform)
+            }
+        });
+
+        this.tfClient.subscribe('camera_color_frame', transform => {
+            this.cameraColorFrameTF = transform;
+            if (this.tfCallback) {
+                this.tfCallback('camera_color_frame', transform)
+            }
+        });
+
+        this.tfClient.subscribe('odom', transform => {
+            this.baseTF = transform;
+        });
+        this.trajectoryClient = new ActionClient({
+            ros: this.ros,
+            serverName: '/stretch_controller/follow_joint_trajectory',
+            actionName: 'control_msgs/FollowJointTrajectoryAction',
+            timeout: 100 // TODO (kavidey): Figure out what unit this is and update
+        });
+
+    }
+
+    subscribeToVideo(topicName: string, callback: (message: ROSCompressedImage) => void) {
+        let topic: Topic<ROSCompressedImage> = new Topic({
             ros: this.ros,
             name: topicName,
             messageType: 'sensor_msgs/CompressedImage'
@@ -236,9 +245,8 @@ export class Robot {
         topic.subscribe(callback)
     }
 
-////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
 
-//Called from button click
     baseTranslate(dist: number) {
         makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send()
     }
@@ -251,10 +259,9 @@ export class Robot {
 
     }
 
-    makeIncrementalMoveGoal(jointName, jointValueInc) {
+    makeIncrementalMoveGoal(jointName: ValidJoints, jointValueInc: number): Goal {
         if (this.jointState === null) {
-            console.warn("Couldn't send incremental move without joint states")
-            return false
+            throw "Couldn't send incremental move without joint states" 
         }
         let newJointValue = getJointValue(this.jointState, jointName)
         // Paper over Hello's fake joints
@@ -269,7 +276,7 @@ export class Robot {
         return makePoseGoal(pose, this.trajectoryClient)
     }
 
-    setPanTiltFollowGripper(value) {
+    setPanTiltFollowGripper(value: boolean) {
         // Idempotent: setting same value has no effect
         if (this.isWristFollowingActive === value) return;
         this.isWristFollowingActive = value;
@@ -285,12 +292,12 @@ export class Robot {
             lookIfReadyAndRepeat()
         } else {
             clearTimeout(this.lookAtGripperInterval)
-            this.lookAtGripperInterval = null
+            // this.lookAtGripperInterval = null
         }
         return true;
     }
 
-    lookAtGripper(panOffset, tiltOffset) {
+    lookAtGripper(panOffset: number, tiltOffset: number) {
         let posDifference = {
             x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
             y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
@@ -320,29 +327,34 @@ export class Robot {
         headFollowPoseGoal.send()
     }
 
-    gripperDeltaAperture(deltaWidthCm) {
+    gripperDeltaAperture(deltaWidthCm: number) {
         // attempt to change the gripper aperture
-        this.makeIncrementalMoveGoal('joint_gripper_finger_left', deltaWidthCm).send()
+        try {
+            this.makeIncrementalMoveGoal('joint_gripper_finger_left', deltaWidthCm).send()
+        }
     }
 
-
-    headTilt(angRad) {
+    headTilt(angRad: number) {
         if (this.isWristFollowingActive) {
             this.tiltOffset += angRad;
         } else {
-            this.makeIncrementalMoveGoal('joint_head_tilt', angRad).send()
+            try {
+                this.makeIncrementalMoveGoal('joint_head_tilt', angRad).send()
+            }
         }
     }
 
-    headPan(angRad) {
+    headPan(angRad: number) {
         if (this.isWristFollowingActive) {
             this.panOffset += angRad;
         } else {
-            this.makeIncrementalMoveGoal('joint_head_pan', angRad).send()
+            try {
+                this.makeIncrementalMoveGoal('joint_head_pan', angRad).send()
+            }
         }
     }
 
-    goToPose(pose) {
+    goToPose(pose: Pose) {
         for (let key in pose) {
             if (ALL_JOINTS.indexOf(key) === -1) {
                 console.error(`No such joint '${key}' from pose goal`)
@@ -357,11 +369,11 @@ export class Robot {
         this.commands[type][name](modifier)
     }
 
-    executeIncrementalMove(jointName, increment) {
+    executeIncrementalMove(jointName: ValidJoints, increment: number) {
         this.makeIncrementalMoveGoal(jointName, increment).send()
     }
 
-    executeVelocityMove(jointName, velocity) {
+    executeVelocityMove(jointName: ValidJoints, velocity: number) {
         this.stopExecution()
         let velocities = [{}, {}]
         velocities[0][jointName] = velocity
@@ -392,7 +404,7 @@ export class Robot {
     }
 }
 
-function makePoseGoal(pose, trajectoryClient) {
+function makePoseGoal(pose: Pose, trajectoryClient: ActionClient) {
     let jointNames = []
     let jointPositions = []
     for (let key in pose) {
@@ -400,7 +412,7 @@ function makePoseGoal(pose, trajectoryClient) {
         jointPositions.push(pose[key])
     }
 
-    let newGoal = new ROSLIB.Goal({
+    let newGoal = new Goal({
         actionClient: trajectoryClient,
         goalMessage: {
             trajectory: {
@@ -438,7 +450,7 @@ function makePoseGoal(pose, trajectoryClient) {
 
 }
 
-function makeVelocityGoal(positions, velocities, trajectoryClient) {
+function makeVelocityGoal(positions, velocities, trajectoryClient: ActionClient) {
 
     let points = []
     let jointNames
@@ -461,7 +473,7 @@ function makeVelocityGoal(positions, velocities, trajectoryClient) {
         })
         jointNames = names
     }
-    let newGoal = new ROSLIB.Goal({
+    let newGoal = new Goal({
         actionClient: trajectoryClient,
         goalMessage: {
             trajectory: {
@@ -489,12 +501,12 @@ function makeVelocityGoal(positions, velocities, trajectoryClient) {
 
 }
 
-export function getJointEffort(jointStateMessage, jointName) {
+export function getJointEffort(jointStateMessage, jointName: validJoints) {
     let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.effort[jointIndex]
 }
 
-export function getJointValue(jointStateMessage, jointName) {
+export function getJointValue(jointStateMessage, jointName: validJoints) {
     // Paper over Hello's fake joint implementation
     if (jointName === "wrist_extension") {
         return getJointValue(jointStateMessage, "joint_arm_l0") +
@@ -506,46 +518,4 @@ export function getJointValue(jointStateMessage, jointName) {
     }
     let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-
-// Modified from https://schteppe.github.io/cannon.js/docs/files/src_math_Quaternion.js.html
-function quaternionToEuler(q, order) {
-    order = order || "YZX";
-
-    var heading, attitude, bank;
-    var x = q.x, y = q.y, z = q.z, w = q.w;
-
-    switch (order) {
-        case "YZX":
-            var test = x * y + z * w;
-            if (test > 0.499) { // singularity at north pole
-                heading = 2 * Math.atan2(x, w);
-                attitude = Math.PI / 2;
-                bank = 0;
-            }
-            if (test < -0.499) { // singularity at south pole
-                heading = -2 * Math.atan2(x, w);
-                attitude = -Math.PI / 2;
-                bank = 0;
-            }
-            if (isNaN(heading)) {
-                var sqx = x * x;
-                var sqy = y * y;
-                var sqz = z * z;
-                heading = Math.atan2(2 * y * w - 2 * x * z, 1 - 2 * sqy - 2 * sqz); // Heading
-                attitude = Math.asin(2 * test); // attitude
-                bank = Math.atan2(2 * x * w - 2 * y * z, 1 - 2 * sqx - 2 * sqz); // bank
-            }
-            break;
-        default:
-            throw new Error("Euler order " + order + " not supported yet.");
-    }
-
-    return {
-        y: heading,
-        z: attitude,
-        x: bank
-    }
 }

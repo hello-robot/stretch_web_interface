@@ -13,6 +13,7 @@
  */
 
 import {BaseComponent, Component} from "../../shared/base.cmp.js";
+import { ROSCompressedImage } from "../../shared/util.js";
 
 let debug = false;
 
@@ -76,7 +77,7 @@ export class VideoStream extends BaseComponent {
 
     }
 
-    imageCallback(message) {
+    imageCallback(message: ROSCompressedImage) {
         if (debug)
             this.img.src = 'dummy_overhead.png';
         else

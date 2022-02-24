@@ -3,14 +3,15 @@ import { WebRTCConnection } from "../../shared/webrtcconnection.js";
 import { TransformedVideoStream } from "./videostream.cmp.js";
 import { MapROS } from "./mapros.cmp.js";
 import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../shared/video_dimensions.js";
+import { Transform } from "roslib";
 
 let audioInId;
 let audioOutId;
 let connection
-const robot = new Robot({
-    jointStateCallback: forwardJointStates,
-    tfCallback: forwardTF,
-})
+const robot = new Robot(
+    forwardJointStates,
+    forwardTF,
+)
 
 let overheadStream, gripperStream, pantiltStream, audioStream;
 let mapROS;
@@ -136,7 +137,7 @@ function changeAudioDestination(element) {
 }
 
 
-function forwardTF(frame, transform) {
+function forwardTF(frame: string, transform: Transform) {
     if (!connection) return;
     let toSend = {
         type: 'sensor',
