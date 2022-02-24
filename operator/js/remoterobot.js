@@ -92,8 +92,12 @@ export class RemoteRobot {
         }
     }
 
-    setCameraView(mode) {
-        this.robotChannel({type: "setCameraView", mode: mode});
+    rotateCameraView(mode) {
+        this.robotChannel({type: "rotateCameraView", mode: mode});
+    }
+
+    resetCameraView(mode) {
+        this.robotChannel({type: "resetCameraView", mode: mode});
     }
 }
 

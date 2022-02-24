@@ -286,13 +286,11 @@ export class OperatorComponent extends PageComponent {
         }
 
         if (modeId === 'nav') {
-            // FIXME: use configure camera to set crop for overhead stream
-            this.robot.setCameraView('nav');
+            this.robot.rotateCameraView();
         } else if (modeId === 'manip') {
-            // FIXME: use configure camera to set crop for overhead stream
-            this.robot.setCameraView('manip');
+            this.robot.resetCameraView();
         } else if (modeId === 'clickNav') {
-            this.robot.setCameraView('nav');
+            this.robot.rotateCameraView();
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();

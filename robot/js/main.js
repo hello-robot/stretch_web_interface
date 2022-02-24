@@ -233,12 +233,12 @@ function handleMessage(message) {
         case "stopClickMove":
             robot.stopClickMove();
             break;
-        case "setCameraView":            
-            if (message.mode == 'nav') {
-                overheadStream.rotate = true;
-            } else {
-                overheadStream.rotate = false;
-            }
+        case "rotateCameraView":
+            overheadStream.rotate = true;
+            overheadStream.start();
+            break;
+        case "resetCameraView":
+            overheadStream.rotate = false;
             overheadStream.start();
             break;
         default:
