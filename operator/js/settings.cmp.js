@@ -44,23 +44,62 @@ const template = `
                         <input class="form-check-input" type="checkbox" name="armReachVisualization" id="armReachVisualization">
                     </div>
                 </div>
-                
+
+                <div class="row mb-3">
+                    <legend class="col-form-label col-sm-2 pt-0">Audio</legend>
+                    <div class="col-sm-4">
+                        <label class="form-label" for="audioSource">In</label><select id="audioSource" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label" for="audioOutput">Out</label><select id="audioOutput" class="form-select"></select>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs" id="tablist">
+                    <li class="nav-item"><a href="#navigationTab" class="nav-link active">Navigation</a></li>
+                    <li class="nav-item"><a href="#manipulationTab" class="nav-link">Manipulation</a></li>
+                </ul>
+
                 <fieldset class="row mb-3">
-                    <legend class="col-form-label col-sm-2 pt-0">Action Mode</legend>
+                    <legend class="col-form-label col-sm-2 tab-legend">Control Display</legend>
                     <div class="col-sm-10">
-                        <div class="btn-group mode-toggle" role="group" id="control-mode-toggle" data-ref="control-mode-toggle">
-                            <input type="radio" id="control-click-navigate" class="btn-check" name="actionMode" autocomplete="off" value="click-navigate"/>
-                            <label class="btn btn-secondary btn-sm" for="control-click-navigate">Click Navigate</label>
-                            <input type="radio" id="control-incremental" class="btn-check" name="actionMode" autocomplete="off" value="incremental" checked />
-                            <label class="btn btn-secondary btn-sm" for="control-incremental">Incremental</label>
-                            <input type="radio" id="control-continuous" class="btn-check" name="actionMode" autocomplete="off" value="control-continuous"/>
-                            <label class="btn btn-secondary btn-sm" for="control-continuous">Continuous</label>
+                        <div class="btn-group mode-toggle" role="group" id="control-display-mode-toggle" data-ref="control-display-mode-toggle">
+                            <input type="radio" id="display-overlay" class="btn-check" name="displayMode" autocomplete="off" value="action-overlay" checked/>
+                            <label class="btn btn-secondary btn-sm" for="display-overlay">Action Overlay</label>
+                            <input type="radio" id="display-predictive" class="btn-check" name="displayMode" autocomplete="off" value="predictive-display"/>
+                            <label class="btn btn-secondary btn-sm" for="display-predictive">Predictive Display</label>
                         </div>
                     </div>
                 </fieldset>
 
                 <fieldset class="row mb-3">
-                   <legend class="col-form-label col-sm-2 pt-0">Velocity Control Mode</legend>
+                    <legend class="col-form-label col-sm-2">Action Mode</legend>
+                    <div class="col-sm-10">
+                        <div class="btn-group mode-toggle" role="group" id="control-mode-toggle" data-ref="control-mode-toggle">
+                            <input type="radio" id="control-incremental" class="btn-check" name="actionMode" autocomplete="off" value="incremental" checked />
+                            <label class="btn btn-secondary btn-sm" for="control-incremental">Step Actions</label>
+                            <input type="radio" id="control-continuous" class="btn-check" name="actionMode" autocomplete="off" value="control-continuous"/>
+                            <label class="btn btn-secondary btn-sm" for="control-continuous">Start-Stop</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="row mb-3" data-ref="continuous-mode-field">
+                    <legend class="col-form-label col-sm-2">Start-Stop Modes</legend>
+                    <div class="col-sm-10">
+                        <div class="btn-group mode-toggle" role="group" id="continuous-mode-toggle" data-ref="continuous-mode-toggle">
+                            <input type="radio" id="control-click-click" class="btn-check" name="startStopMode" autocomplete="off" value="click-click" checked />
+                            <label class="btn btn-secondary btn-sm" for="control-click-click">Click-Click</label>
+                            <input type="radio" id="control-press-release" class="btn-check" name="startStopMode" autocomplete="off" value="press-release"/>
+                            <label class="btn btn-secondary btn-sm" for="control-press-release">Press-Release</label>
+                            <input type="radio" id="control-press-drag" class="btn-check" name="startStopMode" autocomplete="off" value="press-drag"/>
+                            <label class="btn btn-secondary btn-sm" id="press-drag-label" for="control-press-drag">Press-Drag</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="row mb-3">
+                   <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
                     <div class="col-sm-10">
                         <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">
                             <input type="radio" id="discrete" class="btn-check" name="velocityControlMode" autocomplete="off" value="discrete" checked />
@@ -72,7 +111,7 @@ const template = `
                 </fieldset>
        
                 <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
-                    <legend class="col-form-label col-sm-2 pt-0">Step Size</legend>
+                    <legend class="col-form-label col-sm-2">Step Size</legend>
                     <div class="col-sm-10">
                         <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
                             <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="1" autocomplete="off" checked>
@@ -99,16 +138,6 @@ const template = `
                         </div>
                     </div>
                 </fieldset>
-
-                <div class="row mb-3">
-                    <legend class="col-form-label col-sm-2 pt-0">Audio</legend>
-                    <div class="col-sm-4">
-                        <label class="form-label" for="audioSource">In</label><select id="audioSource" class="form-select"></select>
-                    </div>
-                    <div class="col-sm-4">
-                        <label class="form-label" for="audioOutput">Out</label><select id="audioOutput" class="form-select"></select>
-                    </div>
-                </div>
         
                 <div class="d-flex flex-fill justify-content-left">
                     <div class="col-sm-3">
@@ -145,6 +174,7 @@ export class SettingsModal extends BaseComponent {
         this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
         // Discrete settings are the default
         this.hideContinuousSettings();
+        this.hideStartStopMode();
 
         // Tell anyone who cares that the user has changed a setting
         this.refs.get("modal-container").addEventListener("change", event => {
@@ -171,6 +201,36 @@ export class SettingsModal extends BaseComponent {
                     this.hideContinuousSettings();
                 } else {
                     this.showContinuousSettings();
+                }
+            })
+        })
+        this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+            option.addEventListener("click", () => {
+                if (option.value === "control-continuous") {
+                    this.showStartStopMode();
+                    let displaySetting = this.refs.get("control-display-mode-toggle").querySelector("input[type=radio]:checked").value
+                    if (displaySetting == "predictive-display") {
+                        this.showPressDragButton();
+                    } else {
+                        console.log("hiding")
+                        this.hidePressDragButton();
+                    }
+                } else {
+                    this.hideStartStopMode();
+                }
+            })
+        })
+        this.refs.get("control-display-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+            option.addEventListener("click", () => {
+                let actionModeSetting = this.refs.get("control-mode-toggle").querySelector("input[type=radio]:checked").value
+                if (actionModeSetting == "control-continuous") {
+                    if (option.value === "predictive-display") {
+                        this.showStartStopMode();
+                        this.showPressDragButton();
+                    } else {
+                        this.showStartStopMode();
+                        this.hidePressDragButton();
+                    }
                 }
             })
         })
@@ -204,6 +264,25 @@ export class SettingsModal extends BaseComponent {
         this.modal.show();
     }
 
+    hideStartStopMode() { 
+        this.refs.get("continuous-mode-field").style.display = "none";
+    }
+
+    showStartStopMode() { 
+        this.refs.get("continuous-mode-field").style.display = null;
+    }
+
+    hidePressDragButton() {
+        console.log();
+        this.refs.get("continuous-mode-toggle").querySelector(`input[value='press-drag']`).style.display = "none";
+        this.refs.get("continuous-mode-toggle").querySelector(`label[id="press-drag-label`).style.display = "none";
+    }
+
+    showPressDragButton() {
+        this.refs.get("continuous-mode-toggle").querySelector(`input[value='press-drag']`).style.display = null;
+        this.refs.get("continuous-mode-toggle").querySelector(`label[id="press-drag-label`).style.display = null;
+    }
+    
     hideContinuousSettings() {
         this.refs.get("settings-vscale").style.display = null;
         this.refs.get("settings-step-size").style.display = "none";

@@ -23,8 +23,12 @@
     color: black
 }
 
-.mode-toggle, #settings-vscale {
-    padding-bottom: 10px;
+fieldset, legend, .tab-legend {
+    padding-top: 20px;
+}
+
+#control-display-mode-toggle {
+    padding-top: 20px;
 }
 
 .mode-toggle .btn-check:checked + .btn-secondary {

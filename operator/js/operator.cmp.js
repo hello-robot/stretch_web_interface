@@ -107,7 +107,7 @@ export class OperatorComponent extends PageComponent {
     activeVelocityAction
     velocityExecutionHeartbeat
 
-    INCREMENT_SCALES = [0.25, 0.5, 1.0, 1.5, 2.0];
+    VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS = {
         "joint_head_tilt": 0.1,
         "joint_head_pan": 0.1,
@@ -119,7 +119,6 @@ export class OperatorComponent extends PageComponent {
         "rotate_mobile_base": .2
     }
 
-    VELOCITY_SCALES = [0.25, 0.5, 1.0, 1.5, 2.0]
     JOINT_VELOCITIES = {
         "joint_head_tilt": .3,
         "joint_head_pan": .3,
@@ -209,13 +208,16 @@ export class OperatorComponent extends PageComponent {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls()
-                } else if (change.key == "actionMode") {
+                // } else if (change.key == "actionMode") {
+                //     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                //     this.setMode(currMode)
+                } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                    if (change.value == "click-navigate") {
+                    if (change.value == "predictive-display") {
                         this.setMode('clickNav')
-                        this.shadowRoot.getElementById('mode-navigation').checked = true;
+                        // this.shadowRoot.getElementById('mode-navigation').checked = true;
                     } else {
-                        this.setMode(currMode)
+                        this.setMode('nav')
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -257,8 +259,9 @@ export class OperatorComponent extends PageComponent {
         if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
+            let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
             let scale = parseInt(this.model.getSetting("velocityScale"))
-            return this.JOINT_VELOCITIES[jointName] * this.VELOCITY_SCALES[scale]
+            return this.JOINT_VELOCITIES[jointName] * this.VELOCITIES[velocity] * scale
         }
     }
 
@@ -266,8 +269,9 @@ export class OperatorComponent extends PageComponent {
         if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value
         } else {
+            let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
             let scale = parseInt(this.model.getSetting("velocityScale"))
-            return this.JOINT_INCREMENTS[jointName] * this.INCREMENT_SCALES[scale]
+            return this.JOINT_INCREMENTS[jointName] * this.VELOCITIES[velocity] * scale
         }
     }
 
@@ -355,6 +359,48 @@ export class OperatorComponent extends PageComponent {
             option.value = r;
             option.text = r;
             robotSelection.appendChild(option);
+        }
+    }
+
+    executeTraj(eventX, eventY, overlay) {
+        let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
+        let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
+        let overlayWidth = overlay.w;
+        let overlayHeight = overlay.h;
+        let scaleWidth = videoWidth/overlayWidth;
+        let scaleHeight = videoHeight/overlayHeight;
+        let px = eventX/scaleWidth;
+        let py = eventY/scaleHeight;
+
+        let dx = px - 45; // robot position x offset
+        let dy = py - 60; // robot position y offset
+        let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
+        let heading = Math.atan2(-dy, -dx)
+
+        // If click on the robot, rotate in place
+        if (Math.abs(magnitude) <= 0.2) {
+            this.activeVelocityAction = this.robot.clickMove(0, 0.2);
+            overlay.drawRotateIcon()
+        } 
+        // If clicking behind the robot, move backward
+        else if (heading < 0) {
+            this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
+            overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001);
+        } 
+        // Otherwise move based off heading and magnitude of vector
+        else {
+            this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
+            overlay.drawArc(px, py, Math.PI/2, heading);
+        }
+    }
+
+    stopCurrentAction() {
+        if (this.activeVelocityAction) {
+            // No matter what region this is, stop the currently running action
+            this.activeVelocityAction.stop()
+            this.activeVelocityAction = null
+            clearInterval(this.velocityExecutionHeartbeat)
+            this.velocityExecutionHeartbeat = null
         }
     }
 
@@ -449,62 +495,76 @@ export class OperatorComponent extends PageComponent {
         gripper.addOverlay(gripperOverlay, 'all');
         this.setMode('nav')
 
-        this.refs.get("video-control-container").addEventListener("mousedown", event => {
-            let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
-            let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
-            let overlayWidth = overheadClickNavOverlay.w;
-            let overlayHeight = overheadClickNavOverlay.h;
-            let scaleWidth = videoWidth/overlayWidth;
-            let scaleHeight = videoHeight/overlayHeight;
-            let px = event.offsetX/scaleWidth;
-            let py = event.offsetY/scaleHeight;
+        var mouseMoveX = 0;
+        var mouseMoveY = 0;
+        // Event handlers
+        var onMouseMove = (event) => {
+            mouseMoveX = event.offsetX
+            mouseMoveY = event.offsetY
+            this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+        } 
+        var onMouseUp = (event) => {
+            this.stopCurrentAction();
+            overheadClickNavOverlay.removeTraj();
+            this.refs.get("video-control-container").removeEventListener('mousemove', onMouseMove);
+        };
 
-            if (this.model.getSetting("actionMode") === "click-navigate") {
-                if (this.activeVelocityAction) {
-                    // No matter what region this is, stop the currently running action
-                    this.activeVelocityAction.stop()
-                    this.activeVelocityAction = null
-                    clearInterval(this.velocityExecutionHeartbeat)
-                    this.velocityExecutionHeartbeat = null
-                }
+        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+            let x = event.offsetX;
+            let y = event.offsetY;
+            mouseMoveX = x;
+            mouseMoveY = y;
+
+            // Remove old event handlers
+            this.refs.get("video-control-container").removeEventListener('mouseup', onMouseUp);
+            this.refs.get("video-control-container").removeEventListener('mousemove', onMouseMove);
             
-                let dx = px - 45; // robot position x offset
-                let dy = py - 60; // robot position y offset
-                let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
-                let heading = Math.atan2(-dy, -dx)
-                console.log(px, py, magnitude, heading);
-                this.velocityExecutionHeartbeat = window.setInterval(() => {
-                    // If click on the robot, rotate in place
-                    if (Math.abs(magnitude) <= 0.2) {
-                        this.activeVelocityAction = this.robot.clickMove(0, 0.2);
-                        overheadClickNavOverlay.drawRotateIcon()
-                    } 
-                    // If clicking behind the robot, move backward
-                    else if (heading < 0) {
-                        this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
-                        overheadClickNavOverlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001);
-                    } 
-                    // Otherwise move based off heading and magnitude of vector
-                    else {
-                        this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
-                        overheadClickNavOverlay.drawArc(px, py, Math.PI/2, heading);
+            if (this.model.getSetting("displayMode") === "predictive-display") {
+                if (this.model.getSetting("actionMode") === "control-continuous") {
+                    if (this.model.getSetting("startStopMode") === "press-drag") {
+                        // Update trajectory when mouse moves
+                        this.refs.get("video-control-container").addEventListener("mousemove", onMouseMove);
+
+                        // Execute trajectory as long as mouse is held down using last position of cursor 
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            overheadClickNavOverlay.removeTraj();
+                            this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                        }, 100);
+
+                        // When mouse is up, delete trajectory
+                        this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
+                    
+                    } else if (this.model.getSetting("startStopMode") == "press-release") {
+                        // Keep executing trajectory while mouse button is pressed
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            this.executeTraj(x, y, overheadClickNavOverlay)
+                        }, 1)
+
+                        // When mouse is up, delete trajectory
+                        this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
+                    } else {
+                        console.log("click click")
+                        if (this.activeVelocityAction) {
+                            this.stopCurrentAction();
+                            overheadClickNavOverlay.removeTraj();
+                        } else {
+                            this.velocityExecutionHeartbeat = window.setInterval(() => {
+                                this.executeTraj(x, y, overheadClickNavOverlay)
+                            }, 1);
+                        }
                     }
-                }, 100)
+                } else { 
+                    // action mode is incremental/step actions
+                    // execute trajectory once
+                    this.executeTraj(x, y, overheadClickNavOverlay);
+                    setTimeout(() => {overheadClickNavOverlay.removeTraj()}, 1500);
+                }
             }   
         });
 
-        this.refs.get("video-control-container").addEventListener("mouseup", event => {
-            if (this.model.getSetting("actionMode") === "click-navigate") {
-                if (this.activeVelocityAction) {
-                    // No matter what region this is, stop the currently running action
-                    this.activeVelocityAction.stop()
-                    this.activeVelocityAction = null
-                    clearInterval(this.velocityExecutionHeartbeat)
-                    this.velocityExecutionHeartbeat = null
-                }
-                overheadClickNavOverlay.removeTraj();
-            }
-        });
+        var onOverlayMouseUp = (event) => {
+            this.stopCurrentAction();
+        };
 
         this.refs.get("video-control-container").addEventListener("click", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
@@ -512,6 +572,9 @@ export class OperatorComponent extends PageComponent {
             let regionName = composedTarget.dataset.name
             if (!regionName || regionName === "doNothing") return;
 
+            // Remove old event handlers
+            this.refs.get("video-control-container").removeEventListener('mouseup', onOverlayMouseUp);
+            
             if (regionName in this.robot) {
                 // This region is named after a command we can call directly on the robot
                 this.robot[regionName](2)
@@ -524,29 +587,37 @@ export class OperatorComponent extends PageComponent {
                 if (this.model.getSetting("actionMode") === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else if (this.model.getSetting("actionMode") === "control-continuous") {
-                    let lastActiveRegion = this.activeVelocityRegion
-                    if (this.activeVelocityAction) {
-                        // No matter what region this is, stop the currently running action
-                        this.activeVelocityAction.stop()
-                        this.activeVelocityAction = null
-                        this.activeVelocityRegion = null
-                    }
-                    // If they just clicked the joint that was active, assume that stopping was the point and return early
-                    if (lastActiveRegion === regionName) {
-                        return;
-                    }
-                    // If this is a new joint, start a new action!
-                    this.activeVelocityRegion = regionName
-                    this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
-                    this.velocityExecutionHeartbeat = window.setInterval(() => {
-                        if (!this.activeVelocityAction) {
-                            // clean up
-                            clearInterval(this.velocityExecutionHeartbeat)
-                            this.velocityExecutionHeartbeat = null
-                        } else {
+                    if (this.model.getSetting("startStopMode") === "press-release") {
+                        this.activeVelocityRegion = regionName
+                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction.affirm()
+                        }, 100)
+
+                        // When mouse is up, delete trajectory
+                        this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
+                    } else {
+                        let lastActiveRegion = this.activeVelocityRegion
+                        // If they just clicked the joint that was active, assume that stopping was the point and return early
+                        if (lastActiveRegion === regionName && this.activeVelocityAction) {
+                            this.stopCurrentAction()
+                            return;
                         }
-                    }, 100)
+
+                        // If this is a new joint, start a new action!
+                        this.stopCurrentAction()
+                        this.activeVelocityRegion = regionName
+                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            if (!this.activeVelocityAction) {
+                                // clean up
+                                clearInterval(this.velocityExecutionHeartbeat)
+                                this.velocityExecutionHeartbeat = null
+                            } else {
+                                this.activeVelocityAction.affirm()
+                            }
+                        }, 100)
+                    }
                 }
             }
         })
