@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@popperjs/core": "^2.11.2",
         "@types/roslib": "^1.1.8",
         "body-parser": "^1.19.0",
         "bootstrap": "^5.1.3",

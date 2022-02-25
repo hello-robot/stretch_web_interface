@@ -14,3 +14,5 @@ node_modules
 
 # Environment variables
 shared/database.config.js
+
+pnpm-lock.yaml
