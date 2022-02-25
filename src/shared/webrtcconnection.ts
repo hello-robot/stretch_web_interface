@@ -6,7 +6,7 @@
 //
 
 import { io, Socket } from "socket.io-client";
-import { Robot } from "../robot/js/robot";
+import { Robot } from "../pages/robot/js/robot";
 import { generateUUID, safelyParseJSON } from "./util";
 import type { WebRTCMessage, Request, Response, Responder, CameraInfo, SignallingMessage } from "./util";
 

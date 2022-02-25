@@ -12,8 +12,8 @@
  *
  */
 
-import {BaseComponent, Component} from "../../shared/base.cmp.js";
-import { ROSCompressedImage } from "../../shared/util.js";
+import {BaseComponent, Component} from "../../../shared/base.cmp.js";
+import { ROSCompressedImage } from "../../../shared/util.js";
 
 let debug = false;
 

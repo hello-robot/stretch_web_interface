@@ -1,5 +1,5 @@
 import { Ros, Param, Topic, TFClient, ActionClient, Goal, Transform, Message } from "roslib"
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
 export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {

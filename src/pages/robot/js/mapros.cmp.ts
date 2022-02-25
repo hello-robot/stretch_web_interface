@@ -1,4 +1,4 @@
-import { BaseComponent, Component } from "../../shared/base.cmp.js";
+import { BaseComponent, Component } from "../../../shared/base.cmp.js";
 
 const template = `<div id="map_viewer"></div>`;
 
