@@ -111,7 +111,7 @@ const template = `
                 </fieldset>
        
                 <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
-                    <legend class="col-form-label col-sm-2">Step Size</legend>
+                    <legend class="col-form-label col-sm-2">Velocity Scale</legend>
                     <div class="col-sm-10">
                         <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
                             <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="1" autocomplete="off" checked>
@@ -124,7 +124,6 @@ const template = `
                     </div>
                 </fieldset>
     
-   
                 <fieldset class="row mb-3" id="settings-step-size" data-ref="settings-step-size">
                     <legend class="col-form-label col-sm-2 pt-0">Step Size</legend>
                     <div class="col-sm-10">
@@ -195,15 +194,15 @@ export class SettingsModal extends BaseComponent {
                 }
             }))
         })
-        this.refs.get("vmode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
-            option.addEventListener("click", () => {
-                if (option.value === "discrete") {
-                    this.hideContinuousSettings();
-                } else {
-                    this.showContinuousSettings();
-                }
-            })
-        })
+        // this.refs.get("vmode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+        //     option.addEventListener("click", () => {
+        //         if (option.value === "discrete") {
+        //             this.hideContinuousSettings();
+        //         } else {
+        //             this.showContinuousSettings();
+        //         }
+        //     })
+        // })
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 if (option.value === "control-continuous") {
@@ -239,11 +238,11 @@ export class SettingsModal extends BaseComponent {
     configureInputs(values) {
         for (let [key, value] of values) {
             let inputForSetting = this.modalContainer.querySelector(`input[name='${key}']`)
-            if (key === "velocityControlMode" && value === "discrete") {
-                this.hideContinuousSettings()
-            } else if (key === "velocityControlMode" && value === "continuous") {
-                this.showContinuousSettings()
-            }
+            // if (key === "velocityControlMode" && value === "discrete") {
+            //     this.hideContinuousSettings()
+            // } else if (key === "velocityControlMode" && value === "continuous") {
+            //     this.showContinuousSettings()
+            // }
 
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null

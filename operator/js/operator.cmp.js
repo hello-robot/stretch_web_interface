@@ -46,9 +46,9 @@ const template = `
         </div>
         <div id="velocity-slider" data-ref="velocity-slider">
             <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
-            <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.1" min="0.1" max="0.8" step=0.05>
-            <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
-            <button class="down-btn" data-ref="slider-step-down">&#8595;</button>
+            <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.125" min="0.025" max="0.2" step=0.025>
+            <!-- <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
+            <button class="down-btn" data-ref="slider-step-down">&#8595;</button> -->
         </div>
     </div>
 </div>
@@ -251,27 +251,28 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("velocity-toggle").style.display = null;
             this.refs.get("velocity-slider").style.display = "none";
         }
-        const stepSize = parseFloat(this.model.getSetting("continuousVelocityStepSize"))
-        this.shadowRoot.getElementById("slider").step = stepSize
+        // const stepSize = parseFloat(this.model.getSetting("continuousVelocityStepSize"))
+        // this.shadowRoot.getElementById("slider").step = stepSize
     }
 
     getVelocityForJoint(jointName) {
+        let scale = parseInt(this.model.getSetting("velocityScale"))
         if (this.model.getSetting("velocityControlMode") === "continuous") {
-            return this.refs.get("continuous-velocity-input").value
+            return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
-            let scale = parseInt(this.model.getSetting("velocityScale"))
             return this.JOINT_VELOCITIES[jointName] * this.VELOCITIES[velocity] * scale
         }
     }
 
     getIncrementForJoint(jointName) {
+        let scale = parseFloat(this.model.getSetting("velocityScale"))
         if (this.model.getSetting("velocityControlMode") === "continuous") {
-            return this.refs.get("continuous-velocity-input").value
+            return this.refs.get("continuous-velocity-input").value * scale
         } else {
-            let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
-            let scale = parseInt(this.model.getSetting("velocityScale"))
-            return this.JOINT_INCREMENTS[jointName] * this.VELOCITIES[velocity] * scale
+            let velocity = parseInt(this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value)
+            var increment = (this.JOINT_INCREMENTS[jointName] * this.VELOCITIES[velocity] * scale)
+            return increment
         }
     }
 
