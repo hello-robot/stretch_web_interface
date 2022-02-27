@@ -2,13 +2,24 @@ const DEFAULTS = {
     "pose": {},
     "setting": {
         "armReachVisualization": false,
-        "actionMode": "incremental",
-        "continuousVelocityStepSize": 0.15,
-        "velocityControlMode": "discrete",
-        "velocityScale": 2,
         "showPermanentIconsGripper": true,
         "showPermanentIconsOverhead": true,
         "showPermanentIconsPantilt": true,
+    },
+    "navsetting" : {
+        "displayMode": "action-overlay",
+        "actionMode": "incremental",
+        "startStopMode": "click-click",
+        "velocityControlMode": "discrete",
+        "velocityScale": 2,
+        "continuousVelocityStepSize": 0.15,
+    },
+    "manipsetting": {
+        "actionMode": "incremental",
+        "startStopMode": "click-click",
+        "velocityControlMode": "discrete",
+        "velocityScale": 2,
+        "continuousVelocityStepSize": 0.15,
     },
     // Set a flag so that we know whether a model was initialized from defaults
     "reserved": {
@@ -59,8 +70,8 @@ export class LocalStorageModel extends Model {
         localStorage.removeItem(`pose.${name}`)
     }
 
-    setSetting(key, value) {
-        localStorage.setItem(`setting.${key}`, value)
+    setSetting(key, value, namespace="setting") {
+        localStorage.setItem(`${namespace}.${key}`, value)
     }
 
     loadSavedSettings() {
@@ -75,12 +86,12 @@ export class LocalStorageModel extends Model {
         this.savedSettings = this.getSettings();
     }
 
-    getSetting(key) {
-        return localStorage.getItem(`setting.${key}`)
+    getSetting(key, namespace="setting") {
+        return localStorage.getItem(`${namespace}.${key}`)
     }
 
-    getSettings() {
-        return new Map(this._getAllInNamespace("setting"))
+    getSettings(namespace="setting") {
+        return new Map(this._getAllInNamespace(namespace), this._getAllInNamespace("navsetting"))
     }
 
     _getAllInNamespace(namespace) {

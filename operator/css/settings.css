@@ -15,11 +15,20 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/* TODO [Vinitha]: Find a better way to override element style */
+.nav-tab-settings {
+    visibility: visible !important;
+}
+
+.manip-tab-settings {
+    visibility: visible !important;
+}
+
 /*.btn-group.velocity-toggle, .btn-group.step-size-toggle label {
     color: blue
 }*/
 
-.btn-group.vscale-toggle label {
+/*.btn-group.vscale-toggle label {
     color: black
 }
 
@@ -33,10 +42,10 @@ fieldset, legend, .tab-legend {
 
 .mode-toggle .btn-check:checked + .btn-secondary {
     background-color: var(--bs-cyan) !important;
-}
+}*/
 
 /* Velocity modifer control */
-.btn-check:checked + .btn[for="speed-1"], .btn-check:checked + .btn[for="speed-4"] {
+/*.btn-check:checked + .btn[for="speed-1"], .btn-check:checked + .btn[for="speed-4"] {
     background: #00ff00;
     color: black;
 }
@@ -49,5 +58,5 @@ fieldset, legend, .tab-legend {
 .btn-check:checked + .btn[for="speed-3"], .btn-check:checked + .btn[for="speed-6"] {
     background: #ff0000;
     color: black;
-}
+}*/
 

@@ -1,0 +1,31 @@
+.btn-group.vscale-toggle label {
+    color: black
+}
+
+fieldset, legend, .tab-legend {
+    padding-top: 20px;
+}
+
+#control-display-mode-toggle {
+    padding-top: 20px;
+}
+
+.mode-toggle .btn-check:checked + .btn-secondary {
+    background-color: var(--bs-cyan) !important;
+}
+
+/* Velocity modifer control */
+.btn-check:checked + .btn[for="speed-1"], .btn-check:checked + .btn[for="speed-4"] {
+    background: #00ff00;
+    color: black;
+}
+
+.btn-check:checked + .btn[for="speed-2"], .btn-check:checked + .btn[for="speed-5"] {
+    background: #ffff00;
+    color: black;
+}
+
+.btn-check:checked + .btn[for="speed-3"], .btn-check:checked + .btn[for="speed-6"] {
+    background: #ff0000;
+    color: black;
+}

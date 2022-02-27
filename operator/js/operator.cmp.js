@@ -129,6 +129,16 @@ export class OperatorComponent extends PageComponent {
         "rotate_mobile_base": .2
     }
 
+    SETTING_NAMESPACES = {
+        "joint_head_tilt": "manipsetting",
+        "joint_head_pan": "manipsetting",
+        "wrist_extension": "manipsetting",
+        "joint_lift": "manipsetting",
+        "joint_wrist_yaw": "manipsetting",
+        "translate_mobile_base": "navsetting",
+        "rotate_mobile_base": "navsetting"
+    }
+
     constructor() {
         super(template);
         this.model = new LocalStorageModel()
@@ -196,18 +206,20 @@ export class OperatorComponent extends PageComponent {
         })
 
         this.model.reset()
-        this.refs.get("settings").configureInputs(this.model.getSettings())
+        this.refs.get("settings").configureInputs(this.model.getSettings("setting"))
+        this.refs.get("settings").configureNavInputs(this.model.getSettings("navsetting"))
+        this.refs.get("settings").configureManipInputs(this.model.getSettings("manipsetting"))
         this.configureVelocityControls()
         this.addEventListener("settingchanged", event => {
             // Emitted when user has interactively changed a setting
 
             const change = event.detail
             console.log(change)
-            this.model.setSetting(change.key, change.value)
+            this.model.setSetting(change.key, change.value, change.namespace)
             if (event.path[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
-                    this.configureVelocityControls()
+                    this.configureVelocityControls(change.namespace)
                 // } else if (change.key == "actionMode") {
                 //     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
                 //     this.setMode(currMode)
@@ -229,21 +241,21 @@ export class OperatorComponent extends PageComponent {
             }
         })
 
-        this.refs.get("slider-step-up").addEventListener("click", () => {
-            this.shadowRoot.getElementById("slider").value =
-                parseFloat(this.shadowRoot.getElementById("slider").value) +
-                parseFloat(this.shadowRoot.getElementById("slider").step);
-        })
+        // this.refs.get("slider-step-up").addEventListener("click", () => {
+        //     this.shadowRoot.getElementById("slider").value =
+        //         parseFloat(this.shadowRoot.getElementById("slider").value) +
+        //         parseFloat(this.shadowRoot.getElementById("slider").step);
+        // })
 
-        this.refs.get("slider-step-down").addEventListener("click", () => {
-            this.shadowRoot.getElementById("slider").value =
-                parseFloat(this.shadowRoot.getElementById("slider").value) -
-                parseFloat(this.shadowRoot.getElementById("slider").step);
-        })
+        // this.refs.get("slider-step-down").addEventListener("click", () => {
+        //     this.shadowRoot.getElementById("slider").value =
+        //         parseFloat(this.shadowRoot.getElementById("slider").value) -
+        //         parseFloat(this.shadowRoot.getElementById("slider").step);
+        // })
     }
 
-    configureVelocityControls() {
-        const controlType = this.model.getSetting("velocityControlMode")
+    configureVelocityControls(namespace) {
+        const controlType = this.model.getSetting("velocityControlMode", namespace)
         if (controlType === "continuous") {
             this.refs.get("velocity-toggle").style.display = "none";
             this.refs.get("velocity-slider").style.display = null;
@@ -256,8 +268,9 @@ export class OperatorComponent extends PageComponent {
     }
 
     getVelocityForJoint(jointName) {
-        let scale = parseInt(this.model.getSetting("velocityScale"))
-        if (this.model.getSetting("velocityControlMode") === "continuous") {
+        let namespace = this.SETTING_NAMESPACES[jointName]
+        let scale = parseInt(this.model.getSetting("velocityScale", namespace))
+        if (this.model.getSetting("velocityControlMode", namespace) === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
@@ -266,8 +279,9 @@ export class OperatorComponent extends PageComponent {
     }
 
     getIncrementForJoint(jointName) {
-        let scale = parseFloat(this.model.getSetting("velocityScale"))
-        if (this.model.getSetting("velocityControlMode") === "continuous") {
+        let namespace = this.SETTING_NAMESPACES[jointName]
+        let scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+        if (this.model.getSetting("velocityControlMode", namespace) === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = parseInt(this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value)
@@ -520,9 +534,11 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("video-control-container").removeEventListener('mouseup', onMouseUp);
             this.refs.get("video-control-container").removeEventListener('mousemove', onMouseMove);
             
-            if (this.model.getSetting("displayMode") === "predictive-display") {
-                if (this.model.getSetting("actionMode") === "control-continuous") {
-                    if (this.model.getSetting("startStopMode") === "press-drag") {
+            let namespace = 'navsetting'
+            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+            if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
+                if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
+                    if (this.model.getSetting("startStopMode", namespace) === "press-drag") {
                         // Update trajectory when mouse moves
                         this.refs.get("video-control-container").addEventListener("mousemove", onMouseMove);
 
@@ -535,7 +551,7 @@ export class OperatorComponent extends PageComponent {
                         // When mouse is up, delete trajectory
                         this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
                     
-                    } else if (this.model.getSetting("startStopMode") == "press-release") {
+                    } else if (this.model.getSetting("startStopMode", namespace) == "press-release") {
                         // Keep executing trajectory while mouse button is pressed
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.executeTraj(x, y, overheadClickNavOverlay)
@@ -544,7 +560,6 @@ export class OperatorComponent extends PageComponent {
                         // When mouse is up, delete trajectory
                         this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
                     } else {
-                        console.log("click click")
                         if (this.activeVelocityAction) {
                             this.stopCurrentAction();
                             overheadClickNavOverlay.removeTraj();
@@ -584,11 +599,11 @@ export class OperatorComponent extends PageComponent {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
                 let jointName = regionName.substring(0, regionName.length - 4)
-                
-                if (this.model.getSetting("actionMode") === "incremental") {
+                let namespace = this.SETTING_NAMESPACES[jointName]
+                if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
-                } else if (this.model.getSetting("actionMode") === "control-continuous") {
-                    if (this.model.getSetting("startStopMode") === "press-release") {
+                } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
+                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
                         this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
