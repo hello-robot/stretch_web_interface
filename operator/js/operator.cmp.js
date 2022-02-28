@@ -183,7 +183,12 @@ export class OperatorComponent extends PageComponent {
         };
         this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
-                this.setMode(option.value)
+                let displayMode = this.model.getSetting("displayMode", "navsetting")
+                if (option.value === 'nav' && displayMode === "predictive-display") {
+                    this.setMode('clickNav')
+                } else {
+                    this.setMode(option.value)
+                }
             })
         })
         this.connection.availableRobots()
@@ -225,11 +230,8 @@ export class OperatorComponent extends PageComponent {
                 //     this.setMode(currMode)
                 } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                    if (change.value == "predictive-display") {
+                    if (change.value == "predictive-display" && currMode == 'nav') {
                         this.setMode('clickNav')
-                        // this.shadowRoot.getElementById('mode-navigation').checked = true;
-                    } else {
-                        this.setMode('nav')
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -393,18 +395,18 @@ export class OperatorComponent extends PageComponent {
         let heading = Math.atan2(-dy, -dx)
 
         // If click on the robot, rotate in place
-        if (Math.abs(magnitude) <= 0.2) {
-            this.activeVelocityAction = this.robot.clickMove(0, 0.2);
+        if (Math.abs(magnitude) <= 0.15) {
+            this.activeVelocityAction = this.robot.clickMove(0, 0.3);
             overlay.drawRotateIcon()
         } 
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = this.robot.clickMove(-magnitude*0.4, 0.0);
+            this.activeVelocityAction = this.robot.clickMove(-magnitude, 0.0);
             overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001);
         } 
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
+            this.activeVelocityAction = this.robot.clickMove(magnitude, -(heading - Math.PI/2)*0.4);
             overlay.drawArc(px, py, Math.PI/2, heading);
         }
     }
@@ -582,7 +584,7 @@ export class OperatorComponent extends PageComponent {
             this.stopCurrentAction();
         };
 
-        this.refs.get("video-control-container").addEventListener("click", event => {
+        this.refs.get("video-control-container").addEventListener("mousedown", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
             let composedTarget = event.composedPath()[0]
             let regionName = composedTarget.dataset.name
