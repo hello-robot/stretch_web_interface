@@ -90,7 +90,6 @@ export class NavigationSettings extends BaseComponent {
         this.navTabContainer = this.refs.get("nav-tab-container")
         // Discrete settings are the default
         this.hideContinuousSettings();
-        this.hideStartStopMode();
 
         // this.refs.get("vmode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
         //     option.addEventListener("click", () => {
@@ -103,39 +102,12 @@ export class NavigationSettings extends BaseComponent {
         // })
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
-                if (option.value === "control-continuous") {
-                    this.showStartStopMode();
-                    let displaySetting = this.refs.get("control-display-mode-toggle").querySelector("input[type=radio]:checked").value
-                    if (displaySetting == "predictive-display") {
-                        this.showPressDragButton();
-                    } else {
-                        console.log("hiding")
-                        this.hidePressDragButton();
-                    }
-                } else {
-                    this.hideStartStopMode();
-                }
+                this.configureSettingDisplay();
             })
         })
         this.refs.get("control-display-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
-                let actionModeSetting = this.refs.get("control-mode-toggle").querySelector("input[type=radio]:checked").value
-                // Hide press-drag button in discrete control mode
-                if (actionModeSetting === "control-continuous") {
-                    if (option.value === "predictive-display") {
-                        this.showStartStopMode();
-                        this.showPressDragButton();
-                    } else {
-                        this.showStartStopMode();
-                        this.hidePressDragButton();
-                    }
-                }
-
-                if (option.value === "predictive-display") {
-                    this.hideVelocitySettings();
-                } else {
-                    this.showVelocitySettings();
-                }
+                this.configureSettingDisplay();
             })
         })
     }
@@ -162,6 +134,29 @@ export class NavigationSettings extends BaseComponent {
             var event = new Event('change', { target: inputForSetting });
             event.initEvent('change', true, false);
             inputForSetting.dispatchEvent(event);
+        }
+        this.configureSettingDisplay();
+    }
+
+    configureSettingDisplay() {
+        let actionMode = this.refs.get("control-mode-toggle").querySelector("input[type=radio]:checked").value
+        let displayMode = this.refs.get("control-display-mode-toggle").querySelector("input[type=radio]:checked").value
+        if (actionMode === "control-continuous") {
+            if (displayMode === "predictive-display") {
+                this.showStartStopMode();
+                this.showPressDragButton();
+            } else {
+                this.showStartStopMode();
+                this.hidePressDragButton();
+            }
+        } else {
+            this.hideStartStopMode()
+        }
+
+        if (displayMode === "predictive-display") {
+            this.hideVelocitySettings();
+        } else {
+            this.showVelocitySettings();
         }
     }
 

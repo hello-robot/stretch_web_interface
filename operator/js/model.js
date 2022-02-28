@@ -76,14 +76,19 @@ export class LocalStorageModel extends Model {
 
     loadSavedSettings() {
         console.log(this.savedSettings);
-        for (const [key, value] of this.savedSettings.entries()) {
-            this.setSetting(key, value);
+        for (const [namespace, savedSettings] of this.savedSettings.entries()) { 
+            for (const [key, value] of savedSettings.entries()) {
+                this.setSetting(key, value, namespace);
+            }
         }
-        return this.savedSettings
     }
 
     saveSettings() {
-        this.savedSettings = this.getSettings();
+        this.savedSettings = new Map([
+            ["setting", this.getSettings("setting")],
+            ["navsetting", this.getSettings("navsetting")],
+            ["manipsetting", this.getSettings("manipsetting")]
+        ])
     }
 
     getSetting(key, namespace="setting") {
@@ -91,7 +96,7 @@ export class LocalStorageModel extends Model {
     }
 
     getSettings(namespace="setting") {
-        return new Map(this._getAllInNamespace(namespace), this._getAllInNamespace("navsetting"))
+        return new Map(this._getAllInNamespace(namespace))
     }
 
     _getAllInNamespace(namespace) {

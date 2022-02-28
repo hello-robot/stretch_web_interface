@@ -57,8 +57,8 @@ const template = `
                 
                 <nav>
                     <div class="nav nav-tabs" id="settingsTab" role="tablist" data-ref="nav-tabs">
-                        <button class="nav-link active" id="navigation-tab" data-bs-toggle="tab" data-bs-target="#navigation" type="button" role="tab" aria-controls="navigation" aria-selected="true">Navigation</button>
-                        <button class="nav-link" id="manip-tab" data-bs-toggle="tab" data-bs-target="#manip" type="button" role="tab" aria-controls="manip" aria-selected="false">Manipulation</button>
+                        <button class="nav-link active" id="navigation-tab" data-bs-toggle="tab" data-bs-target="#navigation" type="button" role="tab" aria-controls="navigation" aria-selected="true">Robot Base</button>
+                        <button class="nav-link" id="manip-tab" data-bs-toggle="tab" data-bs-target="#manip" type="button" role="tab" aria-controls="manip" aria-selected="false">Robot Arm/Wrist</button>
                     </div>
                 </nav>
 
@@ -71,26 +71,26 @@ const template = `
                     </div>
                 </div>
 
+            </div>
+            <div class="modal-footer">
                 <div class="d-flex flex-fill justify-content-left">
-                    <div class="col-sm-3">
-                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-default-settings">
-                            Default Settings
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn" data-ref="btn-default-settings">
+                            Reset
                         </button>
                     </div>
-                    <div class="col-sm-3">
-                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-save-settings">
-                            Save Settings
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn" data-ref="btn-save-settings">
+                            Save
                         </button>
                     </div>
-                    <div class="col-sm-3">
-                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-load-settings">
-                            Load Settings
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn" data-ref="btn-load-settings">
+                            Load
                         </button>
                     </div>
                 </div>
 
-            </div>
-            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>

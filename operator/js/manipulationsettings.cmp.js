@@ -89,11 +89,7 @@ export class ManipulationSettings extends BaseComponent {
         // })
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
-                if (option.value === "control-continuous") {
-                    this.showStartStopMode();
-                } else {
-                    this.hideStartStopMode();
-                }
+                this.configureSettingDisplay();
             })
         })
     }
@@ -119,6 +115,16 @@ export class ManipulationSettings extends BaseComponent {
             var event = new Event('change', { target: inputForSetting });
             event.initEvent('change', true, false);
             inputForSetting.dispatchEvent(event);
+        }
+        this.configureSettingDisplay();
+    }
+
+    configureSettingDisplay() {
+        let actionMode = this.refs.get("control-mode-toggle").querySelector("input[type=radio]:checked").value
+        if (actionMode === "control-continuous") {
+            this.showStartStopMode();
+        } else {
+            this.hideStartStopMode();
         }
     }
 

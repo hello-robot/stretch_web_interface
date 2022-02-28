@@ -183,12 +183,7 @@ export class OperatorComponent extends PageComponent {
         };
         this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
-                let displayMode = this.model.getSetting("displayMode", "navsetting")
-                if (option.value === 'nav' && displayMode === "predictive-display") {
-                    this.setMode('clickNav')
-                } else {
-                    this.setMode(option.value)
-                }
+                this.updateNavDisplay()
             })
         })
         this.connection.availableRobots()
@@ -203,21 +198,21 @@ export class OperatorComponent extends PageComponent {
             this.model.saveSettings();
         })
         this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
-            this.refs.get("settings").configureInputs(this.model.loadSavedSettings())
+            this.model.loadSavedSettings();
+            this.configureInputs();
+            this.updateNavDisplay()
         })
         this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
             this.model.reset();
-            this.refs.get("settings").configureInputs(this.model.getSettings())
+            this.configureInputs();
+            this.updateNavDisplay();
         })
 
         this.model.reset()
-        this.refs.get("settings").configureInputs(this.model.getSettings("setting"))
-        this.refs.get("settings").configureNavInputs(this.model.getSettings("navsetting"))
-        this.refs.get("settings").configureManipInputs(this.model.getSettings("manipsetting"))
+        this.configureInputs()
         this.configureVelocityControls()
         this.addEventListener("settingchanged", event => {
             // Emitted when user has interactively changed a setting
-
             const change = event.detail
             console.log(change)
             this.model.setSetting(change.key, change.value, change.namespace)
@@ -225,9 +220,6 @@ export class OperatorComponent extends PageComponent {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls(change.namespace)
-                // } else if (change.key == "actionMode") {
-                //     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                //     this.setMode(currMode)
                 } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
                     if (change.value == "predictive-display" && currMode == 'nav') {
@@ -254,6 +246,26 @@ export class OperatorComponent extends PageComponent {
         //         parseFloat(this.shadowRoot.getElementById("slider").value) -
         //         parseFloat(this.shadowRoot.getElementById("slider").step);
         // })
+    }
+
+    configureInputs() {
+        this.refs.get("settings").configureInputs(this.model.getSettings("setting"))
+        this.refs.get("settings").configureNavInputs(this.model.getSettings("navsetting"))
+        this.refs.get("settings").configureManipInputs(this.model.getSettings("manipsetting"))
+    }
+
+    updateNavDisplay() {
+        let displayMode = this.model.getSetting("displayMode", "navsetting")
+        let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+        if (currMode === "nav") {
+            if (displayMode === "predictive-display") {
+                this.setMode('clickNav')
+            } else {
+                this.setMode('nav')
+            }
+        } else {
+            this.setMode('manip')
+        }
     }
 
     configureVelocityControls(namespace) {
