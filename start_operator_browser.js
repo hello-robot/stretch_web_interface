@@ -8,15 +8,19 @@
 const puppeteer = require('puppeteer');
 const logId = 'start_robot_browser.js';
 
+let robotHostname = "localhost";
+if (process.argv.length > 2) {
+	robotHostname = process.argv[2]
+}
+
 (async () => {
     try {
-	const type_delay = 1;
 
 	const navigation_timeout_ms = 30000; //30 seconds (default is 30 seconds)
 	const min_idle_time = 1000;
 	var try_again = false;
 	var num_tries = 0;
-	var max_tries = -1; // -1 means try forever
+	var max_tries = 50; // -1 means try forever
 
 	///////////////////////////////////////////////
 	// sleep code from
@@ -42,7 +46,7 @@ const logId = 'start_robot_browser.js';
 	do {
             console.log(logId + ': trying to reach login page...');
             num_tries++; 
-            await page.goto('https://localhost/login',
+            await page.goto(`https://${robotHostname}/login`,
                             {timeout:navigation_timeout_ms
                             }
 			   ).then(
@@ -60,15 +64,16 @@ const logId = 'start_robot_browser.js';
 				   console.log(logId + ': ===================');
 
                                }).catch(
-				   function(error) {
+				   async function(error) {
                                        console.log(logId + ': ===================');
                                        console.log(logId + ': promise problem with login page goto attempt');
                                        console.log(error);
                                        try_again = true;
                                        console.log(logId + ': so going to try again...');
                                        console.log(logId + ': ===================');
+									   await sleep(min_idle_time)
 				   });
-            if ((max_tries != -1) && (num_tries >= max_tries)) {
+            if ((max_tries !== -1) && (num_tries >= max_tries)) {
 		try_again = false;
             }
 	} while (try_again);
