@@ -315,7 +315,7 @@ export class OperatorComponent extends PageComponent {
         // Do not scale velocity for head tilt/pan
         if (jointName in this.SETTING_NAMESPACES) {
             let namespace = this.SETTING_NAMESPACES[jointName]
-            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+            scale = parseFloat(this.model.getSetting("velocityScale"))
         }
         if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
@@ -330,7 +330,7 @@ export class OperatorComponent extends PageComponent {
         // Do not scale velocity for head tilt/pan
         if (jointName in this.SETTING_NAMESPACES) {
             let namespace = this.SETTING_NAMESPACES[jointName]
-            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+            scale = parseFloat(this.model.getSetting("velocityScale"))
         }
         if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale

@@ -27,34 +27,6 @@ const template = `
             </div>
         </div>
     </fieldset>
-
-    <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
-        <legend class="col-form-label col-sm-2">Velocity Scale</legend>
-        <div class="col-sm-10">
-            <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
-                <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="1" autocomplete="off" checked>
-                <label class="btn btn-sm btn-outline-secondary" for="speed-1">1x</label>
-                <input type="radio" name="velocityScale" id="speed-2" class="btn-check" value="2" autocomplete="off">
-                <label class="btn btn-sm btn-outline-secondary" for="speed-2">2x</label>
-                <input type="radio" name="velocityScale" id="speed-3" class="btn-check" value="3" autocomplete="off">
-                <label class="btn btn-sm btn-outline-secondary" for="speed-3">3x</label>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="row mb-3" id="settings-step-size" data-ref="settings-step-size">
-        <legend class="col-form-label col-sm-2 pt-0">Step Size</legend>
-        <div class="col-sm-10">
-            <div class="btn-group step-size-toggle" role="group" data-ref="step-size-toggle">
-                <input type="radio" name="continuousVelocityStepSize" id="speed-4" class="btn-check" value="0.05" autocomplete="off" checked>
-                <label class="btn btn-sm btn-outline-secondary" for="speed-4">Small</label>
-                <input type="radio" name="continuousVelocityStepSize" id="speed-5" class="btn-check" value="0.10" autocomplete="off">
-                <label class="btn btn-sm btn-outline-secondary" for="speed-5">Medium</label>
-                <input type="radio" name="continuousVelocityStepSize" id="speed-6" class="btn-check" value="0.15" autocomplete="off">
-                <label class="btn btn-sm btn-outline-secondary" for="speed-6">Large</label>
-            </div>
-        </div>
-    </fieldset>
 </div>
 `;
 
@@ -63,8 +35,6 @@ export class ManipulationSettings extends BaseComponent {
         super(template, false);
         this.manipTabContainer = this.refs.get("manip-tab-container")
         // Discrete settings are the default
-        this.hideContinuousSettings();
-        this.hideStartStopMode();
 
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
@@ -76,7 +46,6 @@ export class ManipulationSettings extends BaseComponent {
     configureInputs(values) {
         for (let [key, value] of values) {
             let inputForSetting = this.manipTabContainer.querySelector(`input[name='${key}']`)
-
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null
             } else if (inputForSetting.type === "radio") {
@@ -90,6 +59,7 @@ export class ManipulationSettings extends BaseComponent {
             event.initEvent('change', true, false);
             inputForSetting.dispatchEvent(event);
         }
+
         this.configureSettingDisplay();
     }
 
@@ -109,17 +79,6 @@ export class ManipulationSettings extends BaseComponent {
     showStartStopMode() { 
         this.refs.get("continuous-mode-field").style.display = null;
     }
-    
-    hideContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = null;
-        this.refs.get("settings-step-size").style.display = "none";
-    }
-
-    showContinuousSettings() {
-        this.refs.get("settings-vscale").style.display = "none";
-        this.refs.get("settings-step-size").style.display = null;
-    }
-
 }
 
 Component('manipulation-settings', ManipulationSettings, '/operator/css/manipulationsettings.css')

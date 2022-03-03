@@ -6,19 +6,17 @@ const DEFAULTS = {
         "showPermanentIconsOverhead": true,
         "showPermanentIconsPantilt": true,
         "velocityControlMode": "discrete",
+        "velocityScale": 2,
+        "continuousVelocityStepSize": 0.15,
     },
     "navsetting" : {
         "displayMode": "action-overlay",
         "actionMode": "incremental",
         "startStopMode": "click-click",
-        "velocityScale": 2,
-        "continuousVelocityStepSize": 0.15,
     },
     "manipsetting": {
         "actionMode": "incremental",
         "startStopMode": "click-click",
-        "velocityScale": 2,
-        "continuousVelocityStepSize": 0.15,
     },
     // Set a flag so that we know whether a model was initialized from defaults
     "reserved": {

@@ -67,6 +67,34 @@ const template = `
                     </div>
                 </fieldset>
                 
+                <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
+                    <legend class="col-form-label col-sm-2">Velocity Scale</legend>
+                    <div class="col-sm-10">
+                        <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
+                            <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="1" autocomplete="off" checked>
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-1">1x</label>
+                            <input type="radio" name="velocityScale" id="speed-2" class="btn-check" value="2" autocomplete="off">
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-2">2x</label>
+                            <input type="radio" name="velocityScale" id="speed-3" class="btn-check" value="3" autocomplete="off">
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-3">3x</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="row mb-3" id="settings-step-size" data-ref="settings-step-size">
+                    <legend class="col-form-label col-sm-2 pt-0">Step Size</legend>
+                    <div class="col-sm-10">
+                        <div class="btn-group step-size-toggle" role="group" data-ref="step-size-toggle">
+                            <input type="radio" name="continuousVelocityStepSize" id="speed-4" class="btn-check" value="0.05" autocomplete="off" checked>
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-4">Small</label>
+                            <input type="radio" name="continuousVelocityStepSize" id="speed-5" class="btn-check" value="0.10" autocomplete="off">
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-5">Medium</label>
+                            <input type="radio" name="continuousVelocityStepSize" id="speed-6" class="btn-check" value="0.15" autocomplete="off">
+                            <label class="btn btn-sm btn-outline-secondary" for="speed-6">Large</label>
+                        </div>
+                    </div>
+                </fieldset>
+
                 <nav>
                     <div class="nav nav-tabs" id="settingsTab" role="tablist" data-ref="nav-tabs">
                         <button class="nav-link active" id="navigation-tab" data-bs-toggle="tab" data-bs-target="#navigation" type="button" role="tab" aria-controls="navigation" aria-selected="true">Robot Base</button>
@@ -123,6 +151,7 @@ export class SettingsModal extends BaseComponent {
         this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
         this.navTabContainer = this.refs.get("nav-tab-settings")
         this.manipTabContainer = this.refs.get("manip-tab-settings")
+        this.hideContinuousSettings()
 
         // Tell anyone who cares that the user has changed a setting
         this.refs.get("modal-container").addEventListener("change", event => {
@@ -208,6 +237,17 @@ export class SettingsModal extends BaseComponent {
     showModal() {
         this.modal.show();
     }
+
+    hideContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = null;
+        this.refs.get("settings-step-size").style.display = "none";
+    }
+
+    showContinuousSettings() {
+        this.refs.get("settings-vscale").style.display = "none";
+        this.refs.get("settings-step-size").style.display = null;
+    }
+
 }
 
 Component('settings-modal', SettingsModal, '/operator/css/settings.css')
