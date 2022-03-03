@@ -649,7 +649,7 @@ export class OperatorComponent extends PageComponent {
                         this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction.affirm()
-                        }, 100)
+                        }, 150)
 
                         // When mouse is up, delete trajectory
                         this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
@@ -673,7 +673,21 @@ export class OperatorComponent extends PageComponent {
                             } else {
                                 this.activeVelocityAction.affirm()
                             }
-                        }, 100)
+                        }, 150)
+                    }
+                }
+            }
+        })
+
+        this.addEventListener("mousemove", event => {
+            if (this.activeVelocityAction) {
+                let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                let navDisplayMode = this.model.getSetting("displayMode", "navsetting")
+                if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
+                    let composedTarget = event.composedPath()[0]
+                    let regionName = composedTarget.dataset.name
+                    if (regionName != this.activeVelocityRegion) {
+                        this.stopCurrentAction()
                     }
                 }
             }
