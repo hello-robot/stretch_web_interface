@@ -55,6 +55,18 @@ const template = `
                     </div>
                 </div>
                 
+                <fieldset class="row mb-3" data-ref="settings-vmode">
+                   <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
+                    <div class="col-sm-10">
+                        <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">
+                            <input type="radio" id="discrete" class="btn-check" name="velocityControlMode" autocomplete="off" value="discrete" checked />
+                            <label class="btn btn-secondary btn-sm" for="discrete">Discrete</label>
+                            <input type="radio" id="continuous" class="btn-check" name="velocityControlMode" autocomplete="off" value="continuous"/>
+                            <label class="btn btn-secondary btn-sm" for="continuous">Continuous</label>
+                        </div>
+                    </div>
+                </fieldset>
+                
                 <nav>
                     <div class="nav nav-tabs" id="settingsTab" role="tablist" data-ref="nav-tabs">
                         <button class="nav-link active" id="navigation-tab" data-bs-toggle="tab" data-bs-target="#navigation" type="button" role="tab" aria-controls="navigation" aria-selected="true">Robot Base</button>
@@ -87,6 +99,11 @@ const template = `
                     <div class="col-sm-2">
                         <button type="button" class="btn btn-primary btn" data-ref="btn-load-settings">
                             Load
+                        </button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn" data-ref="btn-download-settings">
+                            Download
                         </button>
                     </div>
                 </div>

@@ -56,22 +56,30 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName, direction, increment) {
-        this.robotChannel({type: "incrementalMove", jointName: jointName, increment: direction * increment})
+        let cmd = {type: "incrementalMove", jointName: jointName, increment: direction * increment}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd);
     }
 
     velocityMove(jointName, velocity) {
-        this.robotChannel({type: "velocityMove", jointName: jointName, velocity: velocity})
+        let cmd = {type: "velocityMove", jointName: jointName, velocity: velocity}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd)
         return {
             "affirm": () => {
                 this.robotChannel({type: "affirm"})
+                this.emitCommandEvent({type: "affirm"})
             }, "stop": () => {
                 this.robotChannel({type: "stop"})
+                this.emitCommandEvent({type: "stop"})
             }
         }
     }
 
     setNavGoal(goal) {
-        this.robotChannel({type: "navGoal", goal: goal})
+        let cmd = {type: "navGoal", goal: goal}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd)
     }
 
     emitCommandEvent(cmd) {
@@ -85,19 +93,25 @@ export class RemoteRobot {
             ang_vel: ang_vel
         };
         this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
         return {
             "stop": () => {
                 this.robotChannel({type: "stop"})
+                this.emitCommandEvent({type: "stop"})
             }
         }
     }
 
-    rotateCameraView(mode) {
-        this.robotChannel({type: "rotateCameraView", mode: mode});
+    rotateCameraView() {
+        let cmd = {type: "rotateCameraView"}
+        this.robotChannel(cmd);
+        // this.emitCommandEvent(cmd);
     }
 
-    resetCameraView(mode) {
-        this.robotChannel({type: "resetCameraView", mode: mode});
+    resetCameraView() {
+        let cmd = {type: "resetCameraView"}
+        this.robotChannel(cmd);
+        // this.emitCommandEvent(cmd);
     }
 }
 

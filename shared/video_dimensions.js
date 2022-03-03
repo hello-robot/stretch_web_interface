@@ -1,5 +1,5 @@
-export const realsenseDimensions = {w: 640, h: 360, fps: 15.0}
-export const wideVideoDimensions = {w: 1024, h: 768, fps: 20.0}
+export const realsenseDimensions = {w: 640, h: 360, fps: 6.0}
+export const wideVideoDimensions = {w: 1024, h: 768, fps: 6.0}
 export const gripperCrop = computeCrop(wideVideoDimensions, 0.8, 1.0)
 export const overheadNavCrop = ((x, y) => {
         return {

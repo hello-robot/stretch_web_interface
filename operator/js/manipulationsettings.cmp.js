@@ -28,18 +28,6 @@ const template = `
         </div>
     </fieldset>
 
-    <fieldset class="row mb-3">
-       <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
-        <div class="col-sm-10">
-            <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">
-                <input type="radio" id="discrete" class="btn-check" name="velocityControlMode" autocomplete="off" value="discrete" checked />
-                <label class="btn btn-secondary btn-sm" for="discrete">Discrete</label>
-                <input type="radio" id="continuous" class="btn-check" name="velocityControlMode" autocomplete="off" value="continuous"/>
-                <label class="btn btn-secondary btn-sm" for="continuous">Continuous</label>
-            </div>
-        </div>
-    </fieldset>
-
     <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
         <legend class="col-form-label col-sm-2">Velocity Scale</legend>
         <div class="col-sm-10">
@@ -78,15 +66,6 @@ export class ManipulationSettings extends BaseComponent {
         this.hideContinuousSettings();
         this.hideStartStopMode();
 
-        // this.refs.get("vmode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
-        //     option.addEventListener("click", () => {
-        //         if (option.value === "discrete") {
-        //             this.hideContinuousSettings();
-        //         } else {
-        //             this.showContinuousSettings();
-        //         }
-        //     })
-        // })
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.configureSettingDisplay();
@@ -97,11 +76,6 @@ export class ManipulationSettings extends BaseComponent {
     configureInputs(values) {
         for (let [key, value] of values) {
             let inputForSetting = this.manipTabContainer.querySelector(`input[name='${key}']`)
-            // if (key === "velocityControlMode" && value === "discrete") {
-            //     this.hideContinuousSettings()
-            // } else if (key === "velocityControlMode" && value === "continuous") {
-            //     this.showContinuousSettings()
-            // }
 
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null

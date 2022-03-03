@@ -49,6 +49,7 @@ robot.connect().then(() => {
     } else {
         console.log('no audio output found or selected');
     }
+
     if (audioInId) {
         let constraints = {
             audio: { deviceId: { exact: audioInId } },

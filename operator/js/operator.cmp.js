@@ -29,7 +29,7 @@ const template = `
     </div>
     </div>
     
-    <command-recorder data-ref="recorder" disabled></command-recorder>
+    <command-recorder data-ref="recorder"></command-recorder>
 
     <div class="d-flex flex-fill justify-content-end">
         <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
@@ -130,8 +130,6 @@ export class OperatorComponent extends PageComponent {
     }
 
     SETTING_NAMESPACES = {
-        "joint_head_tilt": "manipsetting",
-        "joint_head_pan": "manipsetting",
         "wrist_extension": "manipsetting",
         "joint_lift": "manipsetting",
         "joint_wrist_yaw": "manipsetting",
@@ -184,6 +182,12 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.updateNavDisplay()
+                this.dispatchCommand({type:"mode-toggle", mode:option.value})
+            })
+        })
+        this.refs.get("velocity-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+            option.addEventListener("click", () => {
+                this.dispatchCommand({type:"velocity-toggle", mode:option.value})
             })
         })
         this.connection.availableRobots()
@@ -207,6 +211,25 @@ export class OperatorComponent extends PageComponent {
             this.configureInputs();
             this.updateNavDisplay();
         })
+        this.refs.get("settings").refs.get("btn-download-settings").addEventListener("click", event => {
+            var element = document.createElement('a');
+            var settings = Object.fromEntries(this.model.getSettings('setting'));
+            var nav_settings = Object.fromEntries(this.model.getSettings('navsetting'))
+            var manip_settings = Object.fromEntries(this.model.getSettings('manipsetting'))
+            var data = "text/json;charset=utf-8," + 
+                encodeURIComponent(JSON.stringify([settings, nav_settings, manip_settings], null, 4));
+            element.setAttribute('href','data:' + data);
+
+            // TODO [vinitha]: find better way for make unique file name
+            var d = new Date();
+            var pst_date = d.toLocaleString("en-US", {
+                timeZone: "America/Los_Angeles"
+            })
+            element.setAttribute('download','settings-' + pst_date + '.json');
+            document.body.appendChild(element);
+            element.click()
+            document.body.removeChild(element);
+        })
 
         this.model.reset()
         this.configureInputs()
@@ -222,8 +245,14 @@ export class OperatorComponent extends PageComponent {
                     this.configureVelocityControls(change.namespace)
                 } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                    if (change.value == "predictive-display" && currMode == 'nav') {
-                        this.setMode('clickNav')
+                    if (currMode === 'nav') {
+                        if (change.value == "predictive-display") {
+                            this.setMode('clickNav')
+                        } else {
+                            this.setMode(currMode)
+                        }
+                    } else {
+                        this.setMode(currMode)
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -282,9 +311,13 @@ export class OperatorComponent extends PageComponent {
     }
 
     getVelocityForJoint(jointName) {
-        let namespace = this.SETTING_NAMESPACES[jointName]
-        let scale = parseInt(this.model.getSetting("velocityScale", namespace))
-        if (this.model.getSetting("velocityControlMode", namespace) === "continuous") {
+        let scale = 1;
+        // Do not scale velocity for head tilt/pan
+        if (jointName in this.SETTING_NAMESPACES) {
+            let namespace = this.SETTING_NAMESPACES[jointName]
+            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+        }
+        if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
@@ -293,9 +326,13 @@ export class OperatorComponent extends PageComponent {
     }
 
     getIncrementForJoint(jointName) {
-        let namespace = this.SETTING_NAMESPACES[jointName]
-        let scale = parseFloat(this.model.getSetting("velocityScale", namespace))
-        if (this.model.getSetting("velocityControlMode", namespace) === "continuous") {
+        let scale = 1;
+        // Do not scale velocity for head tilt/pan
+        if (jointName in this.SETTING_NAMESPACES) {
+            let namespace = this.SETTING_NAMESPACES[jointName]
+            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+        }
+        if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = parseInt(this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value)
@@ -328,6 +365,10 @@ export class OperatorComponent extends PageComponent {
             console.error('Invalid mode: ' + modeId);
             console.trace();
         }
+    }
+
+    dispatchCommand(cmd) {
+        window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
     disconnectFromRobot() {

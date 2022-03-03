@@ -42,18 +42,6 @@ const template = `
         </div>
     </fieldset>
 
-    <fieldset class="row mb-3" data-ref="settings-vmode">
-       <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
-        <div class="col-sm-10">
-            <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">
-                <input type="radio" id="discrete" class="btn-check" name="velocityControlMode" autocomplete="off" value="discrete" checked />
-                <label class="btn btn-secondary btn-sm" for="discrete">Discrete</label>
-                <input type="radio" id="continuous" class="btn-check" name="velocityControlMode" autocomplete="off" value="continuous"/>
-                <label class="btn btn-secondary btn-sm" for="continuous">Continuous</label>
-            </div>
-        </div>
-    </fieldset>
-
     <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
         <legend class="col-form-label col-sm-2">Velocity Scale</legend>
         <div class="col-sm-10">
@@ -91,15 +79,6 @@ export class NavigationSettings extends BaseComponent {
         // Discrete settings are the default
         this.hideContinuousSettings();
 
-        // this.refs.get("vmode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
-        //     option.addEventListener("click", () => {
-        //         if (option.value === "discrete") {
-        //             this.hideContinuousSettings();
-        //         } else {
-        //             this.showContinuousSettings();
-        //         }
-        //     })
-        // })
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.configureSettingDisplay();
@@ -113,14 +92,8 @@ export class NavigationSettings extends BaseComponent {
     }
 
     configureInputs(values) {
-        console.log(values)
         for (let [key, value] of values) {
             let inputForSetting = this.navTabContainer.querySelector(`input[name='${key}']`)
-            // if (key === "velocityControlMode" && value === "discrete") {
-            //     this.hideContinuousSettings()
-            // } else if (key === "velocityControlMode" && value === "continuous") {
-            //     this.showContinuousSettings()
-            // }
 
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null
@@ -180,12 +153,10 @@ export class NavigationSettings extends BaseComponent {
     
     hideVelocitySettings() {
         this.refs.get("settings-vscale").style.display = "none";
-        this.refs.get("settings-vmode").style.display = "none";
     }
 
     showVelocitySettings() {
         this.refs.get("settings-vscale").style.display = null;
-        this.refs.get("settings-vmode").style.display = null;
     }
 
     hideContinuousSettings() {
