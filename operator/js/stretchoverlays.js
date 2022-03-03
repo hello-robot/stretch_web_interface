@@ -150,41 +150,41 @@ export class OverheadNavigationOverlay extends OverlaySVG {
         let mobile_base_height = h / 10.0;
 
         // small rectangle around the mobile base
-        let baseRect = makeSquare((w / 2.0) - (mobile_base_width / 2.0),
-            (2.0 * h / 3.0) - (mobile_base_height / 2.0),
+        let baseRect = makeSquare((w / 2.0) - (mobile_base_width/1.5),
+            (2.0 * h / 3.0) - (mobile_base_height),
             mobile_base_width, mobile_base_height);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
         this.createRegion("translate_mobile_base_pos", {
             label: 'drive forward',
-            poly: [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul],
+            poly: [bgRect.ul, bgRect.ur, baseRect.ur, baseRect.ul],
             iconImage: icon("arrow_up")
         });
         this.createRegion("translate_mobile_base_neg", {
             label: 'drive back',
-            poly: [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],
+            poly: [bgRect.ll, bgRect.lr, baseRect.lr, baseRect.ll],
             iconImage: icon("arrow_down")
         });
         this.createRegion("rotate_mobile_base_pos", {
             label: 'turn left',
-            poly: [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
+            poly: [bgRect.ul, baseRect.ul, baseRect.ll, bgRect.ll],
             iconImage: icon("turn_left")
         });
         this.createRegion("rotate_mobile_base_neg", {
             label: 'turn right',
-            poly: [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
+            poly: [bgRect.ur, baseRect.ur, baseRect.lr, bgRect.lr],
             iconImage: icon("turn_right")
         });
-        this.createRegion("wrist_extension_neg", {
-            label: 'retract arm',
-            poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
-            iconImage: icon("arrow_left")
-        });
-        this.createRegion("wrist_extension_pos", {
-            label: 'extend arm',
-            poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
-            iconImage: icon("arrow_right")
-        });
+        // this.createRegion("wrist_extension_neg", {
+        //     label: 'retract arm',
+        //     poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
+        //     iconImage: icon("arrow_left")
+        // });
+        // this.createRegion("wrist_extension_pos", {
+        //     label: 'extend arm',
+        //     poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
+        //     iconImage: icon("arrow_right")
+        // });
 
     }
 }
