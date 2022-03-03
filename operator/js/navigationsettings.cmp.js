@@ -36,8 +36,6 @@ const template = `
                 <label class="btn btn-secondary btn-sm" for="control-click-click">Click-Click</label>
                 <input type="radio" id="control-press-release" class="btn-check" name="startStopMode" autocomplete="off" value="press-release"/>
                 <label class="btn btn-secondary btn-sm" for="control-press-release">Press-Release</label>
-                <input type="radio" id="control-press-drag" class="btn-check" name="startStopMode" autocomplete="off" value="press-drag"/>
-                <label class="btn btn-secondary btn-sm" id="press-drag-label" for="control-press-drag">Press-Drag</label>
             </div>
         </div>
     </fieldset>
@@ -115,13 +113,7 @@ export class NavigationSettings extends BaseComponent {
         let actionMode = this.refs.get("control-mode-toggle").querySelector("input[type=radio]:checked").value
         let displayMode = this.refs.get("control-display-mode-toggle").querySelector("input[type=radio]:checked").value
         if (actionMode === "control-continuous") {
-            if (displayMode === "predictive-display") {
-                this.showStartStopMode();
-                this.showPressDragButton();
-            } else {
-                this.showStartStopMode();
-                this.hidePressDragButton();
-            }
+            this.showStartStopMode();
         } else {
             this.hideStartStopMode()
         }
@@ -139,16 +131,6 @@ export class NavigationSettings extends BaseComponent {
 
     showStartStopMode() { 
         this.refs.get("continuous-mode-field").style.display = null;
-    }
-
-    hidePressDragButton() {
-        this.refs.get("continuous-mode-toggle").querySelector(`input[value='press-drag']`).style.display = "none";
-        this.refs.get("continuous-mode-toggle").querySelector(`label[id="press-drag-label`).style.display = "none";
-    }
-
-    showPressDragButton() {
-        this.refs.get("continuous-mode-toggle").querySelector(`input[value='press-drag']`).style.display = null;
-        this.refs.get("continuous-mode-toggle").querySelector(`label[id="press-drag-label`).style.display = null;
     }
     
     hideVelocitySettings() {

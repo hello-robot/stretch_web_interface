@@ -568,15 +568,15 @@ export class OperatorComponent extends PageComponent {
         var mouseMoveX = 0;
         var mouseMoveY = 0;
         // Event handlers
-        var onMouseMove = (event) => {
+        var updateAction = (event) => {
             mouseMoveX = event.offsetX
             mouseMoveY = event.offsetY
             this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
         } 
-        var onMouseUp = (event) => {
+        var stopAction = (event) => {
             this.stopCurrentAction();
             overheadClickNavOverlay.removeTraj();
-            this.refs.get("video-control-container").removeEventListener('mousemove', onMouseMove);
+            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
         };
 
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
@@ -586,44 +586,30 @@ export class OperatorComponent extends PageComponent {
             mouseMoveY = y;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', onMouseUp);
-            this.refs.get("video-control-container").removeEventListener('mousemove', onMouseMove);
+            this.refs.get("video-control-container").removeEventListener('mouseup', stopAction);
+            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
             
             let namespace = 'navsetting'
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
-                    if (this.model.getSetting("startStopMode", namespace) === "press-drag") {
-                        // Update trajectory when mouse moves
-                        this.refs.get("video-control-container").addEventListener("mousemove", onMouseMove);
-
-                        // Execute trajectory as long as mouse is held down using last position of cursor 
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            overheadClickNavOverlay.removeTraj();
-                            this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
-                        }, 100);
-
+                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
-                    
-                    } else if (this.model.getSetting("startStopMode", namespace) == "press-release") {
-                        // Keep executing trajectory while mouse button is pressed
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            this.executeTraj(x, y, overheadClickNavOverlay)
-                        }, 1)
-
-                        // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", onMouseUp);
-                    } else {
-                        if (this.activeVelocityAction) {
-                            this.stopCurrentAction();
-                            overheadClickNavOverlay.removeTraj();
-                        } else {
-                            this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.executeTraj(x, y, overheadClickNavOverlay)
-                            }, 1);
-                        }
+                        this.refs.get("video-control-container").addEventListener("mouseup", stopAction);
+                    } else if (this.activeVelocityAction) {
+                        stopAction(event);
+                        return
                     }
+
+                    // Update trajectory when mouse moves
+                    this.refs.get("video-control-container").addEventListener("mousemove", updateAction);
+
+                    // Execute trajectory as long as mouse is held down using last position of cursor 
+                    this.velocityExecutionHeartbeat = window.setInterval(() => {
+                        overheadClickNavOverlay.removeTraj();
+                        this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                    }, 100);
+
                 } else { 
                     // action mode is incremental/step actions
                     // execute trajectory once
