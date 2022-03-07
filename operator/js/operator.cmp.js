@@ -201,11 +201,11 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("settings").refs.get("btn-save-settings").addEventListener("click", event => {
             this.model.saveSettings();
         })
-        this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
-            this.model.loadSavedSettings();
-            this.configureInputs();
-            this.updateNavDisplay()
-        })
+        // this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
+        //     this.model.loadSavedSettings();
+        //     this.configureInputs();
+        //     this.updateNavDisplay()
+        // })
         this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
             this.model.reset();
             this.configureInputs();
@@ -248,6 +248,7 @@ export class OperatorComponent extends PageComponent {
                     if (currMode === 'nav') {
                         if (change.value == "predictive-display") {
                             this.setMode('clickNav')
+                            this.robot.setRobotNavMode()
                         } else {
                             this.setMode(currMode)
                         }

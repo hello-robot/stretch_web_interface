@@ -102,6 +102,11 @@ export class RemoteRobot {
         }
     }
 
+    setRobotNavMode() {
+        let cmd = {type: "setRobotNavMode"}
+        this.robotChannel(cmd);
+    }
+    
     rotateCameraView() {
         let cmd = {type: "rotateCameraView"}
         this.robotChannel(cmd);

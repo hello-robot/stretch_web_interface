@@ -187,6 +187,11 @@ export class Robot {
                 if (this.jointStateCallback) this.jointStateCallback(message)
             });
 
+            this.setNavMode = new ROSLIB.Service({
+                ros: ros,
+                name: '/set_navigation_mode',
+                serviceType: '/switch_to_navigation_mode'
+            });
             this.cmdVel = new ROSLIB.Topic({
                 ros : ros,
                 name : '/stretch/cmd_vel',
@@ -394,6 +399,13 @@ export class Robot {
         positions[1][jointName] = JOINT_LIMITS[jointName][Math.sign(velocity) === -1 ? 0 : 1]
         makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
         this.affirmExecution()
+    }
+
+    setNavMode() {
+        var request = new ROSLIB.ServiceRequest({});
+        this.setNavMode.callService(request, function(result) {
+            console.log("Set stretch to navigation mode");
+        })
     }
 
     executeClickMove(lin_vel, ang_vel) {

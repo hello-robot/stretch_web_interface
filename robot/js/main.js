@@ -242,6 +242,10 @@ function handleMessage(message) {
             overheadStream.rotate = false;
             overheadStream.start();
             break;
+        case "setRobotNavMode":
+            robot.setNavMode();
+        case "setRobotPositionMode":
+            robot.setPositionMode();
         default:
             console.error("Unknown message type received", message.type)
     }
