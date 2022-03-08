@@ -404,7 +404,7 @@ export class Robot {
         positions[0][jointName] = getJointValue(this.jointState, jointName)
         positions[1][jointName] = JOINT_LIMITS[jointName][Math.sign(velocity) === -1 ? 0 : 1]
         this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient)
-	this.velocityGoal.send()
+	    this.velocityGoal.send()
         this.affirmExecution()
     }
 
@@ -472,11 +472,9 @@ export class Robot {
             this.currentTrajectoryKillInterval = null
         }
         this.moveBaseClient.cancel()
-        console.log("stop execution")
-	if (this.velocityGoal) {
+	    if (this.velocityGoal) {
             this.velocityGoal.cancel()
             this.velocityGoal = null
-	    console.log("cancelling goal")
         }
     }
 

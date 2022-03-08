@@ -99,8 +99,8 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
         return {
             "stop": () => {
-                this.robotChannel({type: "stop"})
-                this.emitCommandEvent({type: "stop"})
+                this.robotChannel({type: "stopClickMove"})
+                this.emitCommandEvent({type: "stopClickMove"})
             }
         }
     }

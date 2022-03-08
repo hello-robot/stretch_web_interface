@@ -662,11 +662,10 @@ export class OperatorComponent extends PageComponent {
                             this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
                         } else {
                             this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            this.velocityExecutionHeartbeat = window.setInterval(() => {
+                                this.activeVelocityAction.affirm()
+                            }, 150)
                         }
-
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            this.activeVelocityAction.affirm()
-                        }, 150)
 
                         // When mouse is up, delete trajectory
                         this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
