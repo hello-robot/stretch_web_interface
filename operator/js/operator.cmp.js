@@ -245,9 +245,9 @@ export class OperatorComponent extends PageComponent {
                     this.configureVelocityControls(change.namespace)
                 } else if (change.key == "actionMode") {
                     if (change.value == "control-continuous") {
-                        this.setRobotNavMode()
+                        this.robot.setRobotNavMode()
                     } else {
-                        this.setRobotPosMode()
+                        this.robot.setRobotPosMode()
                     }
                 } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
