@@ -625,10 +625,12 @@ export class OperatorComponent extends PageComponent {
             }   
         });
 
-	var jointName = null;
+	    var jointName = null;
         var onOverlayMouseUp = (event) => {
             this.stopCurrentAction();
-	    this.robot.velocityMove(jointName, 0);
+            if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
+	           this.robot.velocityMove(jointName, 0);
+            }
         };
 
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
@@ -654,7 +656,14 @@ export class OperatorComponent extends PageComponent {
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
-                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        if (jointName == "translate_mobile_base") {
+                            this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
+                        } else if (jointName == "rotate_mobile_base") {
+                            this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
+                        } else {
+                            this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        }
+
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction.affirm()
                         }, 150)
@@ -666,14 +675,22 @@ export class OperatorComponent extends PageComponent {
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
                         if (lastActiveRegion === regionName && this.activeVelocityAction) {
                             this.stopCurrentAction()
-		            this.robot.velocityMove(jointName, 0);
+		                    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
+                                this.robot.velocityMove(jointName, 0);
+                            }
                             return;
                         }
 
                         // If this is a new joint, start a new action!
                         this.stopCurrentAction()
                         this.activeVelocityRegion = regionName
-                        this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        if (jointName == "translate_mobile_base") {
+                            this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
+                        } else if (jointName == "rotate_mobile_base") {
+                            this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
+                        } else {
+                            this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                        }
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             if (!this.activeVelocityAction) {
                                 // clean up
@@ -695,11 +712,13 @@ export class OperatorComponent extends PageComponent {
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
                     let regionName = composedTarget.dataset.name
-		    let jointName = this.activeVelocityRegion.substring(0, this.activeVelocityRegion.length - 4)
+		            let jointName = this.activeVelocityRegion.substring(0, this.activeVelocityRegion.length - 4)
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
-                    	this.robot.velocityMove(jointName, 0)
-		    }
+                    	if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
+                            this.robot.velocityMove(jointName, 0);
+                        }
+		            }
                 }
             }
         })
