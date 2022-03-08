@@ -244,8 +244,10 @@ function handleMessage(message) {
             break;
         case "setRobotNavMode":
             robot.setRobotNavMode();
+            break;
         case "setRobotPosMode":
             robot.setRobotPosMode();
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }

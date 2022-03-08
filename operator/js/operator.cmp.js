@@ -465,7 +465,7 @@ export class OperatorComponent extends PageComponent {
         } 
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = this.robot.clickMove(magnitude, -(heading - Math.PI/2)*0.4);
+            this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
             overlay.drawArc(px, py, Math.PI/2, heading);
         }
     }

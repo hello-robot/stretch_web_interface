@@ -21,6 +21,7 @@ export class Robot {
     moveBaseClient
     jointStateTopic
     cmdVel
+    velocityGoal 
 
     linkGripperFingerLeftTF
     linkHeadTiltTF
@@ -108,7 +109,7 @@ export class Robot {
                 this.gripperDeltaAperture(0.1);
             },
             "close": (vsize, vscalesize) => {
-                this.gripperDeltaAperture(-0.3);
+                this.gripperDeltaAperture(-0.1);
             },
             "configure_camera": configuration => {
 
@@ -402,7 +403,7 @@ export class Robot {
         let positions = [{}, {}]
         positions[0][jointName] = getJointValue(this.jointState, jointName)
         positions[1][jointName] = JOINT_LIMITS[jointName][Math.sign(velocity) === -1 ? 0 : 1]
-        makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
+        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
         this.affirmExecution()
     }
 
@@ -470,6 +471,10 @@ export class Robot {
             this.currentTrajectoryKillInterval = null
         }
         this.moveBaseClient.cancel()
+        if (this.velocityGoal) {
+            this.velocityGoal.cancel()
+            this.velocityGoal = null
+        }
     }
 
     executeNavGoal(goal) {
