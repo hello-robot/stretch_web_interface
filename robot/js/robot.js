@@ -105,10 +105,10 @@ export class Robot {
                 this.gripperGoalAperture(goalWidthCm);
             },
             "open": (vsize, vscalesize) => {
-                this.gripperDeltaAperture(1.0);
+                this.gripperDeltaAperture(0.1);
             },
             "close": (vsize, vscalesize) => {
-                this.gripperDeltaAperture(-1.0);
+                this.gripperDeltaAperture(-0.3);
             },
             "configure_camera": configuration => {
 
