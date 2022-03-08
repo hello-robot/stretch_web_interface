@@ -251,11 +251,11 @@ export class OperatorComponent extends PageComponent {
                             this.robot.setRobotNavMode()
                         } else {
                             this.setMode(currMode)
-                            this.robot.setRobotPoseMode()
+                            this.robot.setRobotPosMode()
                         }
                     } else {
                         this.setMode(currMode)
-                        this.robot.setRobotPoseMode()
+                        this.robot.setRobotPosMode()
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -295,10 +295,11 @@ export class OperatorComponent extends PageComponent {
                 this.robot.setRobotNavMode()
             } else {
                 this.setMode('nav')
-                this.robot.setRobotPoseMode()
+                this.robot.setRobotPosMode()
             }
         } else {
             this.setMode('manip')
+            this.robot.setRobotPosMode()
         }
     }
 
