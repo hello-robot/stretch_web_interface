@@ -1,8 +1,8 @@
 export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base"];
 
 const JOINT_LIMITS = {
-    "wrist_extension": [0, .52],
-    "joint_wrist_yaw": [-1.75, 4],
+    "wrist_extension": [0, .51],
+    "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
     "rotate_mobile_base": [-3.14, 3.14]
@@ -21,7 +21,7 @@ export class Robot {
     moveBaseClient
     jointStateTopic
     cmdVel
-    velocityGoal 
+    velocityGoal = null;
 
     linkGripperFingerLeftTF
     linkHeadTiltTF
@@ -403,7 +403,8 @@ export class Robot {
         let positions = [{}, {}]
         positions[0][jointName] = getJointValue(this.jointState, jointName)
         positions[1][jointName] = JOINT_LIMITS[jointName][Math.sign(velocity) === -1 ? 0 : 1]
-        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
+        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient)
+	this.velocityGoal.send()
         this.affirmExecution()
     }
 
@@ -471,9 +472,11 @@ export class Robot {
             this.currentTrajectoryKillInterval = null
         }
         this.moveBaseClient.cancel()
-        if (this.velocityGoal) {
+        console.log("stop execution")
+	if (this.velocityGoal) {
             this.velocityGoal.cancel()
             this.velocityGoal = null
+	    console.log("cancelling goal")
         }
     }
 
@@ -574,6 +577,7 @@ function makeVelocityGoal(positions, velocities, trajectoryClient) {
         console.log('Final Result: ', result);
     });
 
+    //this.velocityGoal = newGoal;
     return newGoal
 
 }

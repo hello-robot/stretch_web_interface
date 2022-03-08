@@ -124,7 +124,7 @@ export class OperatorComponent extends PageComponent {
         "joint_head_pan": .3,
         "wrist_extension": .04,
         "joint_lift": .04,
-        "joint_wrist_yaw": .3,
+        "joint_wrist_yaw": .1,
         "translate_mobile_base": .2,
         "rotate_mobile_base": .2
     }
@@ -625,8 +625,10 @@ export class OperatorComponent extends PageComponent {
             }   
         });
 
+	var jointName = null;
         var onOverlayMouseUp = (event) => {
             this.stopCurrentAction();
+	    this.robot.velocityMove(jointName, 0);
         };
 
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
@@ -645,7 +647,7 @@ export class OperatorComponent extends PageComponent {
             } else {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
-                let jointName = regionName.substring(0, regionName.length - 4)
+                jointName = regionName.substring(0, regionName.length - 4)
                 let namespace = this.SETTING_NAMESPACES[jointName]
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
@@ -664,6 +666,7 @@ export class OperatorComponent extends PageComponent {
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
                         if (lastActiveRegion === regionName && this.activeVelocityAction) {
                             this.stopCurrentAction()
+		            this.robot.velocityMove(jointName, 0);
                             return;
                         }
 
@@ -692,9 +695,11 @@ export class OperatorComponent extends PageComponent {
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
                     let regionName = composedTarget.dataset.name
+		    let jointName = this.activeVelocityRegion.substring(0, this.activeVelocityRegion.length - 4)
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
-                    }
+                    	this.robot.velocityMove(jointName, 0)
+		    }
                 }
             }
         })
