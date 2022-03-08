@@ -150,9 +150,9 @@ export class OverheadNavigationOverlay extends OverlaySVG {
         let mobile_base_height = h / 10.0;
 
         // small rectangle around the mobile base
-        let baseRect = makeSquare((w / 2.0) - (mobile_base_width/1.5),
-            (2.0 * h / 3.0) - (mobile_base_height),
-            mobile_base_width, mobile_base_height);
+        let baseRect = makeSquare((w / 2.0) - (mobile_base_width*1.25),
+            (2.0 * h / 3.0) - (mobile_base_height*1.25),
+            mobile_base_width*1.5);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
         this.createRegion("translate_mobile_base_pos", {
@@ -285,12 +285,12 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         let sign = goalHeading < Math.PI/2 ? 1 : -1;
         let diffHeading = Math.abs(goalHeading - startHeading)
         // If user clicked behind the robot, offset trajectory
-        let y_offset = y > 60 ? 20 : 0
+        let y_offset = y > 60 ? 10 : 0
 
         // Left wheel traj
         let end_angle = this.normalizeAngle(goalHeading + (Math.PI/2 - sign*diffHeading))
         let x1 = 38
-        let y1 = 50 + y_offset
+        let y1 = 55 + y_offset
         let x2 = y > 60 ? x1 : x+7*Math.cos(end_angle);
         let y2 = y > 60 ? 95 : y+7*Math.sin(end_angle);
         let q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))
@@ -300,7 +300,7 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         // Center traj
         end_angle = this.normalizeAngle(startHeading + diffHeading/2);
         x1 = 45
-        y1 = 50 + y_offset
+        y1 = 55 + y_offset
         x2 = y > 60 ? x1 : x+Math.cos(end_angle);
         y2 = y > 60 ? 95 : y+Math.sin(end_angle);
         q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))
@@ -310,7 +310,7 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         // Right wheel traj
         end_angle = this.normalizeAngle(goalHeading - (Math.PI/2 + sign*diffHeading))
         x1 = 52
-        y1 = 50 + y_offset
+        y1 = 55 + y_offset
         x2 = y > 60 ? x1 : x+7*Math.cos(end_angle);
         y2 = y > 60 ? 95 : y+7*Math.sin(end_angle);
         q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))

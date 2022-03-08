@@ -454,7 +454,7 @@ export class OperatorComponent extends PageComponent {
         let heading = Math.atan2(-dy, -dx)
 
         // If click on the robot, rotate in place
-        if (Math.abs(magnitude) <= 0.15) {
+        if (Math.abs(magnitude) <= 0.1) {
             this.activeVelocityAction = this.robot.clickMove(0, 0.3);
             overlay.drawRotateIcon()
         } 
