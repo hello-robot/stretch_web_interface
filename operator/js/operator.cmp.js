@@ -243,6 +243,12 @@ export class OperatorComponent extends PageComponent {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls(change.namespace)
+                } else if (change.key == "actionMode") {
+                    if (change.value == "control-continuous") {
+                        this.setRobotNavMode()
+                    } else {
+                        this.setRobotPosMode()
+                    }
                 } else if (change.key == "displayMode") {
                     var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
                     if (currMode === 'nav') {
