@@ -189,8 +189,13 @@ export class Robot {
 
             this.setNavMode = new ROSLIB.Service({
                 ros: ros,
-                name: '/set_navigation_mode',
+                name: '/switch_to_navigation_mode',
                 serviceType: '/switch_to_navigation_mode'
+            });
+            this.setPositionMode = new ROSLIB.Service({
+                ros: ros,
+                name: '/switch_to_position_mode',
+                serviceType: '/switch_to_position_mode'
             });
             this.cmdVel = new ROSLIB.Topic({
                 ros : ros,
@@ -401,10 +406,17 @@ export class Robot {
         this.affirmExecution()
     }
 
-    setNavMode() {
+    setRobotNavMode() {
         var request = new ROSLIB.ServiceRequest({});
         this.setNavMode.callService(request, function(result) {
             console.log("Set stretch to navigation mode");
+        })
+    }
+
+    setRobotPosMode() {
+        var request = new ROSLIB.ServiceRequest({});
+        this.setPositionMode.callService(request, function(result) {
+            console.log("Set stretch to position mode");
         })
     }
 

@@ -251,9 +251,11 @@ export class OperatorComponent extends PageComponent {
                             this.robot.setRobotNavMode()
                         } else {
                             this.setMode(currMode)
+                            this.robot.setRobotPoseMode()
                         }
                     } else {
                         this.setMode(currMode)
+                        this.robot.setRobotPoseMode()
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -290,8 +292,10 @@ export class OperatorComponent extends PageComponent {
         if (currMode === "nav") {
             if (displayMode === "predictive-display") {
                 this.setMode('clickNav')
+                this.robot.setRobotNavMode()
             } else {
                 this.setMode('nav')
+                this.robot.setRobotPoseMode()
             }
         } else {
             this.setMode('manip')
