@@ -56,14 +56,12 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName, direction, increment) {
-        this.setRobotPosMode()
         let cmd = {type: "incrementalMove", jointName: jointName, increment: direction * increment}
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd);
     }
 
     velocityMove(jointName, velocity) {
-        this.setRobotPosMode()
         let cmd = {type: "velocityMove", jointName: jointName, velocity: velocity}
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
@@ -89,7 +87,6 @@ export class RemoteRobot {
     }
 
     clickMove(lin_vel, ang_vel) {
-        this.setRobotNavMode()
         let cmd = {
             type: "clickMove", 
             lin_vel: lin_vel,
