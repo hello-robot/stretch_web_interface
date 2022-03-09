@@ -7,6 +7,14 @@ const template = `
 <div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle"
      aria-hidden="true" data-ref="modal-container">
     <link href="/operator/css/settings.css" rel="stylesheet">
+    <div class="alert alert-success alert-dismissible show fade d-none" role="alert" data-ref="settings-save-alert">
+      Success! Setting configuration saved
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="alert alert-warning alert-dismissible show fade d-none" role="alert" data-ref="settings-save-warning-alert">
+      Please enter setting name
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -111,22 +119,25 @@ const template = `
                     </div>
                 </div>
 
-            </div>
-            <div class="modal-footer">
+                <hr>
                 <div class="d-flex flex-fill justify-content-left">
-                    <div class="col-sm-2">
-                        <button type="button" class="btn btn-primary btn" data-ref="btn-default-settings">
-                            Reset
-                        </button>
-                    </div>
+                    <input type="text" id="setting-name" name="setting-name" required size="10" placeholder="Enter setting name">
                     <div class="col-sm-2">
                         <button type="button" class="btn btn-primary btn" data-ref="btn-save-settings">
                             Save
                         </button>
                     </div>
-                    <div class="col-sm-2">
+                    <select data-ref="load-setting" class="form-select form-select-sm w-auto" aria-label="Select setting to load">
+                        <option value="" disabled selected hidden>Load Setting</option>
+                    </select>
+                    <div class="col-sm-2" style="padding-left: 10px;">
                         <button type="button" class="btn btn-primary btn" data-ref="btn-load-settings">
                             Load
+                        </button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn" data-ref="btn-default-settings">
+                            Default
                         </button>
                     </div>
                     <div class="col-sm-2">
@@ -135,7 +146,8 @@ const template = `
                         </button>
                     </div>
                 </div>
-
+            </div>
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -205,6 +217,21 @@ export class SettingsModal extends BaseComponent {
                 }
             }))
         })
+
+        this.refs.get("btn-save-settings").addEventListener("click", event => {
+            let settingName = this.getSaveSettingName()
+            if (settingName != '') {
+                let newOption = document.createElement("option")
+                newOption.value = settingName
+                newOption.innerText = settingName
+                this.refs.get('load-setting').appendChild(newOption)
+                this.refs.get('settings-save-alert').classList.remove('d-none')
+                setTimeout(() => {this.refs.get('settings-save-alert').classList.add('d-none')}, 2000)
+            } else {
+                this.refs.get('settings-save-warning-alert').classList.remove('d-none')
+                setTimeout(() => {this.refs.get('settings-save-warning-alert').classList.add('d-none')}, 2000)
+            }
+        })
     }
 
     configureInputs(values) {
@@ -248,6 +275,17 @@ export class SettingsModal extends BaseComponent {
         this.refs.get("settings-step-size").style.display = null;
     }
 
+    getSaveSettingName() {
+        return this.modalContainer.querySelector('input[name=setting-name]').value
+    }
+
+    getLoadSettingName() {
+        return this.refs.get('load-setting').value
+    }
+
+    resetSettingName() {
+        this.modalContainer.querySelector('input[name=setting-name]').value = ''   
+    }
 }
 
 Component('settings-modal', SettingsModal, '/operator/css/settings.css')

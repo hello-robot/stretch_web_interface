@@ -199,13 +199,14 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("settings").showModal()
         })
         this.refs.get("settings").refs.get("btn-save-settings").addEventListener("click", event => {
-            this.model.saveSettings();
+            this.model.saveSettings(this.refs.get("settings").getSaveSettingName());
+            this.refs.get("settings").resetSettingName()
         })
-        // this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
-        //     this.model.loadSavedSettings();
-        //     this.configureInputs();
-        //     this.updateNavDisplay()
-        // })
+        this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
+            this.model.loadSavedSettings(this.refs.get("settings").getLoadSettingName());
+            this.configureInputs();
+            this.updateNavDisplay()
+        })
         this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
             this.model.reset();
             this.configureInputs();

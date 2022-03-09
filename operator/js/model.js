@@ -46,7 +46,7 @@ export class LocalStorageModel extends Model {
             console.warn("Detected that LocalStorageModel isn't initialized. Reinitializing.")
             this.reset()
         }
-        var savedSettings = new Map();
+        this.savedSettings = new Map();
     }
 
     addPose(name, pose) {
@@ -71,21 +71,20 @@ export class LocalStorageModel extends Model {
         localStorage.setItem(`${namespace}.${key}`, value)
     }
 
-    loadSavedSettings() {
-        console.log(this.savedSettings);
-        for (const [namespace, savedSettings] of this.savedSettings.entries()) { 
+    loadSavedSettings(settingName) {
+        for (const [namespace, savedSettings] of this.savedSettings.get(settingName).entries()) { 
             for (const [key, value] of savedSettings.entries()) {
                 this.setSetting(key, value, namespace);
             }
         }
     }
 
-    saveSettings() {
-        this.savedSettings = new Map([
+    saveSettings(settingName) {
+        this.savedSettings.set(settingName, new Map([
             ["setting", this.getSettings("setting")],
             ["navsetting", this.getSettings("navsetting")],
             ["manipsetting", this.getSettings("manipsetting")]
-        ])
+        ]))
     }
 
     getSetting(key, namespace="setting") {

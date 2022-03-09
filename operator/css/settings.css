@@ -24,6 +24,10 @@
     visibility: visible !important;
 }
 
+#setting-name {
+    margin-right: 10px;
+}
+
 /*.btn-group.velocity-toggle, .btn-group.step-size-toggle label {
     color: blue
 }*/
