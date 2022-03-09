@@ -14,7 +14,7 @@ export class PageComponent extends BaseComponent {
     }
 
     exit() {
-        return new Promise((res) => {
+        return new Promise<void>((res) => {
             const listener = () => {
                 res();
                 this.removeEventListener('animationend', listener);

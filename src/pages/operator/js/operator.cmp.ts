@@ -1,9 +1,9 @@
-import {VideoControl} from "./video_control.cmp.js";
-import {Component} from '../../shared/base.cmp.js';
-import {PageComponent} from '../../shared/page.cmp.js';
-import {RemoteRobot} from "./remoterobot.js";
-import {WebRTCConnection} from "../../shared/webrtcconnection.js";
-import {LocalStorageModel} from "./model.js";
+import {VideoControl} from "./video_control.cmp";
+import {Component} from '../../../shared/base.cmp';
+import {PageComponent} from '../../../shared/page.cmp';
+import {RemoteRobot} from "./remoterobot";
+import {WebRTCConnection} from "../../../shared/webrtcconnection";
+import {LocalStorageModel} from "./model";
 import {
     GripperOverlay,
     OverheadManipulationOverlay,

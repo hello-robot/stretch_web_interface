@@ -1,5 +1,5 @@
 // Camera Position Information
-import {makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject} from "./overlay.js";
+import {makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject} from "./overlay";
 
 const global_rotation_point = new THREE.Vector3(
     -0.001328,

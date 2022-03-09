@@ -1,3 +1,5 @@
+import firebase from "firebase";
+
 const config = {
   apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",
   authDomain: "stretchteleop.firebaseapp.com",

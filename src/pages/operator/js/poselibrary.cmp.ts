@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../shared/base.cmp.js";
+import {BaseComponent, Component} from "../../../shared/base.cmp"
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">

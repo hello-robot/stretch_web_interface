@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../shared/base.cmp.js";
+import {BaseComponent, Component} from "../../../shared/base.cmp"
 
 const template = `
 <div id="container-div">

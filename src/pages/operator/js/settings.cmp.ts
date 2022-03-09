@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../shared/base.cmp.js";
+import {BaseComponent, Component} from "../../../shared/base.cmp"
 
 
 // FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
