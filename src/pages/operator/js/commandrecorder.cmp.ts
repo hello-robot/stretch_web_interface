@@ -39,7 +39,7 @@ export class CommandRecorder extends BaseComponent {
 
         }
         if (this.disabled) {
-            this.shadowRoot.querySelectorAll(".btn").forEach(button => button.disabled = "true")
+            this.shadowRoot?.querySelectorAll(".btn").forEach(button => button.disabled = "true")
         }
     }
 

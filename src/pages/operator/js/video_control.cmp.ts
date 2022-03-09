@@ -1,4 +1,5 @@
 import {BaseComponent, Component} from "../../../shared/base.cmp"
+import { Overlay } from "./overlay";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -50,8 +51,8 @@ export class VideoControl extends BaseComponent {
         }
     }
 
-    setExtraContents(html) {
-        this.shadowRoot.getElementById("extra").appendChild(html)
+    setExtraContents(html: any) {
+        this.shadowRoot?.getElementById("extra")?.appendChild(html)
     }
 
     set showIcons(value) {
@@ -64,7 +65,7 @@ export class VideoControl extends BaseComponent {
         return !this.classList.contains("no-icons")
     }
 
-    addRemoteStream(stream) {
+    addRemoteStream(stream: string) {
         this.refs.get("video").srcObject = stream;
     }
 
@@ -72,7 +73,7 @@ export class VideoControl extends BaseComponent {
         this.refs.get("video").srcObject = null
     }
 
-    addOverlay(overlay, mode) {
+    addOverlay(overlay: Overlay, mode) {
         if (this.overlays.has(mode)) {
             this.overlays.get(mode).push(overlay);
         } else {
