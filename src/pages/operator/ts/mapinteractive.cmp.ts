@@ -8,6 +8,12 @@ const template = `
 `
 
 export class MapInteractive extends BaseComponent {
+    mapImg?: HTMLImageElement
+    mapCanvas?: HTMLCanvasElement
+
+    width: number
+    height: number
+    mapScale: number
 
     constructor() {
         super(template);
@@ -20,7 +26,7 @@ export class MapInteractive extends BaseComponent {
         this.mapScale = 1;
     }
 
-    updateMap(mapData, mapWidth, mapHeight, mapScale) {
+    updateMap(mapData: number, mapWidth: number, mapHeight: number, mapScale: number) {
         console.log(mapData, mapWidth, mapHeight, mapScale)
         this.mapImg.src = mapData;
 

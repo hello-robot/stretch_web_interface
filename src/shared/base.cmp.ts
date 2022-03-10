@@ -27,7 +27,7 @@ export function Component(name: string, constructor: CustomElementConstructor, c
 export class BaseComponent extends HTMLElement {
 
     cssLink;
-    refs = new Map();
+    refs: Map<string, Element> = new Map();
 
     constructor(html = '', makeVisible = true, useShadowRoot = true) {
         // Call parent
