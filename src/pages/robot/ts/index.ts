@@ -12,7 +12,7 @@ let connection: WebRTCConnection;
 const robot = new Robot(
     forwardJointStates,
     forwardTF,
-)
+);
 
 let overheadStream: TransformedVideoStream, gripperStream: TransformedVideoStream, pantiltStream: TransformedVideoStream, audioStream: TransformedVideoStream;
 let mapROS: MapROS;

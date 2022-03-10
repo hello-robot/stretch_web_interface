@@ -3,10 +3,7 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "start": "node ./bin/www",
-        "dev": "vite",
-        "build": "tsc && vite build",
-        "preview": "vite preview"
+        "start": "rm -r dist; webpack --mode production;"
     },
     "dependencies": {
         "@popperjs/core": "^2.11.2",
