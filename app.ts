@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var helmet = require('helmet')
+var helmet = require('helmet');
 
 var redis = require('redis'); 
 var session = require('express-session');
@@ -256,7 +256,9 @@ ioauth = passportSocketIo.authorize({
 });
 
 
-module.exports = {
-    app: app,
-    ioauth: ioauth
-};
+// module.exports = {
+//     app: app,
+//     ioauth: ioauth
+// };
+
+export const viteNodeApp = app;
