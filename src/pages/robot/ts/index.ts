@@ -1,10 +1,10 @@
-import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot.js";
-import { WebRTCConnection } from "../../../shared/webrtcconnection.js";
-import { TransformedVideoStream } from "./videostream.cmp.js";
-import { MapROS } from "./mapros.cmp.js";
-import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions.js";
+import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
+import { WebRTCConnection } from "../../../shared/webrtcconnection";
+import { TransformedVideoStream } from "./videostream.cmp";
+import { MapROS } from "./mapros.cmp";
+import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
 import { Transform } from "roslib";
-import { ROSJointState } from "../../../shared/util.js";
+import { ROSJointState } from "../../../shared/util";
 
 let audioInId;
 let audioOutId;

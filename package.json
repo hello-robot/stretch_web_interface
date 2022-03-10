@@ -19,6 +19,7 @@
         "express": "^4.17.1",
         "express-session": "^1.17.2",
         "helmet": "^4.6.0",
+        "html-webpack-plugin": "^5.5.0",
         "mongoose": "^5.12.14",
         "morgan": "^1.10.0",
         "passport": "^0.4.1",
