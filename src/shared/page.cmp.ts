@@ -1,4 +1,4 @@
-import {BaseComponent} from './base.cmp.js';
+import {BaseComponent} from './base.cmp';
 
 export class PageComponent extends BaseComponent {
     title = 'Stretch Teleop';

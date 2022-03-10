@@ -1,5 +1,4 @@
 import {VideoControl} from "./video_control.cmp";
-import {Component} from '../../../shared/base.cmp';
 import {PageComponent} from '../../../shared/page.cmp';
 import {RemoteRobot} from "./remoterobot";
 import {WebRTCConnection} from "../../../shared/webrtcconnection";
@@ -11,8 +10,8 @@ import {
     PanTiltManipulationOverlay,
     PanTiltNavigationOverlay,
     ReachOverlay
-} from "./stretchoverlays.js";
-import { MapInteractive } from "./mapinteractive.cmp.js";
+} from "./stretchoverlays";
+import { MapInteractive } from "./mapinteractive.cmp";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -487,5 +486,3 @@ export class OperatorComponent extends PageComponent {
     }
 
 }
-
-Component('operator-page', OperatorComponent, '/operator/css/operator.css')

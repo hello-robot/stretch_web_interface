@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp"
+import { BaseComponent } from "../../../shared/base.cmp"
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -25,11 +25,14 @@ Save pose
 `
 
 export class PoseLibrary extends BaseComponent {
+    creationModal?: Element
+    saveButton?: Element
+    deleteSelect?: Element
 
     constructor() {
         super(template)
         this.creationModal = this.refs.get("pose-create-modal")
-        this.creationModal.addEventListener("posecreated", event => this.addPose(event.detail))
+        this.creationModal?.addEventListener("posecreated", event => this.addPose(event.detail))
         this.saveButton = this.refs.get("save-pose-button")
         this.deleteSelect = this.refs.get("delete-pose")
         this.saveButton.onclick = async () => {
@@ -41,9 +44,9 @@ export class PoseLibrary extends BaseComponent {
             this.removePose(nameToDelete)
         }
 
-        this.refs.get("custom-poses").addEventListener("click", event => {
+        this.refs.get("custom-poses")?.addEventListener("click", event => {
             let target = event.target
-            if (target.type !== "button") return;
+            if (target?.type !== "button") return;
             this.dispatchEvent(new CustomEvent("poseclicked", {
                 bubbles: true,
                 composed: true,
@@ -53,7 +56,7 @@ export class PoseLibrary extends BaseComponent {
 
         if (this.disabled) {
             this.deleteSelect.disabled = "true"
-            this.shadowRoot.querySelectorAll(".btn").forEach(button => button.disabled = "true")
+            this.shadowRoot?.querySelectorAll(".btn").forEach(button => button.disabled = "true")
         }
     }
 
@@ -72,19 +75,19 @@ export class PoseLibrary extends BaseComponent {
         let newOption = document.createElement("option")
         newOption.value = pose.name
         newOption.innerText = pose.name
-        this.deleteSelect.appendChild(newOption)
+        this.deleteSelect?.appendChild(newOption)
         if (!this.disabled) {
             this.deleteSelect.disabled = null
         }
     }
 
     removePose(name) {
-        this.shadowRoot.querySelector(`option[value='${name}']`).remove()
-        this.shadowRoot.querySelector(`button[data-pose-name='${name}']`).remove()
-        if (this.deleteSelect.options.length === 1) {
+        this.shadowRoot?.querySelector(`option[value='${name}']`)?.remove()
+        this.shadowRoot?.querySelector(`button[data-pose-name='${name}']`)?.remove()
+        if (this.deleteSelect?.options.length === 1) {
             this.deleteSelect.disabled = "true"
         }
-        this.dispatchEvent(new CustomEvent("posedeleted", {bubbles: true, composed: true, detail: name}))
+        this.dispatchEvent(new CustomEvent("posedeleted", { bubbles: true, composed: true, detail: name }))
 
     }
 
@@ -103,15 +106,13 @@ export class PoseLibrary extends BaseComponent {
             this.getAllDisableable().forEach(element => element.disabled = null)
         }
         // If we can't delete anything, leave this disabled
-        if (this.deleteSelect.options.length === 1) {
+        if (this.deleteSelect?.options.length === 1) {
             this.deleteSelect.disabled = "true"
         }
     }
 
     getAllDisableable() {
-        return this.shadowRoot.querySelectorAll(".btn, select")
+        return this.shadowRoot?.querySelectorAll(".btn, select")
     }
 
 }
-
-Component("pose-library", PoseLibrary)

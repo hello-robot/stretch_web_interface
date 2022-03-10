@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp"
+import { BaseComponent } from "../../../shared/base.cmp"
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -127,5 +127,3 @@ export class PoseSaveModal extends BaseComponent {
         }
     }
 }
-
-Component('pose-save-modal', PoseSaveModal)

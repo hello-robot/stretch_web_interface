@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp"
+import { BaseComponent } from "../../../shared/base.cmp"
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -79,5 +79,3 @@ export class CommandRecorder extends BaseComponent {
     }
 
 }
-
-Component("command-recorder", CommandRecorder)
