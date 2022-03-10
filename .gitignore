@@ -16,3 +16,4 @@ node_modules
 shared/database.config.js
 
 pnpm-lock.yaml
+dist
