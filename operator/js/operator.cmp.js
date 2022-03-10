@@ -657,17 +657,19 @@ export class OperatorComponent extends PageComponent {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
                 jointName = regionName.substring(0, regionName.length - 4)
-                let namespace = this.SETTING_NAMESPACES[jointName]
+                // let namespace = this.SETTING_NAMESPACES[jointName]
+                let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
-                        if (jointName == "translate_mobile_base") {
+                        if (jointName == "translate_mobile_base" && currMode == "nav") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
-                        } else if (jointName == "rotate_mobile_base") {
+                        } else if (jointName == "rotate_mobile_base" && currMode == "nav") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
@@ -694,11 +696,11 @@ export class OperatorComponent extends PageComponent {
                         // If this is a new joint, start a new action!
                         this.stopCurrentAction()
                         this.activeVelocityRegion = regionName
-                        if (jointName == "translate_mobile_base") {
+                        if (jointName == "translate_mobile_base" && currMode == "nav") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
-                        } else if (jointName == "rotate_mobile_base") {
+                        } else if (jointName == "rotate_mobile_base" && currMode == "nav") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
