@@ -22,10 +22,11 @@ const template = `
 `;
 
 export class VideoControl extends BaseComponent {
+    overlays: Map<string, Overlay> = new Map();
+    overlayResizeNotifier: ResizeObserver;
 
     constructor(buttonMappings = undefined) {
         super(template);
-        this.overlays = new Map(); // key is mode id, values are a list of Overlay objects
         this.overlayResizeNotifier = new ResizeObserver(entries => {
             let entry = entries[0]
             if (entry.contentBoxSize) {

@@ -326,7 +326,8 @@ export class WebRTCConnection {
             }
             if (!this.requestChannel) throw 'requestChannel is undefined';
             if (this.requestResponders.has(message.requestType)) {
-                //response.data = await this.requestResponders.get(message.requestType)();
+                // TODO (kavidey): find the correct way to do this
+                // response.data = await this.requestResponders.get(message.requestType)();
                 this.requestChannel.send(JSON.stringify(response))
             } else {
                 console.error("Heard request with no responder")

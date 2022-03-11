@@ -98,12 +98,12 @@ export class PoseLibrary extends BaseComponent {
     set disabled(value) {
         if (value) {
             this.setAttribute("disabled", "")
-            this.getAllDisableable().forEach(element => element.disabled = "true")
+            this.getAllDisableable()?.forEach(element => element.disabled = "true")
         } else {
             if (this.hasAttribute("disabled")) {
                 this.removeAttribute("disabled")
             }
-            this.getAllDisableable().forEach(element => element.disabled = null)
+            this.getAllDisableable()?.forEach(element => element.disabled = null)
         }
         // If we can't delete anything, leave this disabled
         if (this.deleteSelect?.options.length === 1) {

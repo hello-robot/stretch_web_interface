@@ -1,4 +1,5 @@
-import { BaseComponent } from "../../../shared/base.cmp"
+import { BaseComponent } from "../../../shared/base.cmp";
+import { Modal } from "bootstrap";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -55,10 +56,13 @@ const template = `
 </div>`
 
 export class PoseSaveModal extends BaseComponent {
+    modalContainer?: Element
+    modal: Modal
+
     constructor() {
         super(template);
         this.modalContainer = this.refs.get("modal-container")
-        this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
+        this.modal = new Modal(this.refs.get('modal-container'), {})
         let requiredCheckboxes = this.shadowRoot.querySelectorAll(".pose-part")
         requiredCheckboxes.forEach(
             checkbox => {

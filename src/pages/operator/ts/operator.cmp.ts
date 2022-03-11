@@ -94,7 +94,7 @@ const template = `
 export class OperatorComponent extends PageComponent {
     title = '';
     controls = {}
-    robot
+    robot: RemoteRobot
     connection
     pc
     allRemoteStreams = new Map()

@@ -1,4 +1,5 @@
 import { BaseComponent } from "../../../shared/base.cmp"
+import { Modal } from "bootstrap";
 
 
 // FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
@@ -109,10 +110,13 @@ const template = `
 `;
 
 export class SettingsModal extends BaseComponent {
+    modalContainer: Element
+    modal: Modal
+
     constructor() {
         super(template, false);
         this.modalContainer = this.refs.get("modal-container")
-        this.modal = new bootstrap.Modal(this.refs.get('modal-container'), {})
+        this.modal = new Modal(this.refs.get('modal-container'), {})
         // Discrete settings are the default
         this.hideContinuousSettings();
 
@@ -147,7 +151,7 @@ export class SettingsModal extends BaseComponent {
 
     }
 
-    configureInputs(values) {
+    configureInputs(values: [string, string][]) {
         for (let [key, value] of values) {
             let inputForSetting = this.shadowRoot.querySelector(`input[name='${key}']`)
             if (key === "velocity-mode" && value === "continuous") {

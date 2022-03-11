@@ -4,7 +4,7 @@ import { TransformedVideoStream } from "./videostream.cmp";
 import { MapROS } from "./mapros.cmp";
 import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
 import { Transform } from "roslib";
-import { ROSJointState } from "../../../shared/util";
+import { ROSJointState, ValidJoints } from "../../../shared/util";
 
 let audioInId;
 let audioOutId;
@@ -70,8 +70,10 @@ robot.connect().then(() => {
     })
     connection.registerRequestResponder("jointState", async () => {
         let processedJointPositions = {};
-        ALL_JOINTS.forEach((key, i) => {
-            processedJointPositions[key] = getJointValue(robot.jointState, key)
+        ALL_JOINTS.forEach((key, _) => {
+            if (robot.jointState) {
+                processedJointPositions[key] = getJointValue(robot.jointState, key)
+            }
         });
         return processedJointPositions
     });

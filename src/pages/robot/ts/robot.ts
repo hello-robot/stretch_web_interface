@@ -1,6 +1,6 @@
 import { Ros, Param, Topic, TFClient, ActionClient, Goal, Transform, Message } from "roslib"
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
-export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
+export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
     "wrist_extension": [0, .52],
@@ -31,7 +31,7 @@ export class Robot {
     private linkHeadTiltTF?: Transform
     private cameraColorFrameTF?: Transform
     private baseTF?: Transform
-    private jointState?: ROSJointState
+    jointState?: ROSJointState
 
     private videoTopics: [Topic<ROSCompressedImage>?] = []
 

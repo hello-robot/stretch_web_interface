@@ -86,7 +86,7 @@ export interface Response {
     data?: any,
 }
 
-export type Responder = () => Response;
+export type Responder = () => {};
 
 export interface CameraInfo {
     [key: string]: string
