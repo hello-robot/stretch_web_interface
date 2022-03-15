@@ -241,35 +241,11 @@ export class OperatorComponent extends PageComponent {
             console.log(change)
             var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
             this.model.setSetting(change.key, change.value, change.namespace)
+            this.updateNavDisplay()
             if (event.path[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls(change.namespace)
-                } if (currMode == 'manip' && change.namespace == "manipsetting") {
-                    this.setMode(currMode)
-                    if (change.key == "actionMode") {
-                        if (change.value != "incremental") {
-                            this.robot.setRobotNavMode()
-                        } else {
-                            this.robot.setRobotPosMode()
-                        }
-                    }
-                } else if (currMode == 'nav' && change.namespace == 'navsetting') {
-                    if (change.key == "displayMode") {
-                        if (change.value == "predictive-display") {
-                            this.setMode('clickNav')
-                            this.robot.setRobotNavMode()
-                        } else {
-                            this.setMode(currMode)
-                        }
-                    }
-                    if (change.key == "actionMode") {
-                        if (change.value != "incremental") {
-                            this.robot.setRobotNavMode()
-                        } else {
-                            this.robot.setRobotPosMode()
-                        }
-                    }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
                     let control = this.controls[controlName]
@@ -300,9 +276,9 @@ export class OperatorComponent extends PageComponent {
     }
 
     updateNavDisplay() {
+        let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
         let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
         let actionMode = this.model.getSetting("actionMode", namespace)
-        let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
         if (currMode === "nav") {
             let displayMode = this.model.getSetting("displayMode", "navsetting")
             if (displayMode === "predictive-display") {
