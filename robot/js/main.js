@@ -235,10 +235,12 @@ function handleMessage(message) {
             robot.stopClickMove();
             break;
         case "rotateCameraView":
+            overheadStream.crop = overheadNavCrop;
             overheadStream.rotate = true;
             overheadStream.start();
             break;
         case "resetCameraView":
+            overheadStream.crop = overheadManipCrop;
             overheadStream.rotate = false;
             overheadStream.start();
             break;
