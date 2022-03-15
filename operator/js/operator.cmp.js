@@ -248,28 +248,27 @@ export class OperatorComponent extends PageComponent {
                 } if (currMode == 'manip' && change.namespace == "manipsetting") {
                     this.setMode(currMode)
                     if (change.key == "actionMode") {
-                        if (change.value == "control-continuous") {
-                            this.setRobotNavMode()
+                        if (change.value != "incremental") {
+                            this.robot.setRobotNavMode()
+                        } else {
+                            this.robot.setRobotPosMode()
                         }
-                    } else {
-                        this.setRobotPosMode()
                     }
                 } else if (currMode == 'nav' && change.namespace == 'navsetting') {
                     if (change.key == "displayMode") {
-                        if (this.change.key == "predictive-display") {
+                        if (change.value == "predictive-display") {
                             this.setMode('clickNav')
                             this.robot.setRobotNavMode()
                         } else {
                             this.setMode(currMode)
-                            this.setRobotPosMode()
                         }
                     }
                     if (change.key == "actionMode") {
-                        if (change.value == "control-continuous") {
-                            this.setRobotNavMode()
+                        if (change.value != "incremental") {
+                            this.robot.setRobotNavMode()
+                        } else {
+                            this.robot.setRobotPosMode()
                         }
-                    } else {
-                        this.setRobotPosMode()
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -301,19 +300,30 @@ export class OperatorComponent extends PageComponent {
     }
 
     updateNavDisplay() {
-        let displayMode = this.model.getSetting("displayMode", "navsetting")
+        let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
+        let actionMode = this.model.getSetting("actionMode", namespace)
         let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
         if (currMode === "nav") {
+            let displayMode = this.model.getSetting("displayMode", "navsetting")
             if (displayMode === "predictive-display") {
                 this.setMode('clickNav')
-                this.robot.setRobotNavMode()
             } else {
                 this.setMode('nav')
-                this.robot.setRobotPosMode()
             }
+
+            if (actionMode === "incremental" && displayMode != "predictive-display") {
+                this.robot.setRobotPosMode()
+            } else {
+                this.robot.setRobotNavMode()
+            }
+
         } else {
-            this.setMode('manip')
-            this.robot.setRobotPosMode()
+            this.setMode(currMode)
+            if (actionMode === "incremental") {
+                this.robot.setRobotPosMode()
+            } else {
+                this.robot.setRobotNavMode()
+            }
         }
     }
 
