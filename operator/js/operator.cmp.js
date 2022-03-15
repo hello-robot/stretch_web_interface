@@ -239,30 +239,37 @@ export class OperatorComponent extends PageComponent {
             // Emitted when user has interactively changed a setting
             const change = event.detail
             console.log(change)
+            var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
             this.model.setSetting(change.key, change.value, change.namespace)
             if (event.path[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
                     this.configureVelocityControls(change.namespace)
-                } else if (change.key == "actionMode") {
-                    if (change.value == "control-continuous") {
-                        this.robot.setRobotNavMode()
+                } if (currMode == 'manip' && change.namespace == "manipsetting") {
+                    this.setMode(currMode)
+                    if (change.key == "actionMode") {
+                        if (change.value == "control-continuous") {
+                            this.setRobotNavMode()
+                        }
                     } else {
-                        this.robot.setRobotPosMode()
+                        this.setRobotPosMode()
                     }
-                } else if (change.key == "displayMode") {
-                    var currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                    if (currMode === 'nav') {
-                        if (change.value == "predictive-display") {
+                } else if (currMode == 'nav' && change.namespace == 'navsetting') {
+                    if (change.key == "displayMode") {
+                        if (this.change.key == "predictive-display") {
                             this.setMode('clickNav')
                             this.robot.setRobotNavMode()
                         } else {
                             this.setMode(currMode)
-                            this.robot.setRobotPosMode()
+                            this.setRobotPosMode()
+                        }
+                    }
+                    if (change.key == "actionMode") {
+                        if (change.value == "control-continuous") {
+                            this.setRobotNavMode()
                         }
                     } else {
-                        this.setMode(currMode)
-                        this.robot.setRobotPosMode()
+                        this.setRobotPosMode()
                     }
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -642,6 +649,10 @@ export class OperatorComponent extends PageComponent {
 
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
+
+            let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+            if (currMode == 'nav' && this.model.getSetting("displayMode", "navsetting") === "predictive-display" ) return;
+
             let composedTarget = event.composedPath()[0]
             let regionName = composedTarget.dataset.name
             if (!regionName || regionName === "doNothing") return;
@@ -658,18 +669,17 @@ export class OperatorComponent extends PageComponent {
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
                 jointName = regionName.substring(0, regionName.length - 4)
                 // let namespace = this.SETTING_NAMESPACES[jointName]
-                let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
                 let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
-                        if (jointName == "translate_mobile_base" && currMode == "nav") {
+                        if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
-                        } else if (jointName == "rotate_mobile_base" && currMode == "nav") {
+                        } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
@@ -696,11 +706,11 @@ export class OperatorComponent extends PageComponent {
                         // If this is a new joint, start a new action!
                         this.stopCurrentAction()
                         this.activeVelocityRegion = regionName
-                        if (jointName == "translate_mobile_base" && currMode == "nav") {
+                        if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
-                        } else if (jointName == "rotate_mobile_base" && currMode == "nav") {
+                        } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
