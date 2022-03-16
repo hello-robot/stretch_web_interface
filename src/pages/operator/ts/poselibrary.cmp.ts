@@ -26,8 +26,8 @@ Save pose
 
 export class PoseLibrary extends BaseComponent {
     creationModal?: Element
-    saveButton?: Element
-    deleteSelect?: Element
+    saveButton?: HTMLButtonElement
+    deleteSelect?: HTMLSelectElement
 
     constructor() {
         super(template)
@@ -55,7 +55,7 @@ export class PoseLibrary extends BaseComponent {
         })
 
         if (this.disabled) {
-            this.deleteSelect.disabled = "true"
+            this.deleteSelect.disabled = true
             this.shadowRoot?.querySelectorAll(".btn").forEach(button => button.disabled = "true")
         }
     }
@@ -81,11 +81,11 @@ export class PoseLibrary extends BaseComponent {
         }
     }
 
-    removePose(name) {
+    removePose(name: string) {
         this.shadowRoot?.querySelector(`option[value='${name}']`)?.remove()
         this.shadowRoot?.querySelector(`button[data-pose-name='${name}']`)?.remove()
         if (this.deleteSelect?.options.length === 1) {
-            this.deleteSelect.disabled = "true"
+            this.deleteSelect.disabled = true
         }
         this.dispatchEvent(new CustomEvent("posedeleted", { bubbles: true, composed: true, detail: name }))
 
@@ -107,7 +107,7 @@ export class PoseLibrary extends BaseComponent {
         }
         // If we can't delete anything, leave this disabled
         if (this.deleteSelect?.options.length === 1) {
-            this.deleteSelect.disabled = "true"
+            this.deleteSelect.disabled = true
         }
     }
 

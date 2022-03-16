@@ -1,3 +1,6 @@
+import { Camera, Material, Mesh, Object3D, Scene, WebGLRenderer } from "three";
+import { EffectComposer, RenderPass } from "postprocessing";
+
 /*
 * Base class for a video overlay
 */
@@ -5,11 +8,11 @@ export class Overlay {
     constructor() {
     }
 
-    configure(width, height) {
+    configure(width: number, height: number) {
         //console.warn("configure(width, height) should be overridden by the child class");
     }
 
-    addItem() {
+    addItem(item: any) {
         console.warn("addItem() should be overridden by the child class");
     }
 
@@ -26,7 +29,12 @@ export class Overlay {
 * Class for an SVG video overlay
 */
 export class OverlaySVG extends Overlay {
-    constructor(aspectRatio) {
+    regions: Map<string, Region>
+    type: string
+    svg: SVGSVGElement
+    stretchContainer: SVGSVGElement
+
+    constructor(aspectRatio: number) {
         super();
         this.regions = new Map();
         this.type = 'control';
@@ -44,7 +52,7 @@ export class OverlaySVG extends Overlay {
         // FIXME: Old implementation had a "curtain" feature. What was this and do we need it?
     }
 
-    addRegion(name, region) {
+    addRegion(name: string, region: Region) {
         this.regions.set(name, region);
         // So the outside can pick a handler using the name
         region.path.dataset.name = name
@@ -52,7 +60,7 @@ export class OverlaySVG extends Overlay {
         if (region.icon) this.svg.appendChild(region.icon)
     }
 
-    createRegion(name, args) {
+    createRegion(name: string, args: RegionArgs) {
         const region = new Region(args)
         this.addRegion(name, region)
         return region
@@ -72,21 +80,29 @@ export class OverlaySVG extends Overlay {
 * Class for an THREE.js video overlay
 */
 export class OverlayTHREE extends Overlay {
-    constructor(camera) {
+    type: string
+    scene: Scene
+    camera: Camera
+    renderer: WebGLRenderer
+    composer: EffectComposer
+    enabled: boolean
+    objs: { [name: string]: THREEObject }
+    
+    constructor(camera: Camera) {
         super();
         this.objs = {};
         this.type = 'viz';
-        this.scene = new THREE.Scene();
+        this.scene = new Scene();
         this.camera = camera
-        this.renderer = new THREE.WebGLRenderer({alpha: true});
+        this.renderer = new WebGLRenderer({alpha: true});
 
-        this.composer = new POSTPROCESSING.EffectComposer(this.renderer);
-        this.composer.addPass(new POSTPROCESSING.RenderPass(this.scene, camera));
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.addPass(new RenderPass(this.scene, camera));
 
         this.enabled = true;
     }
 
-    configure(width, height) {
+    configure(width: number, height: number) {
         this.renderer.setSize(width, height, false)
     }
 
@@ -94,7 +110,7 @@ export class OverlayTHREE extends Overlay {
         return this.renderer.domElement;
     }
 
-    addItem(obj) {
+    addItem(obj: THREEObject) {
         this.objs[obj.name] = obj;
         this.scene.add(obj.mesh);
     }
@@ -127,14 +143,17 @@ export class OverlayTHREE extends Overlay {
     }
 }
 
+type RegionArgs = {label: string, poly: Polygon, iconImage?: string, iconPosition?: {x: number, y: number}, clickHandler?: (event: MouseEvent) => void, mouseDownHandler?: (event: MouseEvent) => void};
+
 /*
 * Class for an overlay region
 */
 export class Region {
-    path
-    icon
+    path: SVGPathElement
+    icon?: SVGImageElement
+    label: string
 
-    constructor({label, poly, iconImage, iconPosition, clickHandler, mouseDownHandler}) {
+    constructor({label, poly, iconImage, iconPosition, clickHandler, mouseDownHandler }: RegionArgs) {
         this.label = label;
 
         const stroke_width = 2
@@ -178,19 +197,20 @@ export class Region {
         }
     }
 
-    setClickHandler(handler) {
+    setClickHandler(handler: (event: MouseEvent) => void) {
         this.path.onclick = handler
         this.path.classList.add("interactive", "clickable")
     }
 
-    setMouseDownHandler(handler) {
+    setMouseDownHandler(handler: (event: MouseEvent) => void) {
         this.path.onmousedown = handler
         this.path.classList.add("interactive", "holdable")
     }
 }
 
+type Polygon = Array<{x: number, y: number}>
 
-function getPolyCenter(points) {
+function getPolyCenter(points: Polygon) {
     let avgX = 0;
     let avgY = 0;
     for (let p of points) {
@@ -207,11 +227,16 @@ function getPolyCenter(points) {
 * Class for a THREE.js object
 */
 export class THREEObject {
-    constructor(name, geo, mat) {
+    name: string
+    geo: any
+    mat: Material
+    mesh: Mesh
+
+    constructor(name: string, geo: any, mat: Material) {
         this.name = name;
         this.geo = geo;
         this.mat = mat;
-        this.mesh = new THREE.Mesh(this.geo, this.mat);
+        this.mesh = new Mesh(this.geo, this.mat);
     }
 
     hide() {
@@ -226,7 +251,7 @@ export class THREEObject {
 
 /////// UTILITY FUNCTIONS //////////
 
-export function svgPolyString(points) {
+export function svgPolyString(points: Polygon) {
     let str = 'M ';
     for (let p of points) {
         str = str + p.x + ',' + p.y + ' ';
@@ -235,7 +260,7 @@ export function svgPolyString(points) {
     return str;
 }
 
-export function makeRectangle(ulX, ulY, width, height) {
+export function makeRectangle(ulX: number, ulY: number, width: number, height: number) {
     return {
         ul: {x: ulX, y: ulY},
         ur: {x: ulX + width, y: ulY},
@@ -244,10 +269,10 @@ export function makeRectangle(ulX, ulY, width, height) {
     };
 }
 
-export function makeSquare(ulX, ulY, width) {
+export function makeSquare(ulX: number, ulY: number, width: number) {
     return makeRectangle(ulX, ulY, width, width);
 }
 
-export function rectToPoly(rect) {
+export function rectToPoly(rect: {ul: {x: number, y: number}, ur: {x: number, y: number}, ll: {x: number, y: number}, lr: {x: number, y: number}}) {
     return [rect.ul, rect.ur, rect.lr, rect.ll];
 }

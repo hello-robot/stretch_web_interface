@@ -1,5 +1,6 @@
 import { BaseComponent } from "../../../shared/base.cmp";
 import { Modal } from "bootstrap";
+import { Pose } from "../../../shared/util";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
@@ -107,7 +108,7 @@ export class PoseSaveModal extends BaseComponent {
         const checkedParts = this.modalContainer.querySelectorAll(".pose-part:checked")
         const partsToKeep = new Set(Array(...checkedParts).map(checkbox => checkbox.value))
 
-        let pose = {};
+        let pose: Pose = {};
 
         if (partsToKeep.has("head")) {
             pose.joint_head_tilt = this.pose.joint_head_tilt;

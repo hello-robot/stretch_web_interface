@@ -1,9 +1,10 @@
+import { Pose } from "../../../shared/util"
 class Model {
-    addPose(id, pose) {
+    addPose(id: string, pose: Pose) {
         console.error("Not implemented")
     }
 
-    removePose(id) {
+    removePose(id: string) {
         console.error("Not implemented")
     }
 
@@ -14,29 +15,29 @@ class Model {
 
 export class LocalStorageModel extends Model {
 
-    addPose(name, pose) {
+    addPose(name: string, pose: Pose) {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose))
     }
 
-    getPose(name) {
+    getPose(name: string): Pose {
         return JSON.parse(localStorage.getItem(`pose.${name}`))
     }
 
-    getPoses() {
+    getPoses(): Pose[] {
         let poses = this._getAllInNamespace("pose")
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose))
     }
 
-    removePose(name) {
+    removePose(name: string) {
         localStorage.removeItem(`pose.${name}`)
     }
 
-    setSetting(key, value) {
+    setSetting(key: string, value: any) {
         localStorage.setItem(`setting.${key}`, value)
     }
 
-    getSetting(key) {
+    getSetting(key: string): any {
         return localStorage.getItem(`setting.${key}`)
     }
 
@@ -44,7 +45,7 @@ export class LocalStorageModel extends Model {
         return new Map(this._getAllInNamespace("setting"))
     }
 
-    _getAllInNamespace(namespace) {
+    _getAllInNamespace(namespace: string) {
         let items = []
         for (const key in localStorage) {
             if (key.startsWith(`${namespace}.`)) {

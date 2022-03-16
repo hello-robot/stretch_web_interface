@@ -1,3 +1,5 @@
+import { ValidJoints } from "../../../shared/util";
+
 export class RemoteRobot {
     sensors = new RobotSensors()
     robotChannel
@@ -55,11 +57,11 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
     }
 
-    incrementalMove(jointName, direction, increment) {
+    incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
         this.robotChannel({type: "incrementalMove", jointName: jointName, increment: direction * increment})
     }
 
-    velocityMove(jointName, velocity) {
+    velocityMove(jointName: ValidJoints, velocity: number) {
         this.robotChannel({type: "velocityMove", jointName: jointName, velocity: velocity})
         return {
             "affirm": () => {
@@ -94,7 +96,7 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
     }
 }
 class RobotSensors {
-    sensors = {
+    sensors: {[group: string]: {[key: string]: number | undefined}} = {
         //"drive": {},
         "lift": {"effort": undefined},
         "arm": {"effort": undefined},
@@ -103,6 +105,7 @@ class RobotSensors {
         "gripper": {"effort": undefined, "transform": undefined},
         "head": {"transform": undefined}
     }
+    listeners: {[group: string]: {[key: string]: Array<(value: number) => void>}} = {}
 
     constructor() {
         this.listeners = {}
@@ -114,11 +117,11 @@ class RobotSensors {
         }
     }
 
-    listenToKeyChange(group, key, listener) {
+    listenToKeyChange(group: string, key: string, listener: (value: number) => void) {
         this.listeners[group][key].push(listener)
     }
 
-    set(group, key, value) {
+    set(group: string, key: string, value: number) {
         this.sensors[group][key] = value
         for (const listener of this.listeners[group][key]) {
             listener(value)

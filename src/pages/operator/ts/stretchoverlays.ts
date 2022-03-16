@@ -1,19 +1,22 @@
 // Camera Position Information
-import {makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject} from "./overlay";
+import { makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject } from "./overlay";
+import { Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler } from "three";
+import { OutlineEffect, EffectPass } from "postprocessing"
+import { Pose, Vector3 as ROSVector3 } from "roslib";
 
-const global_rotation_point = new THREE.Vector3(
+const global_rotation_point = new Vector3(
     -0.001328,
     0,
     -0.053331
 );
 
-const global_reference_point = new THREE.Vector3(
+const global_reference_point = new Vector3(
     -0.001328,
     0.027765,
     -0.053331
 );
 
-const global_target_point = new THREE.Vector3(
+const global_target_point = new Vector3(
     0.037582,
     -0.002706,
     0.019540000000000113
@@ -24,19 +27,19 @@ let rotation_to_target_offset = global_target_point.clone().sub(global_rotation_
 
 export class ReachOverlay extends OverlayTHREE {
 
-    constructor(camera) {
+    constructor(camera: Camera) {
         super(camera);
         let reachCircle = new THREEObject(
             'reach_visualization_circle',
-            new THREE.CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
-            new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
+            new CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
+            new MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
         )
         this.addItem(reachCircle);
-        let outlineEffect = new POSTPROCESSING.OutlineEffect(
+        let outlineEffect = new OutlineEffect(
             this.scene,
             this.camera,
             {visibleEdgeColor: 0xff9900});
-        let outlineEffectPass = new POSTPROCESSING.EffectPass(
+        let outlineEffectPass = new EffectPass(
             this.camera,
             outlineEffect
         );
@@ -45,24 +48,24 @@ export class ReachOverlay extends OverlayTHREE {
         this.composer.addPass(outlineEffectPass);
     }
 
-    updateTransform(transform) {
+    updateTransform(transform: {translation: Vector3, rotation: Quaternion, scale: Vector3}) {
         // Update the rotation and translation of the THREE.js camera to match the physical one
-        let q_ros_space = new THREE.Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+        let q_ros_space = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
 
         let order = 'XYZ'
-        let e = new THREE.Euler(0, 0, 0, order);
+        let e = new Euler(0, 0, 0, order);
         e.setFromQuaternion(q_ros_space, order);
 
         let q_inverse = q_ros_space.clone().invert();
 
-        let reference_point = new THREE.Vector3(transform.translation.x, transform.translation.y, transform.translation.z);
+        let reference_point = new Vector3(transform.translation.x, transform.translation.y, transform.translation.z);
         // z in global space is y in ros space
-        let rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
+        let rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new Euler(0, -e.z, e.y, 'XZY'));
 
         // TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
         let rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
 
-        let rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
+        let rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new Euler(0, -e.z, e.y, 'XZY'));
 
         let target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
 
@@ -75,7 +78,7 @@ export class ReachOverlay extends OverlayTHREE {
 }
 
 export class GripperOverlay extends OverlaySVG {
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
@@ -137,7 +140,7 @@ export class GripperOverlay extends OverlaySVG {
 }
 
 export class OverheadNavigationOverlay extends OverlaySVG {
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
@@ -152,7 +155,7 @@ export class OverheadNavigationOverlay extends OverlaySVG {
         // small rectangle around the mobile base
         let baseRect = makeSquare((w / 2.0) - (mobile_base_width / 2.0),
             (2.0 * h / 3.0) - (mobile_base_height / 2.0),
-            mobile_base_width, mobile_base_height);
+            mobile_base_width);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
         this.createRegion("translate_mobile_base_pos", {
@@ -190,7 +193,7 @@ export class OverheadNavigationOverlay extends OverlaySVG {
 }
 
 export class OverheadManipulationOverlay extends OverlaySVG {
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
@@ -247,7 +250,7 @@ export class OverheadManipulationOverlay extends OverlaySVG {
 }
 
 export class PanTiltNavigationOverlay extends OverlaySVG {
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
@@ -255,7 +258,7 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
 
         // Big rectangle at the borders of the video
         let bgRect = makeRectangle(0, 0, w, h);
-        let smRect = makeSquare((w / 2.0) - (w / 20.0), (h * (3.0 / 4.0)) - (h / 20.0), w / 10.0, h / 10.0);
+        let smRect = makeSquare((w / 2.0) - (w / 20.0), (h * (3.0 / 4.0)) - (h / 20.0), w / 10.0);
         let leftRect = makeSquare(0, h - cornerRectSize, cornerRectSize);
         let rightRect = makeSquare(w - cornerRectSize, h - cornerRectSize, cornerRectSize);
 
@@ -295,7 +298,7 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
 }
 
 export class PanTiltManipulationOverlay extends OverlaySVG {
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
@@ -364,7 +367,7 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         });
     }
 
-    updateLiftEffort(value) {
+    updateLiftEffort(value: number) {
         // adjust for the effort needed to hold the arm in place
         // against gravity
         let adjusted_value = value - 53.88;
@@ -386,14 +389,14 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
 
         if (redRegion1) {
             redRegion1.setAttribute('fill', 'red');
-            redRegion1.setAttribute('fill-opacity', redOpacity);
+            redRegion1.setAttribute('fill-opacity', String(redOpacity));
         }
 
         if (nothingRegion1)
-            nothingRegion1.setAttribute('fill-opacity', 0.0);
+            nothingRegion1.setAttribute('fill-opacity', "0.0");
     }
 
-    updateExtensionEffort(value) {
+    updateExtensionEffort(value: number) {
         let redRegion1;
         let nothingRegion1;
 
@@ -415,14 +418,14 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
 
         if (redRegion1) {
             redRegion1.setAttribute('fill', 'red');
-            redRegion1.setAttribute('fill-opacity', redOpacity);
+            redRegion1.setAttribute('fill-opacity', String(redOpacity));
         }
 
         if (nothingRegion1)
-            nothingRegion1.setAttribute('fill-opacity', 0.0);
+            nothingRegion1.setAttribute('fill-opacity', "0.0");
     }
 
-    updateGripperEffort(value) {
+    updateGripperEffort(value: number) {
         let handCloseRegion = this.regions.get("gripperClose").path
         let handOpenRegion = this.regions.get("gripperOpen").path
         if (handCloseRegion && handOpenRegion) {
@@ -442,14 +445,14 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
             let redOpacity = Math.abs(value) * 0.015;
             if (redRegion) {
                 redRegion.setAttribute('fill', 'red');
-                redRegion.setAttribute('fill-opacity', redOpacity);
+                redRegion.setAttribute('fill-opacity', String(redOpacity));
             }
             if (nothingRegion)
-                nothingRegion.setAttribute('fill-opacity', 0.0);
+                nothingRegion.setAttribute('fill-opacity', "0.0");
         }
     }
 
-    updateWristEffort(value) {
+    updateWristEffort(value: number) {
         let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
         let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
         if (yawInRegion && yawOutRegion) {
@@ -466,23 +469,23 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
             // make the torque positive and multiply it by a factor to
             // make sure the video will always be visible even with
             let redOpacity = Math.abs(value) * 0.015;
-            redRegion.setAttribute('fill-opacity', redOpacity);
-            nothingRegion.setAttribute('fill-opacity', 0.0);
+            redRegion.setAttribute('fill-opacity', String(redOpacity));
+            nothingRegion.setAttribute('fill-opacity', "0.0");
         }
 
     }
 }
 
-function icon(name) {
+function icon(name: string) {
     return `/operator/images/${name}.svg`
 }
 
-function rosPostoTHREE(p) {
-    return new THREE.Vector3(p.x, -p.y, p.z);
+function rosPostoTHREE(p: ROSVector3) {
+    return new Vector3(p.x, -p.y, p.z);
 }
 
-function rosEulerToTHREE(e, order) {
-    return new THREE.Euler(
+function rosEulerToTHREE(e: ROSVector3, order: string) {
+    return new Euler(
         e.z + (Math.PI / 2),
         0,
         e.y + (Math.PI / 2),

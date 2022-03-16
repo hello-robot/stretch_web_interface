@@ -24,8 +24,9 @@ const template = `
 export class VideoControl extends BaseComponent {
     overlays: Map<string, Overlay> = new Map();
     overlayResizeNotifier: ResizeObserver;
+    currentMode: string
 
-    constructor(buttonMappings = undefined) {
+    constructor(buttonMappings: [string, {action: (ev: MouseEvent) => any, label: string, title: string}][]) {
         super(template);
         this.overlayResizeNotifier = new ResizeObserver(entries => {
             let entry = entries[0]
@@ -74,7 +75,7 @@ export class VideoControl extends BaseComponent {
         this.refs.get("video").srcObject = null
     }
 
-    addOverlay(overlay: Overlay, mode) {
+    addOverlay(overlay: Overlay, mode: string) {
         if (this.overlays.has(mode)) {
             this.overlays.get(mode).push(overlay);
         } else {
@@ -82,7 +83,7 @@ export class VideoControl extends BaseComponent {
         }
     }
 
-    setMode(modeId) {
+    setMode(modeId: string) {
         this.currentMode = modeId;
 
         // Clean up the SVG

@@ -96,7 +96,7 @@ export class OperatorComponent extends PageComponent {
     controls = {}
     robot: RemoteRobot
     connection
-    pc
+    pc: WebRTCConnection
     allRemoteStreams = new Map()
     currentMode = undefined
     model

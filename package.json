@@ -23,15 +23,18 @@
         "passport-local": "^1.0.0",
         "passport-local-mongoose": "^6.1.0",
         "passport.socketio": "^3.7.0",
+        "postprocessing": "^6.25.0",
         "puppeteer": "^13.3.1",
         "redis": "^3.1.2",
         "roslib": "^1.2.0",
         "serve-favicon": "^2.5.0",
         "socket.io": "^4.4.1",
-        "socket.io-client": "^4.4.1"
+        "socket.io-client": "^4.4.1",
+        "three": "^0.138.3"
     },
     "devDependencies": {
         "@types/bootstrap": "^5.1.9",
+        "@types/three": "^0.138.0",
         "ts-loader": "^9.2.7",
         "tsc": "^2.0.4",
         "typescript": "^4.6.2",

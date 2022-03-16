@@ -112,6 +112,7 @@ const template = `
 export class SettingsModal extends BaseComponent {
     modalContainer: Element
     modal: Modal
+    modalContent: HTMLDivElement
 
     constructor() {
         super(template, false);
