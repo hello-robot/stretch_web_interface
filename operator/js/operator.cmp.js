@@ -449,7 +449,7 @@ export class OperatorComponent extends PageComponent {
         let py = eventY/scaleHeight;
 
         let dx = px - 45; // robot position x offset
-        let dy = py - 60; // robot position y offset
+        let dy = py - 70; // robot position y offset
         let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
         let heading = Math.atan2(-dy, -dx)
 

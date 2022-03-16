@@ -228,9 +228,9 @@ export class Trajectory {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             // icon.setAttribute("class", "overlay-icon")
             icon.setAttribute('href', iconImage);
-            icon.setAttribute('x', "38%");
-            icon.setAttribute('y', "52%");
-            icon.setAttribute('width', "15")
+            icon.setAttribute('x', "39%");
+            icon.setAttribute('y', "69%");
+            icon.setAttribute('width', "12")
             this.icon = icon
         } else {
             let leftPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
