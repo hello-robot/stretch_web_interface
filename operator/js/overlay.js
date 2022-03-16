@@ -59,10 +59,17 @@ export class OverlaySVG extends Overlay {
         return region
     }
 
+    removeCircle() { 
+        if (this.traj.circle && this.stretchContainer.lastChild) {
+            this.stretchContainer.removeChild(this.stretchContainer.lastChild);
+            this.traj.removeCircle()
+        }
+    }
+    
     removeTraj() {
         if (this.traj) {
             for (const [key, value] of Object.entries(this.traj)) {
-                if (value) {
+                if (this.stretchContainer.contains(value)) {
                     this.stretchContainer.removeChild(value);
                 }
             }
@@ -255,14 +262,23 @@ export class Trajectory {
             rightPath.setAttribute('d', rightTraj);
             this.rightPath = rightPath
 
-            let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', String(center.x));
-            circle.setAttribute('cy', String(center.y));
-            circle.setAttribute('stroke', 'none')
-            circle.setAttribute('fill', '#4169E1')
-            circle.setAttribute('r', '6');
-            circle.setAttribute('fill-opacity', '0.3');
-            this.circle = circle;
+            if (center) {
+                let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', String(center.x));
+                circle.setAttribute('cy', String(center.y));
+                circle.setAttribute('stroke', 'none')
+                circle.setAttribute('fill', '#4169E1')
+                circle.setAttribute('r', '6');
+                circle.setAttribute('fill-opacity', '0.3');
+                this.circle = circle;
+            }
+        }
+    }
+
+    removeCircle() {
+        if (this.circle) { 
+            this.circle.remove()
+            this.circle = null
         }
     }
 }

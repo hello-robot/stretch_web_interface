@@ -279,20 +279,20 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         this.createTraj({iconImage: icon('rotate')});
     }
 
-    drawArc(x, y, startHeading, goalHeading) {
+    drawArc(x, y, startHeading, goalHeading, circle=true) {
         let largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
         let sweepFlag = goalHeading < Math.PI/2 ? "0" : "1";
         let sign = goalHeading < Math.PI/2 ? 1 : -1;
         let diffHeading = Math.abs(goalHeading - startHeading)
         // If user clicked behind the robot, offset trajectory
-        let y_offset = y > 70 ? 10 : 0
+        let y_offset = y > 60 ? 10 : 0
 
         // Left wheel traj
         let end_angle = this.normalizeAngle(goalHeading + (Math.PI/2 - sign*diffHeading))
-        let x1 = 39
-        let y1 = 70 + y_offset
-        let x2 = y > 70 ? x1 : x+6*Math.cos(end_angle);
-        let y2 = y > 70 ? 95 : y+6*Math.sin(end_angle);
+        let x1 = 38
+        let y1 = 55 + y_offset
+        let x2 = y > 60 ? x1 : x+7*Math.cos(end_angle);
+        let y2 = y > 60 ? 95 : y+7*Math.sin(end_angle);
         let q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))
         let r = (q/2)/(1 - Math.cos(diffHeading))
         let leftTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
@@ -300,25 +300,25 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         // Center traj
         end_angle = this.normalizeAngle(startHeading + diffHeading/2);
         x1 = 45
-        y1 = 70 + y_offset
-        x2 = y > 70 ? x1 : x+Math.cos(end_angle);
-        y2 = y > 70 ? 95 : y+Math.sin(end_angle);
+        y1 = 55 + y_offset
+        x2 = y > 60 ? x1 : x+Math.cos(end_angle);
+        y2 = y > 60 ? 95 : y+Math.sin(end_angle);
         q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))
         r = (q/2)/(1 - Math.cos(diffHeading))
         let centerTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);  
 
         // Right wheel traj
         end_angle = this.normalizeAngle(goalHeading - (Math.PI/2 + sign*diffHeading))
-        x1 = 51
-        y1 = 70 + y_offset
-        x2 = y > 70 ? x1 : x+6*Math.cos(end_angle);
-        y2 = y > 70 ? 95 : y+6*Math.sin(end_angle);
+        x1 = 52
+        y1 = 55 + y_offset
+        x2 = y > 60 ? x1 : x+7*Math.cos(end_angle);
+        y2 = y > 60 ? 95 : y+7*Math.sin(end_angle);
         q = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))
         r = (q/2)/(1 - Math.cos(diffHeading))
         let rightTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
 
         // Circle center
-        let center = {x: x, y: y};
+        let center = circle ? {x: x, y: y} : null;
         let icon = null;
         this.createTraj({icon, leftTraj, centerTraj, rightTraj, center});     
     }
