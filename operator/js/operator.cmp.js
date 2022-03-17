@@ -438,7 +438,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    executeTraj(eventX, eventY, overlay) {
+    drawAndExecuteTraj(eventX, eventY, overlay, execute=true) {
         let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
         let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
         let overlayWidth = overlay.w;
@@ -452,21 +452,21 @@ export class OperatorComponent extends PageComponent {
         let dy = py - 70; // robot position y offset
         let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
         let heading = Math.atan2(-dy, -dx)
-
+        let circle = execute ? true : false;
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
-            this.activeVelocityAction = this.robot.clickMove(0, 0.3);
+            this.activeVelocityAction = execute ? this.robot.clickMove(0, 0.3) : null;
             overlay.drawRotateIcon()
         } 
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = this.robot.clickMove(-magnitude, 0.0);
-            overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001);
+            this.activeVelocityAction = execute ? this.robot.clickMove(-magnitude, 0.0) : null;
+            overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001, circle);
         } 
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4);
-            overlay.drawArc(px, py, Math.PI/2, heading);
+            this.activeVelocityAction = execute ? this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4) : null;
+            overlay.drawArc(px, py, Math.PI/2, heading, circle);
         }
     }
 
@@ -577,14 +577,34 @@ export class OperatorComponent extends PageComponent {
         var updateAction = (event) => {
             mouseMoveX = event.offsetX
             mouseMoveY = event.offsetY
-            this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+            this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
         } 
         var stopAction = (event) => {
             this.stopCurrentAction();
-            overheadClickNavOverlay.removeTraj();
+            overheadClickNavOverlay.removeCircle();
             this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container").addEventListener('mousemove', drawTraj);
         };
+        var drawTraj = (event) => {
+            let x = event.offsetX;
+            let y = event.offsetY;
+            mouseMoveX = x;
+            mouseMoveY = y;
+            let namespace = 'navsetting'
+            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+            if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
+                overheadClickNavOverlay.removeTraj();
+                this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay, false)
+            }
+        }
 
+        this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
+        this.refs.get("video-control-container").addEventListener("mouseout", event => {
+            stopAction(event);
+            overheadClickNavOverlay.removeTraj()
+        })
+
+        // Predictive Display Mode
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
             let x = event.offsetX;
             let y = event.offsetY;
@@ -594,6 +614,7 @@ export class OperatorComponent extends PageComponent {
             // Remove old event handlers
             this.refs.get("video-control-container").removeEventListener('mouseup', stopAction);
             this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container").removeEventListener('mousemove', drawTraj);
             
             let namespace = 'navsetting'
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
@@ -613,14 +634,15 @@ export class OperatorComponent extends PageComponent {
                     // Execute trajectory as long as mouse is held down using last position of cursor 
                     this.velocityExecutionHeartbeat = window.setInterval(() => {
                         overheadClickNavOverlay.removeTraj();
-                        this.executeTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                        this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
                     }, 100);
 
                 } else { 
                     // action mode is incremental/step actions
                     // execute trajectory once
-                    this.executeTraj(x, y, overheadClickNavOverlay);
-                    setTimeout(() => {overheadClickNavOverlay.removeTraj()}, 1500);
+                    this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
+                    setTimeout(() => {overheadClickNavOverlay.removeCircle()}, 1500);
+                    this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
                 }
             }   
         });
@@ -633,6 +655,7 @@ export class OperatorComponent extends PageComponent {
             }
         };
 
+        // Action Overlay Display Mode
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
 
@@ -717,6 +740,7 @@ export class OperatorComponent extends PageComponent {
             }
         })
 
+        // Saftey: Set velocity to 0 when mouse leaves clicked region
         this.addEventListener("mousemove", event => {
             if (this.activeVelocityAction) {
                 let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
