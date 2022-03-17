@@ -451,12 +451,14 @@ export class OperatorComponent extends PageComponent {
         let dx = px - 45; // robot position x offset
         let dy = py - 70; // robot position y offset
         let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
-        let heading = Math.atan2(-dy, -dx)
+        let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
         let circle = execute ? true : false;
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
-            this.activeVelocityAction = execute ? this.robot.clickMove(0, 0.3) : null;
-            overlay.drawRotateIcon()
+	    if (execute) {
+            	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, 0.3) : this.robot.clickMove(0, -0.3);
+	    }
+	    overlay.drawRotateIcon()
         } 
         // If clicking behind the robot, move backward
         else if (heading < 0) {
@@ -600,9 +602,11 @@ export class OperatorComponent extends PageComponent {
 
         this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
         this.refs.get("video-control-container").addEventListener("mouseout", event => {
-            stopAction(event);
-            overheadClickNavOverlay.removeTraj()
-        })
+            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
+	    	stopAction(event);
+            	overheadClickNavOverlay.removeTraj()
+            }
+	})
 
         // Predictive Display Mode
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
