@@ -60,7 +60,7 @@ export class OverlaySVG extends Overlay {
     }
 
     removeCircle() { 
-        if (this.traj.circle && this.stretchContainer.lastChild) {
+        if (this.traj && this.traj.circle && this.stretchContainer.lastChild) {
             this.stretchContainer.removeChild(this.stretchContainer.lastChild);
             this.traj.removeCircle()
         }
