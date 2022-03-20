@@ -256,9 +256,7 @@ ioauth = passportSocketIo.authorize({
 });
 
 
-// module.exports = {
-//     app: app,
-//     ioauth: ioauth
-// };
-
-export const viteNodeApp = app;
+module.exports = {
+    app: app,
+    ioauth: ioauth
+};

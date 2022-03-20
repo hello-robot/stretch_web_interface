@@ -1,10 +1,9 @@
-import { request, response } from 'express';
 var path = require('path');
 var mongoose = require("mongoose");
 var passport = require("passport");
 var User = require("../models/User");
 
-var userController: {[key: string]: (req: request, res: response) => void} = {};
+var userController = {};
 
 var robot_root = path.join(__dirname, '../robot');
 var operator_root = path.join(__dirname, '../operator');

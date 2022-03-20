@@ -14,6 +14,6 @@
       "noUnusedParameters": true,
       "noImplicitReturns": true,
     },
-    "include": ["src", "webpack.config.js"]
+    "include": ["src", "webpack.config.js", "server"]
   }
   
