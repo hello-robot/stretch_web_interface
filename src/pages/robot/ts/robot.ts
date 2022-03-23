@@ -1,4 +1,4 @@
-import { Ros, Param, Topic, TFClient, ActionClient, Goal, Transform, Message } from "roslib"
+import * as ROSLIB from "roslib";
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
@@ -11,10 +11,10 @@ const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
 }
 
 export class Robot {
-    private ros!: Ros
+    private ros!: ROSLIB.Ros
     private inSim!: boolean
 
-    tfCallback: (frame: string, tranform: Transform) => void
+    tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
     
     // TODO (kavidey): check whether this variable is necessary, we never read from it
@@ -23,17 +23,17 @@ export class Robot {
     private panOffset = 0;
     private tiltOffset = 0;
 
-    private tfClient?: TFClient
-    private trajectoryClient?: ActionClient
-    private jointStateTopic?: Topic<ROSJointState>
+    private tfClient?: ROSLIB.TFClient
+    private trajectoryClient?: ROSLIB.ActionClient
+    private jointStateTopic?: ROSLIB.Topic<ROSJointState>
 
-    private linkGripperFingerLeftTF?: Transform
-    private linkHeadTiltTF?: Transform
-    private cameraColorFrameTF?: Transform
-    private baseTF?: Transform
+    private linkGripperFingerLeftTF?: ROSLIB.Transform
+    private linkHeadTiltTF?: ROSLIB.Transform
+    private cameraColorFrameTF?: ROSLIB.Transform
+    private baseTF?: ROSLIB.Transform
     jointState?: ROSJointState
 
-    private videoTopics: [Topic<ROSCompressedImage>?] = []
+    private videoTopics: [ROSLIB.Topic<ROSCompressedImage>?] = []
 
     private isWristFollowingActive = false
     // TODO (kavidey): this should be `typeof setTimeout`, but TS wants it to be number
@@ -149,7 +149,7 @@ export class Robot {
         }
     }
 
-    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: Transform) => void) {
+    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: ROSLIB.Transform) => void) {
         this.jointStateCallback = jointStateCallback
         this.tfCallback = tfCallback
 
@@ -157,11 +157,11 @@ export class Robot {
 
     async connect(): Promise<void> {
         // connect to rosbridge websocket
-        let ros = new Ros({
+        let ros = new ROSLIB.Ros({
             url: 'wss://localhost:9090'
         });
         ros.on('connection', () => {
-            let simTime = new Param({
+            let simTime = new ROSLIB.Param({
                 ros: ros,
                 name: '/use_sim_time'
             });
@@ -181,9 +181,9 @@ export class Robot {
         });
     }
 
-    async onConnect(ros: Ros) {
+    async onConnect(ros: ROSLIB.Ros) {
         this.ros = ros;
-        this.jointStateTopic = new Topic({
+        this.jointStateTopic = new ROSLIB.Topic({
             ros: this.ros,
             name: '/stretch/joint_states/',
             messageType: 'sensor_msgs/JointState'
@@ -196,7 +196,7 @@ export class Robot {
             if (this.jointStateCallback) this.jointStateCallback(message)
         });
 
-        this.tfClient = new TFClient({
+        this.tfClient = new ROSLIB.TFClient({
             ros: this.ros,
             fixedFrame: 'base_link',
             angularThres: 0.01,
@@ -227,7 +227,7 @@ export class Robot {
         this.tfClient.subscribe('odom', transform => {
             this.baseTF = transform;
         });
-        this.trajectoryClient = new ActionClient({
+        this.trajectoryClient = new ROSLIB.ActionClient({
             ros: this.ros,
             serverName: '/stretch_controller/follow_joint_trajectory',
             actionName: 'control_msgs/FollowJointTrajectoryAction',
@@ -237,7 +237,7 @@ export class Robot {
     }
 
     subscribeToVideo(topicName: string, callback: (message: ROSCompressedImage) => void) {
-        let topic: Topic<ROSCompressedImage> = new Topic({
+        let topic: ROSLIB.Topic<ROSCompressedImage> = new ROSLIB.Topic({
             ros: this.ros,
             name: topicName,
             messageType: 'sensor_msgs/CompressedImage'
@@ -260,7 +260,7 @@ export class Robot {
         makePoseGoal({'rotate_mobile_base': ang_deg}, this.trajectoryClient).send();
     }
 
-    makeIncrementalMoveGoal(jointName: ValidJoints, jointValueInc: number): Goal {
+    makeIncrementalMoveGoal(jointName: ValidJoints, jointValueInc: number): ROSLIB.Goal {
         if (!this.jointState) throw 'jointState is undefined';
         let newJointValue = getJointValue(this.jointState, jointName)
         // Paper over Hello's fake joints
@@ -424,7 +424,7 @@ export class Robot {
     }
 }
 
-function makePoseGoal(pose: Pose, trajectoryClient: ActionClient) {
+function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient) {
     let jointNames = []
     let jointPositions = []
     for (let key in pose) {
@@ -432,7 +432,7 @@ function makePoseGoal(pose: Pose, trajectoryClient: ActionClient) {
         jointPositions.push(pose[key])
     }
 
-    let newGoal = new Goal({
+    let newGoal = new ROSLIB.Goal({
         actionClient: trajectoryClient,
         goalMessage: {
             trajectory: {
@@ -470,7 +470,7 @@ function makePoseGoal(pose: Pose, trajectoryClient: ActionClient) {
 
 }
 
-function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoalArray, trajectoryClient: ActionClient) {
+function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoalArray, trajectoryClient: ROSLIB.ActionClient) {
     let points = [];
     let jointNames;
     for (let i = 0; i < positions.length; i++) {
@@ -495,7 +495,7 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
         });
         jointNames = names;
     }
-    let newGoal = new Goal({
+    let newGoal = new ROSLIB.Goal({
         actionClient: trajectoryClient,
         goalMessage: {
             trajectory: {

@@ -13,7 +13,8 @@
       "noUnusedLocals": true,
       "noUnusedParameters": true,
       "noImplicitReturns": true,
+      "noEmitOnError": true
     },
-    "include": ["src", "webpack.config.js", "server"]
+    "include": ["src", "webpack.config.js"]
   }
   

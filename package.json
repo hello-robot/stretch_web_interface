@@ -37,10 +37,10 @@
     "devDependencies": {
         "@types/bootstrap": "^5.1.9",
         "@types/three": "^0.138.0",
-        "ts-loader": "^9.2.7",
-        "tsc": "^2.0.4",
+        "ts-loader": "^9.2.8",
+        "tsc-silent": "^1.2.2",
         "typescript": "^4.6.2",
-        "webpack": "^5.70.0",
+        "webpack": "^5.67.0",
         "webpack-cli": "^4.9.2"
     }
 }

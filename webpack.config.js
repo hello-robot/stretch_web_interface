@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const pages = ['robot', 'operator'];
 
 module.exports = {
-    mode: 'production', //'development',
+    mode: 'development',
     entry: pages.reduce((config, page) => {
         config[page] = `./src/pages/${page}/ts/index.ts`;
         return config;
