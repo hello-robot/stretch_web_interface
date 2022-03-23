@@ -1,4 +1,7 @@
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/database"
+
+import { firebaseApiKey } from "./database.config";
 
 const config = {
   apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",

@@ -13,7 +13,7 @@ node_modules
 .vscode/
 
 # Environment variables
-shared/database.config.js
+src/shared/database.config.ts
 
 pnpm-lock.yaml
 dist

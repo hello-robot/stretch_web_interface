@@ -27,8 +27,7 @@ function isOperator(req) {
 userController.robot = function(req, res) {
     var file = req.params.file;
     if (isRobot(req)) {
-        //res.sendFile(robot_root + "/" + file); 
-        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
+        res.sendFile(path.join(__dirname, '../dist/' + file));
     } else {
         res.status(403).send("Not authorized to get " + file); 
     }
@@ -101,7 +100,7 @@ userController.login = function(req, res) {
 userController.doLogin = function(req, res) {
     passport.authenticate('local')(req, res, function () {
         if (isOperator(req)) {
-            res.redirect('/operator/operator.html');
+            res.redirect('/operator');
         } else if (isRobot(req)) {
             res.redirect('/robot/robot.html');
         } else {

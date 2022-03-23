@@ -52,6 +52,7 @@ var index = require('./routes/index');
 
 var app = express();
 
+/*
 // "Helmet helps you secure your Express apps by setting various HTTP headers."
 console.log('use helmet');
 app.use(helmet());
@@ -97,6 +98,7 @@ if (use_content_security_policy) {
         })
     );
 }
+*/
 
 /////////////////////////
 //
