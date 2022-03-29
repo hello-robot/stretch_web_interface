@@ -1,5 +1,5 @@
-import { BaseComponent } from "../../../shared/base.cmp";
-import { Modal } from "bootstrap";
+import {BaseComponent, Component} from "../../../shared/base.cmp";
+import {Modal} from "bootstrap";
 import { Pose } from "../../../shared/util";
 
 const template = `
@@ -56,6 +56,7 @@ const template = `
     </div>
 </div>`
 
+@Component('pose-save-modal')
 export class PoseSaveModal extends BaseComponent {
     modalContainer?: Element
     modal: Modal

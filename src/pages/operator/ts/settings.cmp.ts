@@ -1,5 +1,5 @@
-import { BaseComponent } from "../../../shared/base.cmp"
-import { Modal } from "bootstrap";
+import {BaseComponent, Component} from "../../../shared/base.cmp"
+import {Modal} from "bootstrap";
 
 
 // FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
@@ -109,6 +109,7 @@ const template = `
 </div>
 `;
 
+@Component('settings-modal', '/operator/css/settings.css')
 export class SettingsModal extends BaseComponent {
     modalContainer: Element
     modal: Modal

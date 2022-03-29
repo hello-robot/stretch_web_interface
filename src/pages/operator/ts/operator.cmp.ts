@@ -11,7 +11,8 @@ import {
     PanTiltNavigationOverlay,
     ReachOverlay
 } from "./stretchoverlays";
-import { MapInteractive } from "./mapinteractive.cmp";
+import {MapInteractive} from "./mapinteractive.cmp";
+import {Component} from "../../../shared/base.cmp";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -91,6 +92,7 @@ const template = `
 <settings-modal data-ref="settings"></settings-modal>
 `;
 
+@Component('operator-page', '/operator/css/operator.css')
 export class OperatorComponent extends PageComponent {
     title = '';
     controls = {}

@@ -21,6 +21,7 @@ const template = `
 </div>
 `;
 
+@Component('video-control', '/operator/css/video-control.css')
 export class VideoControl extends BaseComponent {
     overlays: Map<string, Overlay> = new Map();
     overlayResizeNotifier: ResizeObserver;
@@ -109,5 +110,3 @@ export class VideoControl extends BaseComponent {
 
 
 }
-
-Component('video-control', VideoControl, '/operator/css/video-control.css')

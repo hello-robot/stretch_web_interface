@@ -5,18 +5,20 @@
  * @param name Component name for element registry
  * @param cssLink Link to the CSS style sheet
  */
-export function Component(name: string, constructor: CustomElementConstructor, cssLink?: string) {
-    constructor.prototype.cssLink = cssLink;
+export function Component(name: string, cssLink?: string) {
+    return function (constructor: Function) {
+        constructor.prototype.cssLink = cssLink;
 
-    // Register component
-    customElements.define(name, constructor);
+        // Register component
+        customElements.define(name, constructor as any);
 
-    // Prefetch Style
-    if (cssLink) {
-        const link = document.createElement('link');
-        link.setAttribute('rel', 'prefetch');
-        link.setAttribute('href', cssLink);
-        document.head.append(link);
+        // Prefetch Style
+        if (cssLink) {
+            const link = document.createElement('link');
+            link.setAttribute('rel', 'prefetch');
+            link.setAttribute('href', cssLink);
+            document.head.append(link);
+        }
     }
 
 }
@@ -24,9 +26,10 @@ export function Component(name: string, constructor: CustomElementConstructor, c
 /**
  * Root class for components
  */
+@Component('base-cmp')
 export class BaseComponent extends HTMLElement {
 
-    cssLink;
+    cssLink?: string;
     refs: Map<string, Element> = new Map();
 
     constructor(html = '', makeVisible = true, useShadowRoot = true) {
@@ -94,4 +97,3 @@ export class BaseComponent extends HTMLElement {
     }
 }
 
-Component('base-cmp', BaseComponent)

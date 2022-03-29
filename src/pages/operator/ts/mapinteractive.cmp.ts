@@ -7,6 +7,7 @@ const template = `
 </div>
 `
 
+@Component("map-interactive", '/operator/css/map-interactive.css')
 export class MapInteractive extends BaseComponent {
     mapImg?: HTMLImageElement
     mapCanvas?: HTMLCanvasElement
@@ -39,4 +40,3 @@ export class MapInteractive extends BaseComponent {
     }
 }
 
-Component("map-interactive", MapInteractive, '/operator/css/map-interactive.css');

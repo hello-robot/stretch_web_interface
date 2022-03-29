@@ -1,7 +1,9 @@
-import { BaseComponent, Component } from "../../../shared/base.cmp";
+import * as ROSLIB from "roslib";
+import {BaseComponent, Component} from "../../../shared/base.cmp";
 
 const template = `<div id="map_viewer"></div>`;
 
+@Component('map-ros')
 export class MapROS extends BaseComponent {
     width: number
     height: number
@@ -64,5 +66,3 @@ export class MapROS extends BaseComponent {
         });
     }
 }
-
-Component('map-ros', MapROS);

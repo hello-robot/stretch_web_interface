@@ -1,4 +1,4 @@
-import { BaseComponent } from "../../../shared/base.cmp"
+import {BaseComponent, Component} from "../../../shared/base.cmp"
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -24,6 +24,7 @@ Download
     </div>
 `
 
+@Component("command-recorder")
 export class CommandRecorder extends BaseComponent {
     _recording = false
     recordingBuffer

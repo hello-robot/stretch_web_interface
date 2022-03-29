@@ -20,6 +20,7 @@ let debug = false;
 const degToRad = (2.0 * Math.PI) / 360.0;
 const template = `<span data-ref="paused-ui">Click to start</span><video data-ref="video" autoplay></video>`
 
+@Component('video-stream')
 export class VideoStream extends BaseComponent {
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D
@@ -99,9 +100,8 @@ export class VideoStream extends BaseComponent {
     }
 }
 
-Component('video-stream', VideoStream)
 
-
+@Component('rotated-video-stream')
 export class RotatedVideoStream extends VideoStream {
     constructor(dimensions) {
         let rotatedDim = {w: dimensions.h, h: dimensions.w};
@@ -126,7 +126,6 @@ export class RotatedVideoStream extends VideoStream {
     }
 }
 
-Component('rotated-video-stream', RotatedVideoStream)
 
 interface crop {
     sx: number,
@@ -138,6 +137,8 @@ interface crop {
     dw: number,
     dh: number
 }
+
+@Component('transformed-video-stream')
 export class TransformedVideoStream extends VideoStream {
     rotate: boolean
     crop: crop
@@ -188,5 +189,3 @@ export class TransformedVideoStream extends VideoStream {
 
     }
 }
-
-Component('transformed-video-stream', TransformedVideoStream)

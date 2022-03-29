@@ -1,4 +1,4 @@
-import { BaseComponent } from "../../../shared/base.cmp"
+import {BaseComponent, Component} from "../../../shared/base.cmp"
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -24,6 +24,7 @@ Save pose
 <pose-save-modal data-ref="pose-create-modal"></pose-save-modal>
 `
 
+@Component("pose-library")
 export class PoseLibrary extends BaseComponent {
     creationModal?: Element
     saveButton?: HTMLButtonElement
