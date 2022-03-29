@@ -22,8 +22,7 @@ export class WebRTCConnection {
     private onConnectionStart: () => void
     private requestResponders: Map<string, Responder> = new Map()
     private pendingRequests = new Map()
-    // TODO (kavidey): Figure out how to tell typescript that we will define these later
-    private cameraInfo?: CameraInfo
+    private cameraInfo: CameraInfo = {}
     private makingOffer = false
     private ignoreOffer = false
     private isSettingRemoteAnswerPending = false
@@ -86,6 +85,9 @@ export class WebRTCConnection {
             let { sessionDescription, cameraInfo } = message;
             console.log('Received message:', sessionDescription, cameraInfo);
             if (cameraInfo) {
+                if (Object.keys(cameraInfo).length === 0) {
+                    console.warn("Received a camera info mapping with no entries")
+                }
                 this.cameraInfo = cameraInfo
             }
             if (sessionDescription.type === 'offer' || sessionDescription.type === 'answer') {
@@ -247,7 +249,7 @@ export class WebRTCConnection {
 
     hangup() {
         // Tell the other end that we're ending the call so they can stop, and get us kicked out of the robot room
-        console.warn("Honging up")
+        console.warn("Hanging up")
         this.socket.emit('bye');
         if (!this.pc) throw 'pc is undefined';
         if (this.pc.connectionState === "new") {
@@ -260,7 +262,7 @@ export class WebRTCConnection {
     }
 
     addTrack(track: MediaStreamTrack, stream: MediaStream, streamName: string) {
-        if (!this.cameraInfo) throw 'cameraInfo is undefined';
+        // Keep track of the mapping from the random ID and the nice stream name so we can send this to the other end later
         this.cameraInfo[stream.id] = streamName
         if (!this.pc) throw 'pc is undefined';
         this.pc.addTrack(track, stream)
