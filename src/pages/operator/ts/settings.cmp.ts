@@ -5,7 +5,7 @@ import { Modal } from "bootstrap";
 // FIXME: Speed switch and mode switch don't work fully now. Each probably needs its own component
 // FIXME: Settings page not reintegrated
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <!-- SETTINGS -->
 <div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle"
      aria-hidden="true" data-ref="modal-container">

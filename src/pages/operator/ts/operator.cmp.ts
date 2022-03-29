@@ -14,7 +14,7 @@ import {
 import { MapInteractive } from "./mapinteractive.cmp";
 
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <div class="px-2 py-3 d-flex justify-content-left">
 
     <div class="d-flex flex-fill justify-content-start ">

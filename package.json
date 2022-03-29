@@ -3,7 +3,10 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "start": "rm -r dist; webpack --mode development;"
+        "start": "rm -rf dist && npm run copy && webpack --mode development;",
+        "copy": "npm run copy_boostrap && npm run copy_static",
+        "copy_boostrap": "mkdir -p dist/shared && cp node_modules/bootstrap/dist/css/bootstrap.css node_modules/bootstrap/dist/js/bootstrap.js dist",
+        "copy_static": "rsync -va --prune-empty-dirs --include '*/' --include '*.css' --exclude '*' src/pages/ src/style.css dist"
     },
     "dependencies": {
         "@popperjs/core": "^2.11.2",

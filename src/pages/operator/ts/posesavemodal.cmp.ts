@@ -3,7 +3,7 @@ import { Modal } from "bootstrap";
 import { Pose } from "../../../shared/util";
 
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <div class="modal fade" tabIndex="-1" role="dialog" aria-labelledby="posesTitle"
                       aria-hidden="true" data-ref="modal-container">
     <div class="modal-dialog modal-dialog-centered" role="document">

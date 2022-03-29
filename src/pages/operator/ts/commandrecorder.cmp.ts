@@ -1,7 +1,7 @@
 import { BaseComponent } from "../../../shared/base.cmp"
 
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <div class="btn-group mx-2" role="group">
       <button
     type="button"

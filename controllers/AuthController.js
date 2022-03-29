@@ -1,13 +1,9 @@
-var path = require('path');
 var mongoose = require("mongoose");
 var passport = require("passport");
 var User = require("../models/User");
 
 var userController = {};
 
-var robot_root = path.join(__dirname, '../robot');
-var operator_root = path.join(__dirname, '../operator');
-var shared_root = path.join(__dirname, '../shared');
 
 // check if user is an approved and logged-in robot
 function isRobot(req) {
@@ -24,38 +20,29 @@ function isOperator(req) {
 };
 
 // Only give approved logged-in robots access to files in the robot directory
-userController.robot = function(req, res) {
-    var file = req.params.file;
+userController.robot = function (req, res, next) {
     if (isRobot(req)) {
-        res.sendFile(path.join(__dirname, '../dist/' + file));
+        return next()
     } else {
-        res.status(403).send("Not authorized to get " + file); 
+        res.status(403).send("Not authorized to get " + req.originalUrl);
     }
 };
 
 // Only give approved logged-in operators access to files in the operator directory
-userController.operator = function(req, res) {
-    var file = req.params.file;
-    console.log('file', file, operator_root);
+userController.operator = function (req, res, next) {
     if (isOperator(req)) {
-        //res.sendFile(operator_root + "/" + file); 
-        //console.log(req);
-        //res.sendFile(__dirname + '/../' + req.originalUrl);
-        //console.log(req.originalUrl, req.params.file);
-        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
+        return next()
     } else {
-        res.status(403).send("Not authorized to get " + file); 
+        res.status(403).send("Not authorized to get " + req.originalUrl);
     }
 };
 
 // Only give approved logged-in operators and robots access to files in the shared directory
-userController.shared = function(req, res) {
-    var file = req.params.file;
+userController.shared = function (req, res, next) {
     if (isOperator(req) || isRobot(req)) {
-        //res.sendFile(shared_root + "/" + file); 
-        res.sendFile(path.join(__dirname, '../' + req.originalUrl));
+        return next()
     } else {
-        res.status(403).send("Not authorized to get " + file); 
+        res.status(403).send("Not authorized to get " + req.originalUrl);
     }
 };
 
@@ -102,7 +89,7 @@ userController.doLogin = function(req, res) {
         if (isOperator(req)) {
             res.redirect('/operator');
         } else if (isRobot(req)) {
-            res.redirect('/robot/robot.html');
+            res.redirect('/robot');
         } else {
             res.redirect('/');
         }

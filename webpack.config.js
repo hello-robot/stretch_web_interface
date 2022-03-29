@@ -10,7 +10,7 @@ module.exports = {
         return config;
     }, {}),
     output: {
-        filename: "[name].js",
+        filename: "[name]/main.js",
         path: path.resolve(__dirname, "dist"),
     },
     optimization: {
@@ -24,7 +24,7 @@ module.exports = {
                 new HtmlWebpackPlugin({
                     inject: true,
                     template: `./src/pages/${page}/${page}.html`,
-                    filename: `${page}.html`,
+                    filename: `${page}/index.html`,
                     chunks: [page],
                 })
         )

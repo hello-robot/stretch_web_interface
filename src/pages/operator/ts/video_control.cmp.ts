@@ -2,7 +2,7 @@ import {BaseComponent, Component} from "../../../shared/base.cmp"
 import { Overlay } from "./overlay";
 
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <div id="top" class="control-button">
     <button  class="btn btn-secondary"></button>
 </div>

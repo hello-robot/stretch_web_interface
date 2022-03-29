@@ -126,7 +126,7 @@ console.log('set up the view engine');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, 'src', 'assets', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -151,13 +151,10 @@ console.log('set up passport');
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-// make files in the public directory available to everyone
-console.log('make public directory contents available to everyone');
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'operator/icons')));
-
+// Let requests go through app auth and routing first
 app.use('/', index);
+// Try to serve static files if the app lets the request through
+app.use('/', express.static(path.join(__dirname, 'dist')));
 
 // passport configuration
 console.log('configure passport');
