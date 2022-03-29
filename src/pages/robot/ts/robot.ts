@@ -160,25 +160,28 @@ export class Robot {
         let ros = new ROSLIB.Ros({
             url: 'wss://localhost:9090'
         });
-        ros.on('connection', () => {
-            let simTime = new ROSLIB.Param({
-                ros: ros,
-                name: '/use_sim_time'
+        return new Promise<void>((res, rej) => {
+            ros.on('connection', async () => {
+                let simTime = new ROSLIB.Param({
+                    ros: ros,
+                    name: '/use_sim_time'
+                });
+
+                simTime.get(value => {
+                    this.inSim = value
+                });
+                await this.onConnect(ros);
+                res()
+            });
+            ros.on('error', (error) => {
+                rej(error)
             });
 
-            simTime.get(value => {
-                this.inSim = value
+            ros.on('close', () => {
+                rej('Connection to websocket has been closed.')
             });
-            this.onConnect(ros);
-        });
+        })
 
-        ros.on('error', (error) => {
-            throw error
-        });
-
-        ros.on('close', () => {
-            throw 'Connection to websocket has been closed.'
-        });
     }
 
     async onConnect(ros: ROSLIB.Ros) {
