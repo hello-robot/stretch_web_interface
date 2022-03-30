@@ -281,16 +281,15 @@ export class OperatorComponent extends PageComponent {
             let displayMode = this.model.getSetting("displayMode", "navsetting")
             if (displayMode === "predictive-display") {
                 this.setMode('clickNav')
+                this.robot.setRobotNavMode()
             } else {
                 this.setMode('nav')
+                if (actionMode === "incremental") {
+                    this.robot.setRobotPosMode()
+                } else {
+                    this.robot.setRobotNavMode()
+                }
             }
-
-            if (actionMode === "incremental" && displayMode != "predictive-display") {
-                this.robot.setRobotPosMode()
-            } else {
-                this.robot.setRobotNavMode()
-            }
-
         } else {
             this.setMode(currMode)
             if (actionMode === "incremental") {
