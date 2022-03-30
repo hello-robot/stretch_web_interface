@@ -153,31 +153,32 @@ export class OverheadNavigationOverlay extends OverlaySVG {
         let mobile_base_height = h / 10.0;
 
         // small rectangle around the mobile base
-        let baseRect = makeSquare((w / 2.0) - (mobile_base_width / 2.0),
-            (2.0 * h / 3.0) - (mobile_base_height / 2.0),
-            mobile_base_width);
+        let baseRect = makeSquare((w / 2.0) - (mobile_base_width * 1.25),
+            (2.0 * h / 3.0) - (mobile_base_height * 1.25),
+            mobile_base_width * 1.5);
 
         this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
         this.createRegion("translate_mobile_base_pos", {
             label: 'drive forward',
-            poly: [navRect.ul, navRect.ur, baseRect.ur, baseRect.ul],
+            poly: [bgRect.ul, bgRect.ur, baseRect.ur, baseRect.ul],
             iconImage: icon("arrow_up")
         });
         this.createRegion("translate_mobile_base_neg", {
             label: 'drive back',
-            poly: [navRect.ll, navRect.lr, baseRect.lr, baseRect.ll],
+            poly: [bgRect.ll, bgRect.lr, baseRect.lr, baseRect.ll],
             iconImage: icon("arrow_down")
         });
         this.createRegion("rotate_mobile_base_pos", {
             label: 'turn left',
-            poly: [navRect.ul, baseRect.ul, baseRect.ll, navRect.ll],
+            poly: [bgRect.ul, baseRect.ul, baseRect.ll, bgRect.ll],
             iconImage: icon("turn_left")
         });
         this.createRegion("rotate_mobile_base_neg", {
             label: 'turn right',
-            poly: [navRect.ur, baseRect.ur, baseRect.lr, navRect.lr],
+            poly: [bgRect.ur, baseRect.ur, baseRect.lr, bgRect.lr],
             iconImage: icon("turn_right")
         });
+        /*
         this.createRegion("wrist_extension_neg", {
             label: 'retract arm',
             poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
@@ -188,7 +189,7 @@ export class OverheadNavigationOverlay extends OverlaySVG {
             poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
             iconImage: icon("arrow_right")
         });
-
+        */
     }
 }
 
@@ -246,6 +247,84 @@ export class OverheadManipulationOverlay extends OverlaySVG {
             poly: rectToPoly(armExtendRect),
             iconImage: icon('arrow_up_right')
         });
+    }
+}
+
+export class OverheadClickNavigationOverlay extends OverlaySVG {
+    w
+    h
+
+    constructor(aspectRatio) {
+        super(aspectRatio);
+        let w = 100 * aspectRatio
+        let h = 100
+        let cornerRectSize = 20
+        let mobile_base_width = w / 10.0;
+        let mobile_base_height = h / 10.0;
+
+        let baseRect = makeSquare(0, 0, w, h);
+        this.w = w;
+        this.h = h;
+        this.createRegion("clickNavigate", {label: 'clickNavigate', poly: rectToPoly(baseRect)});
+    }
+
+    normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle))
+    }
+
+    svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2) {
+        return [
+            "M", x1, y1,
+            "A", r, r, 0, largeArcFlag, sweepFlag, x2, y2
+        ].join(" ");
+    }
+
+    drawRotateIcon() {
+        this.createTraj({iconImage: icon('rotate')});
+    }
+
+    drawArc(x, y, startHeading, goalHeading, circle=true) {
+        let largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
+        let sweepFlag = goalHeading < Math.PI/2 ? "0" : "1";
+        let sign = goalHeading < Math.PI/2 ? 1 : -1;
+        let diffHeading = Math.abs(goalHeading - startHeading)
+        // If user clicked behind the robot, offset trajectory
+        let y_offset = y > 80 ? 10 : 0
+
+        // Left wheel traj
+        let end_angle = this.normalizeAngle(goalHeading + (Math.PI/2 - sign*diffHeading))
+        let x1 = 39
+        let y1 = 70 + y_offset
+        let x2 = y > 80 ? x1 : x+6.5*Math.cos(end_angle);
+        let y2 = y > 80 ? 95 : y+6.5*Math.sin(end_angle);
+        let q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
+        let r = (q/2)/(1 - Math.cos(diffHeading))
+        let leftTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
+
+        // Center traj
+        end_angle = this.normalizeAngle(startHeading + diffHeading/2);
+        x1 = 45
+        y1 = 70 + y_offset
+        x2 = y > 80 ? x1 : x+Math.cos(end_angle);
+        y2 = y > 80 ? 95 : y+Math.sin(end_angle);
+        q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
+        r = (q/2)/(1 - Math.cos(diffHeading))
+        let centerTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
+
+        // Right wheel traj
+        end_angle = this.normalizeAngle(goalHeading - (Math.PI/2 + sign*diffHeading))
+        x1 = 51
+        y1 = 70 + y_offset
+        x2 = y > 80 ? x1 : x+6.5*Math.cos(end_angle);
+        y2 = y > 80 ? 95 : y+6.5*Math.sin(end_angle);
+        q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
+        r = (q/2)/(1 - Math.cos(diffHeading))
+        let rightTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
+
+        // Circle center
+        let center = circle ? {x: x, y: y} : null;
+        let icon = null;
+        this.createTraj({icon, leftTraj, centerTraj, rightTraj, center});
     }
 }
 

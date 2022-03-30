@@ -3,8 +3,8 @@ import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
-    "wrist_extension": [0, .52],
-    "joint_wrist_yaw": [-1.75, 4],
+    "wrist_extension": [0, .51],
+    "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
     "rotate_mobile_base": [-3.14, 3.14],
@@ -14,18 +14,20 @@ export class Robot {
     private ros!: ROSLIB.Ros
     private inSim!: boolean
 
+    robotFrameTfClient?: ROSLIB.TFClient
+    trajectoryClient?: ROSLIB.ActionClient
+    moveBaseClient?: ROSLIB.ActionClient
+    jointStateTopic?: ROSLIB.Topic<ROSJointState>
+    cmdVel?
+    velocityGoal = null;
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
-    
+
     // TODO (kavidey): check whether this variable is necessary, we never read from it
     // private currentJointTrajectoryGoal
     private currentTrajectoryKillInterval?: number // same as lookAtGripperInterval, should be `typeof setTimeout`
     private panOffset = 0;
     private tiltOffset = 0;
-
-    private tfClient?: ROSLIB.TFClient
-    private trajectoryClient?: ROSLIB.ActionClient
-    private jointStateTopic?: ROSLIB.Topic<ROSJointState>
 
     private linkGripperFingerLeftTF?: ROSLIB.Transform
     private linkHeadTiltTF?: ROSLIB.Transform
@@ -113,10 +115,10 @@ export class Robot {
                 this.gripperGoalAperture(goalWidthCm);
             },
             "open": (vsize: number, vscalesize: number) => {
-                this.gripperDeltaAperture(1.0);
+                this.gripperDeltaAperture(0.1);
             },
             "close": (vsize: number, vscalesize: number) => {
-                this.gripperDeltaAperture(-1.0);
+                this.gripperDeltaAperture(-0.1);
             },
             "configure_camera": (configuration: any) => {
                 // TODO (kavidey): Implement or remove this
@@ -199,36 +201,62 @@ export class Robot {
             if (this.jointStateCallback) this.jointStateCallback(message)
         });
 
-        this.tfClient = new ROSLIB.TFClient({
+        this.setNavMode = new ROSLIB.Service({
+                ros: ros,
+                name: '/switch_to_navigation_mode',
+                serviceType: '/switch_to_navigation_mode'
+            });
+        this.setPositionMode = new ROSLIB.Service({
+            ros: ros,
+            name: '/switch_to_position_mode',
+            serviceType: '/switch_to_position_mode'
+        });
+        this.cmdVel = new ROSLIB.Topic({
+            ros : ros,
+            name : '/stretch/cmd_vel',
+            messageType : 'geometry_msgs/Twist'
+          });
+
+        this.robotFrameTfClient = new ROSLIB.TFClient({
             ros: this.ros,
             fixedFrame: 'base_link',
             angularThres: 0.01,
             transThres: 0.01
         });
 
-        this.tfClient.subscribe('link_gripper_finger_left', transform => {
+        this.globalFrameTfClient = new ROSLIB.TFClient({
+                ros: this.ros,
+                fixedFrame: 'map',
+                angularThres: 0.01,
+                transThres: 0.01
+            });
+
+        this.robotFrameTfClient.subscribe('link_gripper_finger_left', transform => {
             this.linkGripperFingerLeftTF = transform;
             if (this.tfCallback) {
                 this.tfCallback('link_gripper_finger_left', transform)
             }
         });
 
-        this.tfClient.subscribe('link_head_tilt', transform => {
+        this.robotFrameTfClient.subscribe('link_head_tilt', transform => {
             this.linkHeadTiltTF = transform;
             if (this.tfCallback) {
                 this.tfCallback('link_head_tilt', transform)
             }
         });
 
-        this.tfClient.subscribe('camera_color_frame', transform => {
+        this.robotFrameTfClient.subscribe('camera_color_frame', transform => {
             this.cameraColorFrameTF = transform;
             if (this.tfCallback) {
                 this.tfCallback('camera_color_frame', transform)
             }
         });
 
-        this.tfClient.subscribe('odom', transform => {
+        this.globalFrameTfClient.subscribe('base_link', transform => {
             this.baseTF = transform;
+            if (this.tfCallback) {
+                this.tfCallback('base_frame', transform)
+            }
         });
         this.trajectoryClient = new ROSLIB.ActionClient({
             ros: this.ros,
@@ -237,6 +265,12 @@ export class Robot {
             timeout: 100 // TODO (kavidey): Figure out what unit this is and update
         });
 
+        this.moveBaseClient = new ROSLIB.ActionClient({
+            ros: this.ros,
+            serverName: '/move_base',
+            actionName: 'move_base_msgs/MoveBaseAction'
+        })
+        return Promise.resolve()
     }
 
     subscribeToVideo(topicName: string, callback: (message: ROSCompressedImage) => void) {
@@ -403,8 +437,55 @@ export class Robot {
         positions[1][jointName] = jointLimit[Math.sign(velocity) === -1 ? 0 : 1]
 
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
-        makeVelocityGoal(positions, velocities, this.trajectoryClient).send()
-        this.affirmExecution() 
+        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient)
+        this.velocityGoal.send()
+        this.affirmExecution()
+    }
+
+    setRobotNavMode() {
+        var request = new ROSLIB.ServiceRequest({});
+        this.setNavMode.callService(request, function(result) {
+            console.log("Set stretch to navigation mode");
+        })
+    }
+
+    setRobotPosMode() {
+        var request = new ROSLIB.ServiceRequest({});
+        this.setPositionMode.callService(request, function(result) {
+            console.log("Set stretch to position mode");
+        })
+    }
+
+    executeClickMove(lin_vel, ang_vel) {
+        var twist = new ROSLIB.Message({
+            linear : {
+              x : lin_vel,
+              y : 0,
+              z : 0
+            },
+            angular : {
+              x : 0,
+              y : 0,
+              z : ang_vel
+            }
+        });
+      this.cmdVel.publish(twist);
+    }
+
+    stopClickMove() {
+        var twist = new ROSLIB.Message({
+            linear : {
+              x : 0,
+              y : 0,
+              z : 0
+            },
+            angular : {
+              x : 0,
+              y : 0,
+              z : 0
+            }
+        });
+        this.cmdVel.publish(twist);
     }
 
     affirmExecution() {
@@ -420,10 +501,20 @@ export class Robot {
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
         this.trajectoryClient.cancel()
         // this.currentJointTrajectoryGoal = null
+
         if (this.currentTrajectoryKillInterval) {
             clearTimeout(this.currentTrajectoryKillInterval)
             // this.currentTrajectoryKillInterval = null
         }
+        this.moveBaseClient.cancel()
+	    if (this.velocityGoal) {
+            this.velocityGoal.cancel()
+            this.velocityGoal = null
+        }
+    }
+
+    executeNavGoal(goal) {
+        makeNavGoal(goal, this.moveBaseClient).send()
     }
 }
 
@@ -513,7 +604,6 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
             }
         }
     });
-
     newGoal.on('feedback', function (feedback) {
         //console.log('Feedback: ', feedback);
     });
@@ -523,6 +613,46 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
     });
 
     return newGoal;
+    //this.velocityGoal = newGoal;
+    return newGoal
+
+}
+
+function makeNavGoal(pos, moveBaseClient) {
+    let newGoal = new ROSLIB.Goal({
+        actionClient: moveBaseClient,
+        goalMessage: {
+            target_pose: {
+                header: {
+                    stamp: {
+                        secs: 0,
+                        nsecs: 0
+                    },
+                    frame_id: 'map'
+                },
+                pose: {
+                    position: {
+                        x: pos.x,
+                        y: pos.y,
+                        z: 0
+                    },
+                    orientation: eulerToQuaternion(0, 0, pos.theta)
+                }
+            }
+        }
+    });
+
+    newGoal.on('feedback', function (feedback) {
+        // console.log('Feedback:');
+        // console.log(feedback)
+    });
+
+    newGoal.on('result', function (result) {
+        console.log('Final Result:');
+        console.log(result);
+    });
+
+    return newGoal
 
 }
 
@@ -543,4 +673,19 @@ export function getJointValue(jointStateMessage: ROSJointState, jointName: Valid
     }
     let jointIndex = jointStateMessage.name.indexOf(jointName)
     return jointStateMessage.position[jointIndex]
+}
+
+
+// Modified from: https://math.stackexchange.com/a/2975462
+function eulerToQuaternion(yaw, pitch, roll) {
+    const qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+    const qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
+    const qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)
+    const qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+    return {
+        x: qx,
+        y: qy,
+        z: qz,
+        w: qw
+    }
 }

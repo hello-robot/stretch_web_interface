@@ -1,5 +1,5 @@
-export const realsenseDimensions = {w: 640, h: 360, fps: 15.0}
-export const wideVideoDimensions = {w: 1024, h: 768, fps: 20.0}
+export const realsenseDimensions = {w: 640, h: 360, fps: 6.0}
+export const wideVideoDimensions = {w: 1024, h: 768, fps: 6.0}
 export const gripperCrop = computeCrop(wideVideoDimensions, 0.8, 1.0)
 export const overheadNavCrop = ((x, y) => {
         return {
@@ -13,20 +13,20 @@ export const overheadNavCrop = ((x, y) => {
             dh: wideVideoDimensions.h * y
         }
     }
-)(0.7, 0.8)
+)(0.75, 1.0)
 
 export const overheadManipCrop = ((x, y) => {
     return {
-        sx: wideVideoDimensions.w * (1.0 - x) / 1.5, //get more from the right
-        sy: 0, // get more from the top
-        sw: wideVideoDimensions.w * x,
-        sh: wideVideoDimensions.h * y,
+	sx: wideVideoDimensions.w * (1.0 - x) * 1.5 , //get more from the right
+        sy: wideVideoDimensions.w * 0.225, // get more from the top
+        sw: wideVideoDimensions.w / 1.5,
+        sh: wideVideoDimensions.h / 1.5,
         dx: 0,
         dy: 0,
-        dw: wideVideoDimensions.w * x,
-        dh: wideVideoDimensions.w * y,
+        dw: wideVideoDimensions.w,
+        dh: wideVideoDimensions.w,
     }
-})(0.5, 0.7)
+})(0.75, 1.0)
 
 function computeCrop(original, x, y) {
     return {

@@ -58,24 +58,73 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
-        this.robotChannel({type: "incrementalMove", jointName: jointName, increment: direction * increment})
+        let cmd = {type: "incrementalMove", jointName: jointName, increment: direction * increment}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd);
     }
 
     velocityMove(jointName: ValidJoints, velocity: number) {
-        this.robotChannel({type: "velocityMove", jointName: jointName, velocity: velocity})
+        let cmd = {type: "velocityMove", jointName: jointName, velocity: velocity}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd)
         return {
             "affirm": () => {
                 this.robotChannel({type: "affirm"})
+                this.emitCommandEvent({type: "affirm"})
             }, "stop": () => {
                 this.robotChannel({type: "stop"})
+                this.emitCommandEvent({type: "stop"})
             }
         }
+    }
+
+    setNavGoal(goal) {
+        let cmd = {type: "navGoal", goal: goal}
+        this.robotChannel(cmd)
+        this.emitCommandEvent(cmd)
     }
 
     emitCommandEvent(cmd) {
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
+    clickMove(lin_vel, ang_vel) {
+        let cmd = {
+            type: "clickMove",
+            lin_vel: lin_vel,
+            ang_vel: ang_vel
+        };
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
+        return {
+            "stop": () => {
+                this.robotChannel({type: "stopClickMove"})
+                this.emitCommandEvent({type: "stopClickMove"})
+            }
+        }
+    }
+
+    setRobotNavMode() {
+        let cmd = {type: "setRobotNavMode"}
+        this.robotChannel(cmd);
+    }
+
+    setRobotPosMode() {
+        let cmd = {type: "setRobotPosMode"}
+        this.robotChannel(cmd);
+    }
+
+    rotateCameraView() {
+        let cmd = {type: "rotateCameraView"}
+        this.robotChannel(cmd);
+        // this.emitCommandEvent(cmd);
+    }
+
+    resetCameraView() {
+        let cmd = {type: "resetCameraView"}
+        this.robotChannel(cmd);
+        // this.emitCommandEvent(cmd);
+    }
 }
 
 for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
@@ -103,7 +152,8 @@ class RobotSensors {
         // Yaw effort is primary, bend and roll are for dex wrist only
         "wrist": {"effort": undefined, "bend_torque": undefined, "roll_torque": undefined},
         "gripper": {"effort": undefined, "transform": undefined},
-        "head": {"transform": undefined}
+        "head": {"transform": undefined},
+        "base": {"transform": undefined}
     }
     listeners: {[group: string]: {[key: string]: Array<(value: number) => void>}} = {}
 

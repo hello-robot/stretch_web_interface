@@ -2,7 +2,7 @@ import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
 import { WebRTCConnection } from "../../../shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";
 import { MapROS } from "./mapros.cmp";
-import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
+import { gripperCrop, overheadNavCrop, overheadManipCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
 import { Transform } from "roslib";
 import { ROSJointState, ValidJoints } from "../../../shared/util";
 
@@ -23,7 +23,7 @@ robot.connect().then(() => {
     pantiltStream = new TransformedVideoStream(realsenseDimensions, null, true);
     robot.subscribeToVideo('/camera/color/image_raw/compressed', pantiltStream.imageCallback.bind(pantiltStream))
 
-    overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop);
+    overheadStream = new TransformedVideoStream(wideVideoDimensions, overheadNavCrop, true);
     robot.subscribeToVideo('/navigation_camera/image_raw/compressed', overheadStream.imageCallback.bind(overheadStream))
 
     gripperStream = new TransformedVideoStream(wideVideoDimensions, gripperCrop);
@@ -51,6 +51,7 @@ robot.connect().then(() => {
     } else {
         console.log('no audio output found or selected');
     }
+
     if (audioInId) {
         let constraints = {
             audio: { deviceId: { exact: audioInId } },
@@ -83,7 +84,8 @@ robot.connect().then(() => {
             mapData: mapData,
             mapWidth: mapROS.width,
             mapHeight: mapROS.height,
-            mapScale: mapROS.resolution,
+            mapResolution: mapROS.resolution,
+            mapOrigin: mapROS.origin,
         };
     });
 }).catch(handleError)
@@ -146,15 +148,17 @@ function forwardTF(frame: string, transform: Transform) {
         type: 'sensor',
         name: 'transform',
         value: transform
-    }
+    };
     if (frame === "link_gripper_finger_left") {
-        toSend.subtype = "gripper"
+        toSend.subtype = "gripper";
     } else if (frame === "camera_color_frame") {
-        toSend.subtype = "head"
+        toSend.subtype = "head";
+    } else if (frame === "base_frame") {
+        toSend.subtype = "base";
     } else {
         return;
     }
-    connection.sendData(toSend)
+    connection.sendData(toSend);
 }
 
 function forwardJointStates(jointState: ROSJointState) {
@@ -225,6 +229,31 @@ function handleMessage(message) {
         case "stop":
             robot.stopExecution()
             break
+        case "navGoal":
+            robot.executeNavGoal(message.goal);
+            break;
+        case "clickMove":
+            robot.executeClickMove(message.lin_vel, message.ang_vel);
+            break;
+        case "stopClickMove":
+            robot.stopClickMove();
+            break;
+        case "rotateCameraView":
+            overheadStream.crop = overheadNavCrop;
+            overheadStream.rotate = true;
+            overheadStream.start();
+            break;
+        case "resetCameraView":
+            overheadStream.crop = overheadManipCrop;
+            overheadStream.rotate = false;
+            overheadStream.start();
+            break;
+        case "setRobotNavMode":
+            robot.setRobotNavMode();
+            break;
+        case "setRobotPosMode":
+            robot.setRobotPosMode();
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }

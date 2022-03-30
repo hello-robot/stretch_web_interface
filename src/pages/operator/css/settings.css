@@ -15,17 +15,34 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/* TODO [Vinitha]: Find a better way to override element style */
+.nav-tab-settings {
+    visibility: visible !important;
+}
+
+.manip-tab-settings {
+    visibility: visible !important;
+}
+
+#setting-name {
+    margin-right: 10px;
+}
+
 /*.btn-group.velocity-toggle, .btn-group.step-size-toggle label {
     color: blue
 }*/
 
-.btn-group.vscale-toggle label {
+/*.btn-group.vscale-toggle label {
     color: black
+}*/
+
+#vmode-toggle {
+    padding-top: 10px;
 }
 
-.mode-toggle, #settings-vscale {
-    padding-bottom: 10px;
-}
+/*#control-display-mode-toggle {
+    padding-top: 20px;
+}*/
 
 .mode-toggle .btn-check:checked + .btn-secondary {
     background-color: var(--bs-cyan) !important;
