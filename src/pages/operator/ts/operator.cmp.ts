@@ -13,6 +13,7 @@ import {
 } from "./stretchoverlays";
 import {MapInteractive} from "./mapinteractive.cmp";
 import {Component} from "../../../shared/base.cmp";
+import {PerspectiveCamera} from "three";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -194,7 +195,7 @@ export class OperatorComponent extends PageComponent {
             const change = event.detail
             console.log(change)
             this.model.setSetting(change.key, change.value)
-            if (event.path[0].tagName === "SETTINGS-MODAL") {
+            if (event.composedPath()[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
                 if (change.key === "velocity-mode" || change.key === "stepsize") {
                     this.configureVelocityControls()
@@ -393,7 +394,7 @@ export class OperatorComponent extends PageComponent {
         let panTiltTrack = this.allRemoteStreams.get("pantilt").stream.getVideoTracks()[0]
 
         let ptAspectRatio = panTiltTrack.getSettings().aspectRatio || .52
-        const threeCamera = new THREE.PerspectiveCamera(69, ptAspectRatio, 0.1, 1000);
+        const threeCamera = new PerspectiveCamera(69, ptAspectRatio, 0.1, 1000);
 
         var ptNavOverlay = new PanTiltNavigationOverlay(1);
         var reachOverlayTHREE = new ReachOverlay(threeCamera);
