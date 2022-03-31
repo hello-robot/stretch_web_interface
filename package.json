@@ -6,7 +6,7 @@
         "start": "rm -rf dist && npm run copy && webpack --mode development;",
         "copy": "npm run copy_boostrap && npm run copy_static",
         "copy_boostrap": "mkdir -p dist/shared && cp node_modules/bootstrap/dist/css/bootstrap.css node_modules/bootstrap/dist/js/bootstrap.js dist",
-        "copy_static": "rsync -va --prune-empty-dirs --include '*/' --include '*.css' --exclude '*' src/pages/ src/style.css dist"
+        "copy_static": "rsync -va --prune-empty-dirs --include '*/' --include '*.css' --include '*/images/*' --exclude '*' src/pages/ src/style.css dist"
     },
     "dependencies": {
         "@popperjs/core": "^2.11.2",
