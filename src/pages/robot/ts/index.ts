@@ -208,7 +208,7 @@ function handleSessionStart() {
 }
 
 function handleMessage(message) {
-    if (!"type" in message) {
+    if (!("type" in message)) {
         console.error("Malformed message:", message)
         return
     }

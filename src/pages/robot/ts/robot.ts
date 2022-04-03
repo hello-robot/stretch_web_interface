@@ -15,13 +15,17 @@ export class Robot {
     private inSim!: boolean
 
     robotFrameTfClient?: ROSLIB.TFClient
+    globalFrameTfClient?: ROSLIB.TFClient
     trajectoryClient?: ROSLIB.ActionClient
     moveBaseClient?: ROSLIB.ActionClient
     jointStateTopic?: ROSLIB.Topic<ROSJointState>
-    cmdVel?
+    cmdVel?: ROSLIB.Topic
     velocityGoal = null;
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
+    
+    setNavMode?: ROSLIB.Service
+    setPositionMode?: ROSLIB.Service
 
     // TODO (kavidey): check whether this variable is necessary, we never read from it
     // private currentJointTrajectoryGoal
@@ -268,7 +272,8 @@ export class Robot {
         this.moveBaseClient = new ROSLIB.ActionClient({
             ros: this.ros,
             serverName: '/move_base',
-            actionName: 'move_base_msgs/MoveBaseAction'
+            actionName: 'move_base_msgs/MoveBaseAction',
+            timeout: 3000
         })
         return Promise.resolve()
     }
@@ -444,19 +449,19 @@ export class Robot {
 
     setRobotNavMode() {
         var request = new ROSLIB.ServiceRequest({});
-        this.setNavMode.callService(request, function(result) {
+        this.setNavMode?.callService(request, function(result) {
             console.log("Set stretch to navigation mode");
         })
     }
 
     setRobotPosMode() {
         var request = new ROSLIB.ServiceRequest({});
-        this.setPositionMode.callService(request, function(result) {
+        this.setPositionMode?.callService(request, function(result) {
             console.log("Set stretch to position mode");
         })
     }
 
-    executeClickMove(lin_vel, ang_vel) {
+    executeClickMove(lin_vel: number, ang_vel: number) {
         var twist = new ROSLIB.Message({
             linear : {
               x : lin_vel,
@@ -469,7 +474,7 @@ export class Robot {
               z : ang_vel
             }
         });
-      this.cmdVel.publish(twist);
+      this.cmdVel?.publish(twist);
     }
 
     stopClickMove() {
@@ -485,7 +490,7 @@ export class Robot {
               z : 0
             }
         });
-        this.cmdVel.publish(twist);
+        this.cmdVel?.publish(twist);
     }
 
     affirmExecution() {
@@ -506,14 +511,14 @@ export class Robot {
             clearTimeout(this.currentTrajectoryKillInterval)
             // this.currentTrajectoryKillInterval = null
         }
-        this.moveBaseClient.cancel()
+        this.moveBaseClient?.cancel()
 	    if (this.velocityGoal) {
             this.velocityGoal.cancel()
             this.velocityGoal = null
         }
     }
 
-    executeNavGoal(goal) {
+    executeNavGoal(goal: ROSLIB.Goal) {
         makeNavGoal(goal, this.moveBaseClient).send()
     }
 }
@@ -618,7 +623,7 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
 
 }
 
-function makeNavGoal(pos, moveBaseClient) {
+function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient: ROSLIB.ActionClient) {
     let newGoal = new ROSLIB.Goal({
         actionClient: moveBaseClient,
         goalMessage: {
