@@ -2,7 +2,7 @@ import {BaseComponent, Component} from "../../../shared/base.cmp";
 
 
 const template = `
-<link href="/shared/bootstrap.min.css" rel="stylesheet">
+<link href="/bootstrap.css" rel="stylesheet">
 <div class="manip-tab-container" data-ref="manip-tab-container">
     <fieldset class="row mb-3">
         <legend class="col-form-label col-sm-2 tab-legend"><br/>Action Mode</legend>
