@@ -9,8 +9,10 @@ const template = `
 
 @Component("map-interactive", '/operator/css/map-interactive.css')
 export class MapInteractive extends BaseComponent {
-    mapImg?: HTMLImageElement
-    mapCanvas?: HTMLCanvasElement
+    mapImg: HTMLImageElement
+    mapCanvas: HTMLCanvasElement
+    mapCanvasCxt: CanvasRenderingContext2D
+    creatingGoal: boolean
 
     width: number
     height: number
@@ -20,7 +22,7 @@ export class MapInteractive extends BaseComponent {
         super(template);
         this.mapImg = this.refs.get("map-img");
         this.mapCanvas = this.refs.get("map-canvas");
-        this.mapCanvasCxt = this.mapCanvas.getContext("2d");
+        this.mapCanvasCxt = this.mapCanvas.getContext("2d")!;
 
         this.creatingGoal = false;
         this.mousePos = { x: 0, y: 0 };
@@ -35,12 +37,18 @@ export class MapInteractive extends BaseComponent {
     }
 
     startGoalCreation(event) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
         this.creatingGoal = true;
         this.goalStartPos.x = event.offsetX;
         this.goalStartPos.y = event.offsetY;
     }
 
     updateGoal(event) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
         if (this.creatingGoal) {
             this.mousePos.x = event.offsetX;
             this.mousePos.y = event.offsetY;
@@ -50,6 +58,10 @@ export class MapInteractive extends BaseComponent {
     }
 
     endGoalCreation(event) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
+
         if (this.creatingGoal) {
             this.creatingGoal = false;
             this.mousePos.x = event.offsetX;
@@ -86,11 +98,15 @@ export class MapInteractive extends BaseComponent {
     }
 
     updateMapDisplay(robotTransform = null) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
         if (robotTransform) {
             this.robotTransform = robotTransform;
         }
 
-        this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);4
+        this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
+        4
         this.mapCanvasCxt.beginPath();
 
         // Draw robot position
@@ -106,6 +122,20 @@ export class MapInteractive extends BaseComponent {
                 this.goalStartPos.x, this.goalStartPos.y,
                 this.mousePos.x, this.mousePos.y,
                 2, 3, false, true);
+        }
+    }
+
+    get disabled() {
+        return this.hasAttribute('disabled');
+    }
+
+    set disabled(value) {
+        if (value) {
+            this.setAttribute("disabled", "")
+        } else {
+            if (this.hasAttribute("disabled")) {
+                this.removeAttribute("disabled")
+            }
         }
     }
 }
