@@ -15,6 +15,8 @@ import {
 import {MapInteractive} from "./mapinteractive.cmp";
 import {Component} from "../../../shared/base.cmp";
 import {PerspectiveCamera} from "three";
+import { cmd } from "../../../shared/commands"
+import ROSLIB from "roslib";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -98,7 +100,7 @@ const template = `
 export class OperatorComponent extends PageComponent {
     title = '';
     controls = {}
-    robot: RemoteRobot
+    robot?: RemoteRobot
     connection
     pc: WebRTCConnection
     allRemoteStreams = new Map()
@@ -485,9 +487,7 @@ export class OperatorComponent extends PageComponent {
     }
 
     configureRobot() {
-        this.robot = new RemoteRobot(message => this.connection.sendData(message), (event, val) => {
-            console.log(event, val)
-        })
+        this.robot = new RemoteRobot((message: cmd) => this.connection.sendData(message));
 
         this.refs.get("pose-library").disabled = null
         this.refs.get("recorder").disabled = null
@@ -769,13 +769,13 @@ export class OperatorComponent extends PageComponent {
     requestChannelReadyCallback() {
         this.refs.get("map-interactive").disabled = null;
         const mapInteractive = new MapInteractive((goal) => {
-            this.robot.setNavGoal(goal);
+            this.robot?.setNavGoal(goal);
         });
         this.refs.get("map-interactive").append(mapInteractive);
         this.connection.makeRequest("mapView").then( ( map ) => {
             mapInteractive.updateMap({...map});
         });
-        this.robot.sensors.listenToKeyChange("base", "transform", value => {
+        this.robot?.sensors.listenToKeyChange("base", "transform", (value: ROSLIB.Transform) => {
             mapInteractive.updateMapDisplay(value);
         })
     }

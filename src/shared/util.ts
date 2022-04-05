@@ -138,3 +138,9 @@ export interface ROSOccupancyGrid extends ROSLIB.Message {
 }
 
 export type VelocityGoalArray = [{[key in ValidJoints]?: number}, {[key in ValidJoints]?: number}]
+
+export interface Pose2D {
+    x: number,
+    y: number,
+    theta?: number
+}
