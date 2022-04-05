@@ -54,9 +54,7 @@ const template = `
     </div>
 </div>
 
-<section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container">
-    </div>
-</section>
+<section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container"></section>
 <template id="pantilt-extra-controls">
     <div class="d-flex justify-content-around mt-2">
         <div class='form-check form-check-inline'>
@@ -285,16 +283,15 @@ export class OperatorComponent extends PageComponent {
             let displayMode = this.model.getSetting("displayMode", "navsetting")
             if (displayMode === "predictive-display") {
                 this.setMode('clickNav')
+                this.robot.setRobotNavMode()
             } else {
                 this.setMode('nav')
+                if (actionMode === "incremental") {
+                    this.robot.setRobotPosMode()
+                } else {
+                    this.robot.setRobotNavMode()
+                }
             }
-
-            if (actionMode === "incremental" && displayMode != "predictive-display") {
-                this.robot.setRobotPosMode()
-            } else {
-                this.robot.setRobotNavMode()
-            }
-
         } else {
             this.setMode(currMode)
             if (actionMode === "incremental") {
@@ -365,10 +362,16 @@ export class OperatorComponent extends PageComponent {
 
         if (modeId === 'nav') {
             this.robot.rotateCameraView();
+            this.refs.get("video-control-container").removeChild(this.controls["gripper"])
+            this.controls["gripper"].removeRemoteStream()
         } else if (modeId === 'manip') {
             this.robot.resetCameraView();
+            this.refs.get("video-control-container").appendChild(this.controls["gripper"])
+            this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
         } else if (modeId === 'clickNav') {
             this.robot.rotateCameraView();
+            this.refs.get("video-control-container").removeChild(this.controls["gripper"])
+            this.controls["gripper"].removeRemoteStream()
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -455,21 +458,22 @@ export class OperatorComponent extends PageComponent {
         let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
         let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
         let circle = execute ? true : false;
+        let scale = parseFloat(this.model.getSetting("velocityScale"))
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
 	    if (execute) {
-            	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, 0.3) : this.robot.clickMove(0, -0.3);
+        	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, scale * 0.3) : this.robot.clickMove(0, scale * -0.3);
 	    }
 	    overlay.drawRotateIcon()
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = execute ? this.robot.clickMove(-magnitude, 0.0) : null;
+            this.activeVelocityAction = execute ? this.robot.clickMove(scale * -magnitude, 0.0) : null;
             overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001, circle);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = execute ? this.robot.clickMove(magnitude*0.4, -(heading - Math.PI/2)*0.4) : null;
+            this.activeVelocityAction = execute ? this.robot.clickMove(scale*magnitude*0.4, -(heading - Math.PI/2)*0.4*scale) : null;
             overlay.drawArc(px, py, Math.PI/2, heading, circle);
         }
     }
@@ -532,7 +536,6 @@ export class OperatorComponent extends PageComponent {
         Array(overhead, pantilt, gripper).forEach(control => {
             this.refs.get("video-control-container").appendChild(control)
         })
-
         let panTiltTrack = this.allRemoteStreams.get("pantilt").stream.getVideoTracks()[0]
 
         let ptAspectRatio = panTiltTrack.getSettings().aspectRatio || .52
@@ -604,11 +607,12 @@ export class OperatorComponent extends PageComponent {
 
         this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
         this.refs.get("video-control-container").addEventListener("mouseout", event => {
-            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
-	    	stopAction(event);
+            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            
+            if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
+	    	    stopAction(event);
             	overheadClickNavOverlay.removeTraj()
             }
-	})
+	    })
 
         // Predictive Display Mode
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
