@@ -242,7 +242,7 @@ export class OperatorComponent extends PageComponent {
             this.updateNavDisplay()
             if (event.path[0].tagName === "SETTINGS-MODAL") {
                 // User changed this setting in the modal pane, so we may need to reflect changes here
-                if (change.key === "velocityControlMode" || change.key === "continuousVelocityStepSize") {
+                if (change.key === "velocityControlMode" || change.key === "displayMode") {
                     this.configureVelocityControls(change.namespace)
                 } else if (change.key.startsWith("showPermanentIcons")) {
                     let controlName = change.key.substring(18).toLowerCase()
@@ -301,6 +301,13 @@ export class OperatorComponent extends PageComponent {
     }
 
     configureVelocityControls(namespace) {
+        const displayMode = this.model.getSetting("displayMode", "navsetting")
+        if (displayMode == "predictive-display") {
+            this.refs.get("velocity-toggle").style.display = "none";
+            this.refs.get("velocity-slider").style.display = "none";
+            return
+        }
+
         const controlType = this.model.getSetting("velocityControlMode", namespace)
         if (controlType === "continuous") {
             this.refs.get("velocity-toggle").style.display = "none";
@@ -360,16 +367,22 @@ export class OperatorComponent extends PageComponent {
 
         if (modeId === 'nav') {
             this.robot.rotateCameraView();
-            this.refs.get("video-control-container").removeChild(this.controls["gripper"])
-            this.controls["gripper"].removeRemoteStream()
+            if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
+                this.refs.get("video-control-container").removeChild(this.controls["gripper"])
+                this.controls["gripper"].removeRemoteStream()
+            }
         } else if (modeId === 'manip') {
             this.robot.resetCameraView();
-            this.refs.get("video-control-container").appendChild(this.controls["gripper"])
-            this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
+            if (!this.refs.get("video-control-container").contains(this.controls["gripper"])) {
+                this.refs.get("video-control-container").appendChild(this.controls["gripper"])
+                this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
+            }
         } else if (modeId === 'clickNav') {
             this.robot.rotateCameraView();
-            this.refs.get("video-control-container").removeChild(this.controls["gripper"])
-            this.controls["gripper"].removeRemoteStream()
+            if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
+                this.refs.get("video-control-container").removeChild(this.controls["gripper"])
+                this.controls["gripper"].removeRemoteStream()
+            }
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -442,8 +455,8 @@ export class OperatorComponent extends PageComponent {
     }
 
     drawAndExecuteTraj(eventX, eventY, overlay, execute=true) {
-        let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
-        let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
+        let videoWidth = this.refs.get("video-control-container").firstChild.clientWidth;
+        let videoHeight = this.refs.get("video-control-container").firstChild.clientHeight;
         let overlayWidth = overlay.w;
         let overlayHeight = overlay.h;
         let scaleWidth = videoWidth/overlayWidth;
