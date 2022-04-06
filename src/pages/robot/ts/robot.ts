@@ -11,7 +11,7 @@ const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
 }
 
 export class Robot {
-    private ros!: ROSLIB.Ros
+    ros!: ROSLIB.Ros
     private inSim!: boolean
 
     robotFrameTfClient?: ROSLIB.TFClient
@@ -617,9 +617,8 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
         console.log('Final Result: ', result);
     });
 
-    return newGoal;
     //this.velocityGoal = newGoal;
-    return newGoal
+    return newGoal;
 
 }
 

@@ -1,8 +1,10 @@
-import { ValidJoints } from "../../../shared/util";
+import { Pose2D, ValidJoints } from "../../../shared/util";
+import { cmd, generalCommand, incrementalMove, velocityMove, navGoal, clickMove, setRobotNavMode, setRobotPosMode, rotateCameraView, resetCameraView } from "../../../shared/commands";
 
+export type robotChannel = (message: cmd) => void;
 export class RemoteRobot {
     sensors = new RobotSensors()
-    robotChannel
+    robotChannel: robotChannel
 
     static COMMANDS = {
         "drive": {
@@ -42,12 +44,12 @@ export class RemoteRobot {
         }
     }
 
-    constructor(robotChannel) {
+    constructor(robotChannel: robotChannel) {
         this.robotChannel = robotChannel
     }
 
-    setPanTiltFollowGripper(value) {
-        let cmd = {
+    setPanTiltFollowGripper(value: number) {
+        let cmd: generalCommand = {
             type: "command",
             subtype: "head",
             name: "gripper_follow",
@@ -58,38 +60,38 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
-        let cmd = {type: "incrementalMove", jointName: jointName, increment: direction * increment}
+        let cmd: incrementalMove = { type: "incrementalMove", jointName: jointName, increment: direction * increment }
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd);
     }
 
     velocityMove(jointName: ValidJoints, velocity: number) {
-        let cmd = {type: "velocityMove", jointName: jointName, velocity: velocity}
+        let cmd: velocityMove = { type: "velocityMove", jointName: jointName, velocity: velocity }
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
         return {
             "affirm": () => {
-                this.robotChannel({type: "affirm"})
-                this.emitCommandEvent({type: "affirm"})
+                this.robotChannel({ type: "affirm" })
+                this.emitCommandEvent({ type: "affirm" })
             }, "stop": () => {
-                this.robotChannel({type: "stop"})
-                this.emitCommandEvent({type: "stop"})
+                this.robotChannel({ type: "stop" })
+                this.emitCommandEvent({ type: "stop" })
             }
         }
     }
 
-    setNavGoal(goal) {
-        let cmd = {type: "navGoal", goal: goal}
+    setNavGoal(goal: Pose2D) {
+        let cmd: navGoal = { type: "navGoal", goal: goal }
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
     }
 
     emitCommandEvent(cmd) {
-        window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
+        window.dispatchEvent(new CustomEvent("commandsent", { bubbles: false, detail: cmd }))
     }
 
-    clickMove(lin_vel, ang_vel) {
-        let cmd = {
+    clickMove(lin_vel: number, ang_vel: number) {
+        let cmd: clickMove = {
             type: "clickMove",
             lin_vel: lin_vel,
             ang_vel: ang_vel
@@ -98,30 +100,31 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
         return {
             "stop": () => {
-                this.robotChannel({type: "stopClickMove"})
-                this.emitCommandEvent({type: "stopClickMove"})
+                this.robotChannel({ type: "stopClickMove" })
+                this.emitCommandEvent({ type: "stopClickMove" })
             }
         }
     }
 
+    // TODO (kavidey): combine these into one command with an additional property specifying the mode (and same for camera view)
     setRobotNavMode() {
-        let cmd = {type: "setRobotNavMode"}
+        let cmd: setRobotNavMode = { type: "setRobotNavMode" }
         this.robotChannel(cmd);
     }
 
     setRobotPosMode() {
-        let cmd = {type: "setRobotPosMode"}
+        let cmd: setRobotPosMode = { type: "setRobotPosMode" }
         this.robotChannel(cmd);
     }
 
     rotateCameraView() {
-        let cmd = {type: "rotateCameraView"}
+        let cmd: rotateCameraView = { type: "rotateCameraView" }
         this.robotChannel(cmd);
         // this.emitCommandEvent(cmd);
     }
 
     resetCameraView() {
-        let cmd = {type: "resetCameraView"}
+        let cmd: resetCameraView = { type: "resetCameraView" }
         this.robotChannel(cmd);
         // this.emitCommandEvent(cmd);
     }
@@ -145,17 +148,17 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
     }
 }
 class RobotSensors {
-    sensors: {[group: string]: {[key: string]: number | undefined}} = {
+    sensors: { [group: string]: { [key: string]: number | undefined } } = {
         //"drive": {},
-        "lift": {"effort": undefined},
-        "arm": {"effort": undefined},
+        "lift": { "effort": undefined },
+        "arm": { "effort": undefined },
         // Yaw effort is primary, bend and roll are for dex wrist only
-        "wrist": {"effort": undefined, "bend_torque": undefined, "roll_torque": undefined},
-        "gripper": {"effort": undefined, "transform": undefined},
-        "head": {"transform": undefined},
-        "base": {"transform": undefined}
+        "wrist": { "effort": undefined, "bend_torque": undefined, "roll_torque": undefined },
+        "gripper": { "effort": undefined, "transform": undefined },
+        "head": { "transform": undefined },
+        "base": { "transform": undefined }
     }
-    listeners: {[group: string]: {[key: string]: Array<(value: number) => void>}} = {}
+    listeners: { [group: string]: { [key: string]: Array<(value: number) => void> } } = {}
 
     constructor() {
         this.listeners = {}

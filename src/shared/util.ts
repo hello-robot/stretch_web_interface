@@ -122,4 +122,25 @@ export interface ROSJointState extends Message {
     velocity: [number],
 }
 
+//http://docs.ros.org/en/lunar/api/nav_msgs/html/msg/MapMetaData.html
+export interface ROSMapMetaData extends ROSLIB.Message {
+    time: number,
+    width: number,
+    height: number,
+    resolution: number,
+    origin: ROSLIB.Pose
+}
+
+// http://docs.ros.org/en/lunar/api/nav_msgs/html/msg/OccupancyGrid.html
+export interface ROSOccupancyGrid extends ROSLIB.Message {
+    info: ROSMapMetaData,
+    data: number[]
+}
+
 export type VelocityGoalArray = [{[key in ValidJoints]?: number}, {[key in ValidJoints]?: number}]
+
+export interface Pose2D {
+    x: number,
+    y: number,
+    theta?: number
+}
