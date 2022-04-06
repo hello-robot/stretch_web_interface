@@ -86,14 +86,16 @@ export interface Response {
     data?: any,
 }
 
-export type Responder = () => {};
+export type Responder = () => Promise<any>;
 
 export interface CameraInfo {
     [key: string]: string
 }
 
 export interface SignallingMessage {
-
+    candidate?: RTCIceCandidate,
+    sessionDescription?: RTCSessionDescription,
+    cameraInfo?: CameraInfo
 }
 
 // TODO (kavidey): this is currently a modified version of `ALL_JOINTS` in `robot.ts`, find a way to define them both in the same place

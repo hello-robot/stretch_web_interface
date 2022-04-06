@@ -81,16 +81,16 @@ export class WebRTCConnection {
             this.stop();
         })
 
-        this.socket.on('signalling', message => {
-            let { sessionDescription, cameraInfo } = message;
-            console.log('Received message:', sessionDescription, cameraInfo);
+        this.socket.on('signalling', (message: SignallingMessage) => {
+            let {candidate, sessionDescription, cameraInfo} = message;
+            console.log('Received message:', message);
             if (cameraInfo) {
                 if (Object.keys(cameraInfo).length === 0) {
                     console.warn("Received a camera info mapping with no entries")
                 }
                 this.cameraInfo = cameraInfo
             }
-            if (sessionDescription.type === 'offer' || sessionDescription.type === 'answer') {
+            if (sessionDescription?.type === 'offer' || sessionDescription?.type === 'answer') {
                 if (!this.pc) throw 'pc is undefined';
                 const readyForOffer =
                     !this.makingOffer &&
@@ -107,7 +107,7 @@ export class WebRTCConnection {
 
                 this.pc.setRemoteDescription(sessionDescription).then(async () => {
                     this.isSettingRemoteAnswerPending = false;
-                    if (sessionDescription.type === "offer") {
+                    if (sessionDescription?.type === "offer") {
                         if (!this.pc) throw 'pc is undefined';
                         return this.pc.setLocalDescription();
                     } else {
@@ -115,10 +115,12 @@ export class WebRTCConnection {
                     }
                 }).then(() => {
                     if (!this.pc?.localDescription) throw 'pc is undefined';
-                    this.sendSignallingMessage(this.pc.localDescription);
+                    this.sendSignallingMessage({sessionDescription: this.pc.localDescription});
                 });
-            } else if (sessionDescription.type === 'candidate' && this.pc) {
-                this.pc.addIceCandidate(sessionDescription.candidate).catch(e => {
+            } else if (candidate !== undefined && this.pc) {
+                // Note that the last candidate will be null, so we check whether the candidate variable is
+                // defined at all versus being truthy.
+                this.pc.addIceCandidate(candidate).catch(e => {
                     if (!this.ignoreOffer) {
                         console.log("Failure during addIceCandidate(): " + e.name);
                         throw e;
@@ -132,15 +134,17 @@ export class WebRTCConnection {
 
     }
 
-    openDataChannel() {
-        if (!this.pc) throw 'pc is undefined';
-        this.messageChannel = this.pc.createDataChannel('messages');
-        this.requestChannel = this.pc.createDataChannel('requestresponse');
+    /**
+     * Called to create bidirectional message channels with the connected peer.
+     * Note that the peer is expected to be using this class to manage their end of the connection as well,
+     * in which case the necessary event handlers will be installed in `createPeerConnection` during `ondatachannel`.
+     */
+    openDataChannels() {
+        this.messageChannel = this.pc!.createDataChannel('messages');
+        this.requestChannel = this.pc!.createDataChannel('requestresponse');
 
         this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
-        // FIXME (kavidey): I think this error is due to how we are passing the function reference 
-        // Additionally this exact same line of code appears in `createPeerConnection`, need to test if both are necessary
-        // this.requestChannel.onmessage = this.processRequestResponse.bind(this);
+        this.requestChannel.onmessage = this.processRequestResponse.bind(this);
     }
 
     createPeerConnection() {
@@ -149,12 +153,11 @@ export class WebRTCConnection {
             this.pc = new RTCPeerConnection(pcConfig);
             this.pc.onicecandidate = (event) => {
                 this.sendSignallingMessage({
-                    // FIXME (kavidey): According to the TS documentation, this is an invalid type
-                    type: 'candidate',
-                    candidate: event.candidate
+                    candidate: event.candidate!
                 });
             };
             this.pc.ondatachannel = event => {
+                // The remote has opened a data channel. We'll set up different handlers for the different channels.
                 if (event.channel.label === "messages") {
                     this.messageChannel = event.channel;
                     this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
@@ -196,7 +199,10 @@ export class WebRTCConnection {
                     if (!this.pc) throw 'pc is undefined';
                     await this.pc.setLocalDescription();
                     if (this.pc.localDescription) {
-                        this.sendSignallingMessage(this.pc.localDescription, this.cameraInfo);
+                        this.sendSignallingMessage({
+                            sessionDescription: this.pc.localDescription,
+                            cameraInfo: this.cameraInfo
+                        });
                     }
                 } catch (err) {
                     console.error(err);
@@ -228,11 +234,7 @@ export class WebRTCConnection {
         }
     }
 
-    sendSignallingMessage(sessionDescription: RTCSessionDescription, cameraInfo?: CameraInfo) {
-        let message = {
-            sessionDescription: sessionDescription,
-            cameraInfo: cameraInfo
-        }
+    sendSignallingMessage(message: SignallingMessage) {
         this.socket.emit('signalling', message);
     }
 
@@ -318,8 +320,8 @@ export class WebRTCConnection {
         this.requestResponders.set(requestType, responder)
     }
 
-    processRequestResponse(message: Request | Response): void {
-        message = safelyParseJSON(message.data)
+    async processRequestResponse(channelMessage: MessageEvent) {
+        let message = safelyParseJSON(channelMessage.data)
         if (message.type === "request") {
             let response: Response = {
                 type: "response",
@@ -328,8 +330,7 @@ export class WebRTCConnection {
             }
             if (!this.requestChannel) throw 'requestChannel is undefined';
             if (this.requestResponders.has(message.requestType)) {
-                // TODO (kavidey): find the correct way to do this
-                // response.data = await this.requestResponders.get(message.requestType)();
+                response.data = await this.requestResponders.get(message.requestType)!();
                 this.requestChannel.send(JSON.stringify(response))
             } else {
                 console.error("Heard request with no responder")

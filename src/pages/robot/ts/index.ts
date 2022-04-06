@@ -185,7 +185,7 @@ function handleError(error) {
 }
 
 function handleSessionStart() {
-    connection.openDataChannel()
+    connection.openDataChannels()
 
     console.log('adding local media stream to peer connection');
 
