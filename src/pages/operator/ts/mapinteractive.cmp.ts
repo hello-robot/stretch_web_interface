@@ -124,6 +124,20 @@ export class MapInteractive extends BaseComponent {
             }
         }
     }
+
+    get disabled() {
+        return this.hasAttribute('disabled');
+    }
+
+    set disabled(value) {
+        if (value) {
+            this.setAttribute("disabled", "")
+        } else {
+            if (this.hasAttribute("disabled")) {
+                this.removeAttribute("disabled")
+            }
+        }
+    }
 }
 
 
