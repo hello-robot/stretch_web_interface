@@ -46,12 +46,20 @@ export class MapInteractive extends BaseComponent {
     }
 
     startGoalCreation(event: MouseEvent) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
+
         this.creatingGoal = true;
         this.goalStartPos.x = event.offsetX;
         this.goalStartPos.y = event.offsetY;
     }
 
     updateGoal(event: MouseEvent) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
+
         if (this.creatingGoal) {
             this.mousePos.x = event.offsetX;
             this.mousePos.y = event.offsetY;
@@ -61,6 +69,10 @@ export class MapInteractive extends BaseComponent {
     }
 
     endGoalCreation(event: MouseEvent) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
+
         if (this.creatingGoal) {
             this.creatingGoal = false;
             this.mousePos.x = event.offsetX;
@@ -100,6 +112,10 @@ export class MapInteractive extends BaseComponent {
     }
 
     updateMapDisplay(robotTransform?: ROSLIB.Transform) {
+        if (this.disabled || !this.mapImg.src) {
+            return
+        }
+        
         if (robotTransform) {
             this.robotTransform = robotTransform;
 
