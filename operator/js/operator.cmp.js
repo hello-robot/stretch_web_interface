@@ -180,6 +180,7 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.updateNavDisplay()
+                this.configureVelocityControls()
                 this.dispatchCommand({type:"mode-toggle", mode:option.value})
             })
         })
@@ -302,7 +303,8 @@ export class OperatorComponent extends PageComponent {
 
     configureVelocityControls(namespace) {
         const displayMode = this.model.getSetting("displayMode", "navsetting")
-        if (displayMode == "predictive-display") {
+        let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+        if (displayMode == "predictive-display" && mode == "nav") {
             this.refs.get("velocity-toggle").style.display = "none";
             this.refs.get("velocity-slider").style.display = "none";
             return
