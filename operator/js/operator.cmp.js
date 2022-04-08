@@ -56,10 +56,10 @@ const template = `
 <section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container"></section>
 <template id="pantilt-extra-controls">
     <div class="d-flex justify-content-around mt-2">
-        <div class='form-check form-check-inline'>
+        <!-- <div class='form-check form-check-inline'>
             <input type='checkbox' class="form-check-input" value='follow' id="follow-check" />
             <label class="form-check-label" for="follow-check">Follow gripper</label>
-        </div>
+        </div> -->
         <button class='btn btn-secondary btn-sm'>Reset view</button>
     </div>
 </template>
@@ -527,9 +527,9 @@ export class OperatorComponent extends PageComponent {
                 action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
             }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
-        extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
-            this.robot.setPanTiltFollowGripper(event.target.checked)
-        }
+        // extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
+        //     this.robot.setPanTiltFollowGripper(event.target.checked)
+        // }
         extraPanTiltButtons.querySelector("button").onclick = () => {
             this.robot.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
         }
