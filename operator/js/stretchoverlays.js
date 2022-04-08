@@ -345,7 +345,8 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
         });
         this.createRegion("translate_mobile_base_neg", {
             label: 'drive backward',
-            poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
+            // poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
+            poly: [leftRect.ul, leftRect.ll, rightRect.lr, rightRect.ur, smRect.lr, smRect.ll],
             iconImage: icon("arrow_down")
         });
         this.createRegion("rotate_mobile_base_pos", {
@@ -358,16 +359,16 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
             poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
             iconImage: icon("turn_right")
         });
-        this.createRegion("turnCCW", {
-            label: 'turn 90 degrees CCW',
-            poly: rectToPoly(leftRect),
-            iconImage: icon("rotate_ccw")
-        });
-        this.createRegion("turnCW", {
-            label: 'turn 90 degrees CW',
-            poly: rectToPoly(rightRect),
-            iconImage: icon("rotate_cw")
-        });
+        // this.createRegion("turnCCW", {
+        //     label: 'turn 90 degrees CCW',
+        //     poly: rectToPoly(leftRect),
+        //     iconImage: icon("rotate_ccw")
+        // });
+        // this.createRegion("turnCW", {
+        //     label: 'turn 90 degrees CW',
+        //     poly: rectToPoly(rightRect),
+        //     iconImage: icon("rotate_cw")
+        // });
 
     }
 }
