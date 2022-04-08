@@ -1,6 +1,6 @@
 export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base"];
 
-const JOINT_LIMITS = {
+export const JOINT_LIMITS = {
     "wrist_extension": [0, .51],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0, 1.1],
@@ -130,6 +130,12 @@ export class Robot {
             },
             "gripper_follow": value => {
                 this.setPanTiltFollowGripper(value);
+            },
+            "look_at_base": value => {
+                this.lookAtBase();
+            },
+            "look_at_arm": value => {
+                this.lookAtArm();
             },
             "configure_overhead_camera": configuration => {
 
@@ -300,6 +306,7 @@ export class Robot {
         }
         newJointValue = newJointValue + jointValueInc
         let pose = {[jointName]: newJointValue}
+        console.log(pose)
         return makePoseGoal(pose, this.trajectoryClient)
     }
 
@@ -352,6 +359,20 @@ export class Robot {
             'joint_head_tilt': tilt + tiltOffset
         }, this.trajectoryClient)
         headFollowPoseGoal.send()
+    }
+
+    lookAtBase() {
+        makePoseGoal({
+            'joint_head_pan': 0,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
+    }
+
+    lookAtArm() {
+        makePoseGoal({
+            'joint_head_pan': -1.42,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
     }
 
     gripperDeltaAperture(deltaWidthCm) {
@@ -530,7 +551,6 @@ function makePoseGoal(pose, trajectoryClient) {
 }
 
 function makeVelocityGoal(positions, velocities, trajectoryClient) {
-
     let points = []
     let jointNames
     for (let i = 0; i < positions.length; i++) {

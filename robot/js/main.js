@@ -1,4 +1,4 @@
-import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot.js";
+import { ALL_JOINTS, JOINT_LIMITS, getJointEffort, getJointValue, Robot } from "./robot.js";
 import { WebRTCConnection } from "../../shared/webrtcconnection.js";
 import { TransformedVideoStream } from "./videostream.cmp.js";
 import { MapROS } from "./mapros.cmp.js";
@@ -31,6 +31,7 @@ robot.connect().then(() => {
     gripperStream.start();
 
     const displayContainer = document.getElementById("video-display")
+    console.log(document.getElementById("video-display"))
     displayContainer.appendChild(pantiltStream)
     displayContainer.appendChild(overheadStream)
     displayContainer.appendChild(gripperStream)

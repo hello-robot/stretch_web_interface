@@ -373,18 +373,21 @@ export class OperatorComponent extends PageComponent {
                 this.refs.get("video-control-container").removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
+            this.robot.lookAtBase()
         } else if (modeId === 'manip') {
             this.robot.resetCameraView();
             if (!this.refs.get("video-control-container").contains(this.controls["gripper"])) {
                 this.refs.get("video-control-container").appendChild(this.controls["gripper"])
                 this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
             }
+            this.robot.lookAtArm()
         } else if (modeId === 'clickNav') {
             this.robot.rotateCameraView();
             if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
                 this.refs.get("video-control-container").removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
+            this.robot.lookAtBase()
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
