@@ -59,9 +59,29 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
     }
 
+    lookAtBase() {
+        let cmd = {
+            type: "command",
+            subtype: "head",
+            name: "look_at_base",
+        };
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
+    }
+
+    lookAtArm() {
+        let cmd = {
+            type: "command",
+            subtype: "head",
+            name: "look_at_arm",
+        };
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
+    }
+
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
         let cmd: incrementalMove = { type: "incrementalMove", jointName: jointName, increment: direction * increment }
-        this.robotChannel(cmd)
+        this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
 

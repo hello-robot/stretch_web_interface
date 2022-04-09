@@ -184,6 +184,7 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.updateNavDisplay()
+                this.configureVelocityControls()
                 this.dispatchCommand({type:"mode-toggle", mode:option.value})
             })
         })
@@ -306,7 +307,8 @@ export class OperatorComponent extends PageComponent {
 
     configureVelocityControls(namespace) {
         const displayMode = this.model.getSetting("displayMode", "navsetting")
-        if (displayMode == "predictive-display") {
+        let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+        if (displayMode == "predictive-display" && mode == "nav") {
             this.refs.get("velocity-toggle").style.display = "none";
             this.refs.get("velocity-slider").style.display = "none";
             return
@@ -375,18 +377,21 @@ export class OperatorComponent extends PageComponent {
                 this.refs.get("video-control-container").removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
+            this.robot.lookAtBase()
         } else if (modeId === 'manip') {
             this.robot.resetCameraView();
             if (!this.refs.get("video-control-container").contains(this.controls["gripper"])) {
                 this.refs.get("video-control-container").appendChild(this.controls["gripper"])
                 this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
             }
+            this.robot.lookAtArm()
         } else if (modeId === 'clickNav') {
             this.robot.rotateCameraView();
             if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
                 this.refs.get("video-control-container").removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
+            this.robot.lookAtBase()
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -602,8 +607,8 @@ export class OperatorComponent extends PageComponent {
         var stopAction = (event) => {
             this.stopCurrentAction();
             overheadClickNavOverlay.removeCircle();
-            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").addEventListener('mousemove', drawTraj);
+            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container").firstChild.addEventListener('mousemove', drawTraj);
         };
         var drawTraj = (event) => {
             let x = event.offsetX;
@@ -618,8 +623,8 @@ export class OperatorComponent extends PageComponent {
             }
         }
 
-        this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
-        this.refs.get("video-control-container").addEventListener("mouseout", event => {
+        this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
+        this.refs.get("video-control-container").firstChild.addEventListener("mouseout", event => {
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            
             if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
 	    	    stopAction(event);
@@ -628,31 +633,30 @@ export class OperatorComponent extends PageComponent {
 	    })
 
         // Predictive Display Mode
-        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+        this.refs.get("video-control-container").firstChild.addEventListener("mousedown", event => {
             let x = event.offsetX;
             let y = event.offsetY;
             mouseMoveX = x;
             mouseMoveY = y;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', stopAction);
-            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").removeEventListener('mousemove', drawTraj);
-
+            this.refs.get("video-control-container").firstChild.removeEventListener('mouseup', stopAction);
+            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', drawTraj);
             let namespace = 'navsetting'
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", stopAction);
+                        this.refs.get("video-control-container").firstChild.addEventListener("mouseup", stopAction);
                     } else if (this.activeVelocityAction) {
                         stopAction(event);
                         return
                     }
 
                     // Update trajectory when mouse moves
-                    this.refs.get("video-control-container").addEventListener("mousemove", updateAction);
+                    this.refs.get("video-control-container").firstChild.addEventListener("mousemove", updateAction);
 
                     // Execute trajectory as long as mouse is held down using last position of cursor
                     this.velocityExecutionHeartbeat = window.setInterval(() => {
@@ -665,7 +669,7 @@ export class OperatorComponent extends PageComponent {
                     // execute trajectory once
                     this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
                     setTimeout(() => {overheadClickNavOverlay.removeCircle()}, 1500);
-                    this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
+                    this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
                 }
             }
         });

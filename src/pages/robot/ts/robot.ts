@@ -2,7 +2,7 @@ import * as ROSLIB from "roslib";
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
-const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
+export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
     "wrist_extension": [0, .51],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0, 1.1],
@@ -23,7 +23,7 @@ export class Robot {
     velocityGoal = null;
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
-    
+
     setNavMode?: ROSLIB.Service
     setPositionMode?: ROSLIB.Service
 
@@ -143,6 +143,12 @@ export class Robot {
             },
             "gripper_follow": (value: boolean) => {
                 this.setPanTiltFollowGripper(value);
+            },
+            "look_at_base": () => {
+                this.lookAtBase();
+            },
+            "look_at_arm": () => {
+                this.lookAtArm();
             },
             "configure_overhead_camera": (configuration: any) => {
                 // TODO (kavidey): Implement or remove this
@@ -372,6 +378,20 @@ export class Robot {
             'joint_head_tilt': tilt + tiltOffset
         }, this.trajectoryClient)
         headFollowPoseGoal.send()
+    }
+
+    lookAtBase() {
+        makePoseGoal({
+            'joint_head_pan': 0,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
+    }
+
+    lookAtArm() {
+        makePoseGoal({
+            'joint_head_pan': -1.42,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
     }
 
     gripperDeltaAperture(deltaWidthCm: number) {
