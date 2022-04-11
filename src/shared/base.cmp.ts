@@ -30,7 +30,7 @@ export function Component(name: string, cssLink?: string) {
 export class BaseComponent extends HTMLElement {
 
     cssLink?: string;
-    refs: Map<string, Element> = new Map();
+    refs: Map<string, HTMLElement> = new Map();
 
     constructor(html = '', makeVisible = true, useShadowRoot = true) {
         // Call parent

@@ -1,4 +1,5 @@
 import {BaseComponent, Component} from "../../../shared/base.cmp";
+import {configureNamedInputs} from "./settings.cmp";
 
 
 const template = `
@@ -44,11 +45,10 @@ const template = `
 
 @Component('navigation-settings', '/operator/css/navigationsettings.css')
 export class NavigationSettings extends BaseComponent {
-    navTabContainer: HTMLDivElement
+    container: HTMLDivElement
     constructor() {
-        super(template, false);
-        this.navTabContainer = this.refs.get("nav-tab-container")
-        // Discrete settings are the default
+        super(template);
+        this.container = this.refs.get("nav-tab-container") as HTMLDivElement
 
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
@@ -62,23 +62,8 @@ export class NavigationSettings extends BaseComponent {
         })
     }
 
-    configureInputs(values) {
-        for (let [key, value] of values) {
-            let inputForSetting = this.navTabContainer.querySelector(`input[name='${key}']`)
-
-            if (inputForSetting.type === "checkbox") {
-                inputForSetting.checked = value === "true" ? "true" : null
-            } else if (inputForSetting.type === "radio") {
-                inputForSetting = this.navTabContainer.querySelector(`input[value='${value}']`)
-                inputForSetting.checked = "true"
-            } else {
-                console.warn(inputForSetting)
-            }
-
-            var event = new Event('change', { target: inputForSetting });
-            event.initEvent('change', true, false);
-            inputForSetting.dispatchEvent(event);
-        }
+    configureInputs(values: object) {
+        configureNamedInputs(values, this.container)
         this.configureSettingDisplay();
     }
 

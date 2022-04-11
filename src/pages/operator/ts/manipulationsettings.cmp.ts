@@ -1,4 +1,5 @@
 import {BaseComponent, Component} from "../../../shared/base.cmp";
+import {configureNamedInputs} from "./settings.cmp";
 
 
 const template = `
@@ -32,10 +33,10 @@ const template = `
 
 @Component('manipulation-settings', '/operator/css/manipulationsettings.css')
 export class ManipulationSettings extends BaseComponent {
-    manipTabContainer: HTMLDivElement
+    container: HTMLDivElement
     constructor() {
-        super(template, false);
-        this.manipTabContainer = this.refs.get("manip-tab-container")
+        super(template);
+        this.container = this.refs.get("manip-tab-container")
         // Discrete settings are the default
 
         this.refs.get("control-mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
@@ -45,23 +46,8 @@ export class ManipulationSettings extends BaseComponent {
         })
     }
 
-    configureInputs(values) {
-        for (let [key, value] of values) {
-            let inputForSetting = this.manipTabContainer.querySelector(`input[name='${key}']`)
-            if (inputForSetting.type === "checkbox") {
-                inputForSetting.checked = value === "true" ? "true" : null
-            } else if (inputForSetting.type === "radio") {
-                inputForSetting = this.manipTabContainer.querySelector(`input[value='${value}']`)
-                inputForSetting.checked = "true"
-            } else {
-                console.warn(inputForSetting)
-            }
-
-            var event = new Event('change', { target: inputForSetting });
-            event.initEvent('change', true, false);
-            inputForSetting.dispatchEvent(event);
-        }
-
+    configureInputs(values: object) {
+        configureNamedInputs(values, this.container)
         this.configureSettingDisplay();
     }
 

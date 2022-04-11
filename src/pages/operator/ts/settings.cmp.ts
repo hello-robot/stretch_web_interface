@@ -11,11 +11,11 @@ const template = `
      aria-hidden="true" data-ref="modal-container">
     <link href="/operator/css/settings.css" rel="stylesheet">
     <div class="alert alert-success alert-dismissible show fade d-none" role="alert" data-ref="settings-save-alert">
-      Success! Setting configuration saved
+      Profile saved
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <div class="alert alert-warning alert-dismissible show fade d-none" role="alert" data-ref="settings-save-warning-alert">
-      Please enter setting name
+      Please enter a name
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <div class="modal-dialog modal-lg" role="document">
@@ -124,27 +124,30 @@ const template = `
 
                 <hr>
                 <div class="d-flex flex-fill justify-content-left">
-                    <input type="text" id="setting-name" name="setting-name" required size="10" placeholder="Enter setting name">
-                    <div class="col-sm-2">
-                        <button type="button" class="btn btn-primary btn" data-ref="btn-save-settings">
-                            Save
-                        </button>
+                    <div class="input-group input-group-sm" >
+                        <input type="text" class="form-control form-text mt-0" name="profile-name" data-ref="new-profile-name" required size="10" placeholder="Enter profile name">
+                        <input type="button" class="btn btn-primary" value="Save" data-ref="btn-save-profile"/>
+                        
                     </div>
-                    <select data-ref="load-setting" class="form-select form-select-sm w-auto" aria-label="Select setting to load">
-                        <option value="" disabled selected hidden>Load Setting</option>
-                    </select>
-                    <div class="col-sm-2" style="padding-left: 10px;">
-                        <button type="button" class="btn btn-primary btn" data-ref="btn-load-settings">
-                            Load
+                
+                    <div class="input-group input-group-sm">
+                        <select data-ref="select-profile" class="form-select form-select-sm" aria-label="Select profile">
+                            <option value="" selected hidden>Select Profile</option>
+                            <option value="default">Default</option>
+                        </select>
+                        <button class="btn btn-secondary" type="button" data-ref="btn-load-profile" disabled>Load</button>
+                        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
                         </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-ref="delete-profile">Delete</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-ref="remove-all-profiles">Remove all profiles</a></li>
+                        </ul>
                     </div>
+  
                     <div class="col-sm-2">
-                        <button type="button" class="btn btn-primary btn" data-ref="btn-default-settings">
-                            Default
-                        </button>
-                    </div>
-                    <div class="col-sm-2">
-                        <button type="button" class="btn btn-primary btn" data-ref="btn-download-settings">
+                        <button type="button" class="btn btn-primary btn-sm" data-ref="btn-download-settings">
                             Download
                         </button>
                     </div>
@@ -161,114 +164,126 @@ const template = `
 
 @Component('settings-modal', '/operator/css/settings.css')
 export class SettingsModal extends BaseComponent {
-    modalContainer: Element
+    modalContainer: HTMLElement
     modal: Modal
     modalContent: HTMLDivElement
     navTabContainer: NavigationSettings
     manipTabContainer: ManipulationSettings
+    newProfileName: HTMLInputElement
+    saveProfileButton: HTMLInputElement
+    loadProfileButton: HTMLInputElement
+    profileSelect: HTMLSelectElement
+    deleteProfileButton: HTMLElement
+    removeAllProfilesButton: HTMLElement
 
     constructor() {
         super(template, false);
-        this.modalContainer = this.refs.get("modal-container")
-        this.modal = new Modal(this.refs.get('modal-container'), {})
-        this.navTabContainer = this.refs.get("nav-tab-settings")
-        this.manipTabContainer = this.refs.get("manip-tab-settings")
+        this.modalContainer = this.refs.get("modal-container")!
+        this.modal = new Modal(this.modalContainer, {})
+        this.navTabContainer = this.refs.get("nav-tab-settings") as NavigationSettings
+        this.manipTabContainer = this.refs.get("manip-tab-settings") as ManipulationSettings
+        this.saveProfileButton = this.refs.get("btn-save-profile") as HTMLInputElement
+        this.newProfileName = this.refs.get("new-profile-name") as HTMLInputElement
+        this.loadProfileButton = this.refs.get("btn-load-profile") as HTMLInputElement
+        this.profileSelect = this.refs.get("select-profile") as HTMLSelectElement
+        this.deleteProfileButton = this.refs.get("delete-profile")!
+        this.removeAllProfilesButton = this.refs.get("remove-all-profiles")!
         this.hideContinuousSettings()
 
         // Tell anyone who cares that the user has changed a setting
-        this.refs.get("modal-container").addEventListener("change", event => {
-            let target = event.target
-            let isInput = target.tagName === "INPUT"
-            if (!isInput || !target.name || (!target.value && !target.type === "checkbox")) return;
+        this.modalContainer.addEventListener("change", this.handleInputChange.bind(this, ""))
+        this.navTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "nav"))
+        this.manipTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "manip"))
 
-            let value = target.value
-            if (target.type === "checkbox") {
-                value = target.checked
-            }
-            this.dispatchEvent(new CustomEvent("settingchanged", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    key: target.name,
-                    value: value,
-                    namespace: "setting"
-                }
-            }))
-        })
-        this.navTabContainer.addEventListener("change", event => {
-            let target = event.target
-            let isInput = target.tagName === "INPUT"
-            if (!isInput || !target.name || (!target.value && !target.type === "checkbox")) return;
-
-            let value = target.value
-            this.dispatchEvent(new CustomEvent("settingchanged", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    key: target.name,
-                    value: value,
-                    namespace: "navsetting"
-                }
-            }))
-        })
-        this.manipTabContainer.addEventListener("change", event => {
-            let target = event.target
-            let isInput = target.tagName === "INPUT"
-            if (!isInput || !target.name || (!target.value && !target.type === "checkbox")) return;
-
-            let value = target.value
-            this.dispatchEvent(new CustomEvent("settingchanged", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    key: target.name,
-                    value: value,
-                    namespace: "manipsetting"
-                }
-            }))
+        this.newProfileName.addEventListener("change", () => {
+            this.saveProfileButton.disabled = this.newProfileName.value.length < 1
         })
 
-        this.refs.get("btn-save-settings").addEventListener("click", event => {
-            let settingName = this.getSaveSettingName()
-            if (settingName != '') {
-                let newOption = document.createElement("option")
-                newOption.value = settingName
-                newOption.innerText = settingName
-                this.refs.get('load-setting').appendChild(newOption)
-                this.refs.get('settings-save-alert').classList.remove('d-none')
-                setTimeout(() => {this.refs.get('settings-save-alert').classList.add('d-none')}, 2000)
-            } else {
+        this.saveProfileButton.addEventListener("click", () => {
+            let profileName = this.newProfileName.value
+            if (profileName.length === 0) {
                 this.refs.get('settings-save-warning-alert').classList.remove('d-none')
-                setTimeout(() => {this.refs.get('settings-save-warning-alert').classList.add('d-none')}, 2000)
+                setTimeout(() => {
+                    this.refs.get('settings-save-warning-alert').classList.add('d-none')
+                }, 2000)
+                return
+            } else {
+                this.newProfileName.value = ""
+                this.refs.get('settings-save-alert').classList.remove('d-none')
+                setTimeout(() => {
+                    this.refs.get('settings-save-alert').classList.add('d-none')
+                }, 2000)
+
+            }
+            let newOption = document.createElement("option")
+            newOption.value = profileName
+            newOption.innerText = profileName
+            this.profileSelect.appendChild(newOption)
+
+            this.dispatchEvent(new CustomEvent("createprofile", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    name: profileName,
+                }
+            }))
+
+        })
+
+        this.loadProfileButton.addEventListener("click", () => {
+            this.dispatchEvent(new CustomEvent("loadprofile", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    name: this.profileSelect.value,
+                }
+            }))
+            this.profileSelect.selectedIndex = 0
+            this.loadProfileButton.disabled = true
+        })
+
+        this.deleteProfileButton.addEventListener("click", () => {
+            let profileName = this.profileSelect.value
+            if (profileName === "default") {
+                return;
+            }
+            this.dispatchEvent(new CustomEvent("deleteprofile", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    name: profileName,
+                }
+            }))
+            this.profileSelect.querySelector(`option[value='${profileName}']`)?.remove()
+            this.profileSelect.selectedIndex = 0
+            this.loadProfileButton.disabled = true
+        })
+
+        this.profileSelect.addEventListener("change", () => {
+            if (this.profileSelect.selectedIndex != 0) {
+                this.loadProfileButton.disabled = false
             }
         })
+
+        this.refs.get("btn-download-settings")!.addEventListener("click", () => {
+            this.dispatchEvent(new CustomEvent("downloadsettings", {
+                bubbles: true,
+                composed: true
+            }))
+        })
+
     }
 
-    configureInputs(values: [string, string][]) {
-        for (let [key, value] of values) {
-            let inputForSetting = this.modalContainer.querySelector(`input[name='${key}']`)
-
-            if (inputForSetting.type === "checkbox") {
-                inputForSetting.checked = value === "true" ? "true" : null
-            } else if (inputForSetting.type === "radio") {
-                inputForSetting = this.modalContainer.querySelector(`input[value='${value}']`)
-                inputForSetting.checked = "true"
-            } else {
-                console.warn(inputForSetting)
-            }
-
-            var event = new Event('change', { target: inputForSetting });
-            event.initEvent('change', true, false);
-            inputForSetting.dispatchEvent(event);
+    configureInputs(values: object) {
+        if (values.hasOwnProperty("nav")) {
+            this.navTabContainer.configureInputs(values.nav)
+            delete values.nav
         }
-    }
-
-    configureNavInputs(values) {
-        this.navTabContainer.configureInputs(values);
-    }
-
-    configureManipInputs(values) {
-        this.manipTabContainer.configureInputs(values);
+        if (values.hasOwnProperty("manip")) {
+            this.manipTabContainer.configureInputs(values.manip)
+            delete values.manip
+        }
+        configureNamedInputs(values, this.modalContainer)
     }
 
     showModal() {
@@ -285,15 +300,41 @@ export class SettingsModal extends BaseComponent {
         this.refs.get("settings-step-size").style.display = null;
     }
 
-    getSaveSettingName() {
-        return this.modalContainer.querySelector('input[name=setting-name]').value
-    }
+    private handleInputChange(namespace, event) {
+        let target = event.target
+        let isInput = target.tagName === "INPUT"
+        if (!isInput || !target.name || (!target.value && target.type !== "checkbox")) return;
 
-    getLoadSettingName() {
-        return this.refs.get('load-setting').value
+        let value = target.value
+        if (target.type === "checkbox") {
+            value = target.checked
+        }
+        this.dispatchEvent(new CustomEvent("settingchanged", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                key: target.name,
+                value: value,
+                namespace: namespace
+            }
+        }))
     }
+}
 
-    resetSettingName() {
-        this.modalContainer.querySelector('input[name=setting-name]').value = ''
+export function configureNamedInputs(values: object, container: HTMLElement) {
+    for (let [key, value] of Object.entries(values)) {
+        let inputForSetting = container.querySelector<HTMLInputElement>(`input[name='${key}']`)
+        if (inputForSetting?.type === "checkbox") {
+            inputForSetting.checked = value
+        } else if (inputForSetting?.type === "radio") {
+            let pairedInput = container.querySelector<HTMLInputElement>(`input[value='${value}']`)
+            if (!pairedInput) {
+                console.warn("Could not configure", key)
+            }
+            pairedInput!.checked = true
+        } else {
+            console.warn("Could not configure", key)
+        }
+
     }
 }
