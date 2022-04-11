@@ -4,40 +4,30 @@ import { EffectComposer, RenderPass } from "postprocessing";
 /*
 * Base class for a video overlay
 */
-export class Overlay {
-    constructor() {
-    }
+export interface Overlay {
 
-    configure(width: number, height: number) {
-        //console.warn("configure(width, height) should be overridden by the child class");
-    }
 
-    addItem(item: any) {
-        console.warn("addItem() should be overridden by the child class");
-    }
+    configure(width: number, height: number): void;
 
-    hide() {
-        console.warn("hide() should be overridden by the child class");
-    }
+    addItem(item: any): void;
 
-    show() {
-        console.warn("show() should be overridden by the child class");
-    }
+    hide(): void;
+
+    show(): void;
+
+    getElementToDisplay(): Element;
 }
 
 /*
 * Class for an SVG video overlay
 */
-export class OverlaySVG extends Overlay {
+export class OverlaySVG implements Overlay {
     regions: Map<string, Region>
-    type: string
     svg: SVGSVGElement
     stretchContainer: SVGSVGElement
 
     constructor(aspectRatio: number) {
-        super();
         this.regions = new Map();
-        this.type = 'control';
         this.traj = null;
 
         // The parent has now viewbox and will take the size of the container. Place children
@@ -51,6 +41,10 @@ export class OverlaySVG extends Overlay {
         this.svg.appendChild(this.stretchContainer)
 
         // FIXME: Old implementation had a "curtain" feature. What was this and do we need it?
+    }
+
+    configure(width: number, height: number) {
+        // Noop
     }
 
     addRegion(name: string, region: Region) {
@@ -101,6 +95,10 @@ export class OverlaySVG extends Overlay {
         return traj
     }
 
+    getElementToDisplay(): Element {
+        return this.svg
+    }
+
     hide() {
         this.svg.style.display = "none"
     }
@@ -114,8 +112,7 @@ export class OverlaySVG extends Overlay {
 /*
 * Class for an THREE.js video overlay
 */
-export class OverlayTHREE extends Overlay {
-    type: string
+export class OverlayTHREE implements Overlay {
     scene: Scene
     camera: Camera
     renderer: WebGLRenderer
@@ -124,9 +121,7 @@ export class OverlayTHREE extends Overlay {
     objs: { [name: string]: THREEObject }
 
     constructor(camera: Camera) {
-        super();
         this.objs = {};
-        this.type = 'viz';
         this.scene = new Scene();
         this.camera = camera
         this.renderer = new WebGLRenderer({alpha: true});
@@ -138,10 +133,10 @@ export class OverlayTHREE extends Overlay {
     }
 
     configure(width: number, height: number) {
-        this.renderer.setSize(width, height, false)
+        this.renderer.setSize(width, height)
     }
 
-    getSVG() {
+    getElementToDisplay(): Element {
         return this.renderer.domElement;
     }
 

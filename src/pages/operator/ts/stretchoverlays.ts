@@ -258,9 +258,6 @@ export class OverheadClickNavigationOverlay extends OverlaySVG {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
-        let cornerRectSize = 20
-        let mobile_base_width = w / 10.0;
-        let mobile_base_height = h / 10.0;
 
         let baseRect = makeSquare(0, 0, w, h);
         this.w = w;
