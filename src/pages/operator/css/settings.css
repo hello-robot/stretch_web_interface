@@ -1,32 +1,3 @@
-/***************************************************/
-/* Initial code prior to editing                   */
-/* http://www.cssflow.com/snippets/toggle-switches */
-/* Toggle Switch                                   */
-/* May 30, 2012                                    */
-/* MIT License                                     */
-/***************************************************/
-
-/* Initial code prior to editing                   */
-/*
- * Copyright (c) 2012-2013 Thibaut Courouble
- * http://www.cssflow.com
- *
- * Licensed under the MIT License:
- * http://www.opensource.org/licenses/mit-license.php
- */
-
-/* TODO [Vinitha]: Find a better way to override element style */
-.nav-tab-settings {
-    visibility: visible !important;
-}
-
-.manip-tab-settings {
-    visibility: visible !important;
-}
-
-#setting-name {
-    margin-right: 10px;
-}
 
 /*.btn-group.velocity-toggle, .btn-group.step-size-toggle label {
     color: blue

@@ -2,13 +2,13 @@
     max-height: 90vh;
 }
 
-#video-control-container video-control {
+/*#video-control-container video-control {
     flex: 2 2;
 }
 
 #video-control-container video-control:nth-of-type(2) {
-    flex: 1 1
-}
+    flex: 1 1;
+}*/
 
 .btn-group.velocity-toggle label {
     color: black

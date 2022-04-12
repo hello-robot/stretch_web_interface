@@ -9,16 +9,18 @@ const DEFAULTS = {
         "velocityControlMode": "discrete",
         "velocityScale": 2,
         "continuousVelocityStepSize": 0.15,
+        "nav": {
+            "displayMode": "action-overlay",
+            "actionMode": "incremental",
+            "startStopMode": "click-click",
+        },
+        "manip": {
+            "actionMode": "incremental",
+            "startStopMode": "click-click",
+        },
     },
-    "navsetting" : {
-        "displayMode": "action-overlay",
-        "actionMode": "incremental",
-        "startStopMode": "click-click",
-    },
-    "manipsetting": {
-        "actionMode": "incremental",
-        "startStopMode": "click-click",
-    },
+    "settingsProfiles": [],
+
     // Set a flag so that we know whether a model was initialized from defaults
     "reserved": {
         "initialized": true
@@ -47,7 +49,6 @@ export class LocalStorageModel extends Model {
             console.warn("Detected that LocalStorageModel isn't initialized. Reinitializing.")
             this.reset()
         }
-        this.savedSettings = new Map();
     }
 
     addPose(name: string, pose: Pose) {
@@ -55,11 +56,11 @@ export class LocalStorageModel extends Model {
     }
 
     getPose(name: string): Pose {
-        return JSON.parse(localStorage.getItem(`pose.${name}`))
+        return JSON.parse(localStorage.getItem(`pose.${name}`)!)
     }
 
     getPoses(): Pose[] {
-        let poses = this._getAllInNamespace("pose")
+        let poses = this.getAllForKeyPrefix("pose")
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose))
     }
@@ -68,40 +69,58 @@ export class LocalStorageModel extends Model {
         localStorage.removeItem(`pose.${name}`)
     }
 
-    setSetting(key: string, value: any, namespace="setting") {
-        localStorage.setItem(`${namespace}.${key}`, value)
+    setSetting(key: string, value: any, namespace?: string) {
+        let keyPath = "setting"
+        if (namespace) {
+            keyPath = `${keyPath}.${namespace}`
+        }
+        localStorage.setItem(`${keyPath}.${key}`, value)
     }
 
-    loadSavedSettings(settingName: string) {
-        for (const [namespace, savedSettings] of this.savedSettings.get(settingName).entries()) {
-            for (const [key, value] of savedSettings.entries()) {
-                this.setSetting(key, value, namespace);
-            }
+    loadSettingProfile(profileName: string) {
+        let profile = JSON.parse(localStorage.getItem(`settingProfiles.${profileName}`))
+        for (const [key, value] in profile) {
+            this.setSetting(key, value)
         }
     }
 
-    saveSettings(settingName) {
-        this.savedSettings.set(settingName, new Map([
-            ["setting", this.getSettings("setting")],
-            ["navsetting", this.getSettings("navsetting")],
-            ["manipsetting", this.getSettings("manipsetting")]
-        ]))
+    deleteSettingProfile(profileName: string): boolean {
+        if (localStorage.getItem(`settingsProfiles.${profileName}`)) {
+            localStorage.removeItem(`settingsProfiles.${profileName}`)
+            return true
+        }
+        return false
     }
 
-    getSetting(key, namespace="setting") {
-        return localStorage.getItem(`${namespace}.${key}`)
+    saveSettingProfile(profileName: string) {
+        let toSave = JSON.stringify(this.getAllForKeyPrefix("setting"))
+        localStorage.setItem(`settingsProfiles.${profileName}`, toSave)
     }
 
-    getSettings(namespace="setting") {
-        return new Map(this._getAllInNamespace(namespace))
+    getSetting(key: string, namespace?: string) {
+        let keyPath = "setting"
+        if (namespace) {
+            keyPath = `${keyPath}.${namespace}`
+        }
+        return parseFromString(localStorage.getItem(`${keyPath}.${key}`)!)
     }
 
-    _getAllInNamespace(namespace: string) {
-        let items = []
+    getSettings(): object {
+        let settings = this.getAllForKeyPrefix("setting")
+        // Try to restore type information for stored numbers, bools
+        settings = settings.map(([key, value]) => [key, parseFromString(value)])
+        settings = Object.fromEntries(settings)
+
+        // Unpack these so we don't leak the fact that we use a flat keystore
+        return unflatten(settings)
+    }
+
+    private getAllForKeyPrefix(keyPrefix: string): [string, string][] {
+        let items: [string, string][] = []
         for (const key in localStorage) {
-            if (key.startsWith(`${namespace}.`)) {
-                const unnamespacedKey = key.substring(namespace.length + 1)
-                items.push([unnamespacedKey, localStorage.getItem(key)])
+            if (key.startsWith(`${keyPrefix}.`)) {
+                const unnamespacedKey = key.substring(keyPrefix.length + 1)
+                items.push([unnamespacedKey, localStorage.getItem(key)!])
             }
         }
         return items
@@ -109,10 +128,50 @@ export class LocalStorageModel extends Model {
 
     reset() {
         localStorage.clear()
-        for (let [key, subkeys] of Object.entries(DEFAULTS)) {
-            for (let [subkey, value] of Object.entries(subkeys)) {
-                localStorage.setItem(`${key}.${subkey}`, value)
+        this.loadWithObject("", DEFAULTS)
+    }
+
+    private loadWithObject(prefix: string, object: object) {
+        for (let [key, value] of Object.entries(object)) {
+            let newPrefix
+            if (prefix) {
+                newPrefix = `${prefix}.${key}`
+            } else {
+                newPrefix = `${key}`
             }
+            if (typeof value === "object") {
+                this.loadWithObject(newPrefix, value)
+            } else {
+                localStorage.setItem(newPrefix, value)
+            }
+
         }
+    }
+}
+
+function unflatten(data: any): any {
+    if (Object(data) !== data || Array.isArray(data))
+        return data;
+    let regex = /\.?([^.\[\]]+)|\[(\d+)\]/g,
+        resultholder = {};
+    for (let p in data) {
+        let cur: any = resultholder,
+            prop = "",
+            m;
+        while (m = regex.exec(p)) {
+            cur = cur[prop] || (cur[prop] = (m[2] ? [] : {}));
+            prop = m[2] || m[1];
+        }
+        cur[prop] = data[p];
+    }
+    return resultholder[""] || resultholder;
+}
+
+function parseFromString(asString: string): string | number | boolean {
+    try {
+        // Will catch numbers, booleans (and objects, though we won't pass them)
+        return JSON.parse(asString)
+    } catch (e) {
+        return asString
     }
 }

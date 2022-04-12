@@ -2,7 +2,7 @@ import * as ROSLIB from "roslib";
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
-const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
+export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
     "wrist_extension": [0, .51],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0, 1.1],
@@ -16,14 +16,14 @@ export class Robot {
 
     robotFrameTfClient?: ROSLIB.TFClient
     globalFrameTfClient?: ROSLIB.TFClient
-    trajectoryClient?: ROSLIB.ActionClient
+    trajectoryClient: ROSLIB.ActionClient
     moveBaseClient?: ROSLIB.ActionClient
     jointStateTopic?: ROSLIB.Topic<ROSJointState>
-    cmdVel?: ROSLIB.Topic
+    cmdVel: ROSLIB.Topic
     velocityGoal = null;
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
-    
+
     setNavMode?: ROSLIB.Service
     setPositionMode?: ROSLIB.Service
 
@@ -64,6 +64,12 @@ export class Robot {
             },
             "turn_cw": (_: any) => {
                 this.baseTurn(-Math.PI / 2);
+            },
+            "velocities": ({linVel, angVel}) => {
+                this.executeBaseVelocity(linVel, angVel)
+            },
+            "configure_mode": (mode: "position" | "navigation") => {
+                this.setBaseMode(mode)
             }
         },
         "lift": {
@@ -143,6 +149,12 @@ export class Robot {
             },
             "gripper_follow": (value: boolean) => {
                 this.setPanTiltFollowGripper(value);
+            },
+            "look_at_base": () => {
+                this.lookAtBase();
+            },
+            "look_at_arm": () => {
+                this.lookAtArm();
             },
             "configure_overhead_camera": (configuration: any) => {
                 // TODO (kavidey): Implement or remove this
@@ -374,6 +386,20 @@ export class Robot {
         headFollowPoseGoal.send()
     }
 
+    lookAtBase() {
+        makePoseGoal({
+            'joint_head_pan': 0,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
+    }
+
+    lookAtArm() {
+        makePoseGoal({
+            'joint_head_pan': -1.42,
+            'joint_head_tilt': -1.19
+        }, this.trajectoryClient).send()
+    }
+
     gripperDeltaAperture(deltaWidthCm: number) {
         // attempt to change the gripper aperture
         try {
@@ -447,50 +473,36 @@ export class Robot {
         this.affirmExecution()
     }
 
-    setRobotNavMode() {
-        var request = new ROSLIB.ServiceRequest({});
-        this.setNavMode?.callService(request, function(result) {
-            console.log("Set stretch to navigation mode");
-        })
+    setBaseMode(mode: "position" | "navigation") {
+        let request = new ROSLIB.ServiceRequest({});
+        if (mode === "position") {
+            this.setPositionMode?.callService(request, () => {
+                console.log("Set stretch to position mode");
+            })
+        } else if (mode === "navigation") {
+            this.setNavMode?.callService(request, () => {
+                console.log("Set stretch to navigation mode");
+            })
+        } else {
+            throw new Error("Invalid mode", mode)
+        }
+
     }
 
-    setRobotPosMode() {
-        var request = new ROSLIB.ServiceRequest({});
-        this.setPositionMode?.callService(request, function(result) {
-            console.log("Set stretch to position mode");
-        })
-    }
-
-    executeClickMove(lin_vel: number, ang_vel: number) {
-        var twist = new ROSLIB.Message({
-            linear : {
-              x : lin_vel,
-              y : 0,
-              z : 0
+    executeBaseVelocity(linVel: number, angVel: number) {
+        let twist = new ROSLIB.Message({
+            linear: {
+                x: linVel,
+                y: 0,
+                z: 0
             },
-            angular : {
-              x : 0,
-              y : 0,
-              z : ang_vel
+            angular: {
+                x: 0,
+                y: 0,
+                z: angVel
             }
         });
-      this.cmdVel?.publish(twist);
-    }
-
-    stopClickMove() {
-        var twist = new ROSLIB.Message({
-            linear : {
-              x : 0,
-              y : 0,
-              z : 0
-            },
-            angular : {
-              x : 0,
-              y : 0,
-              z : 0
-            }
-        });
-        this.cmdVel?.publish(twist);
+        this.cmdVel.publish(twist);
     }
 
     affirmExecution() {

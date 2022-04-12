@@ -23,12 +23,16 @@ const template = `
 
 @Component('video-control', '/operator/css/video-control.css')
 export class VideoControl extends BaseComponent {
-    overlays: Map<string, Overlay> = new Map();
+    overlays: Map<string, [Overlay]> = new Map();
     overlayResizeNotifier: ResizeObserver;
     currentMode: string
+    private video: HTMLVideoElement
+    private overlaysContainer: HTMLElement
 
-    constructor(buttonMappings: [string, {action: (ev: MouseEvent) => any, label: string, title: string}][]) {
+    constructor(buttonMappings: [string, { action: (ev: MouseEvent) => any, label: string, title: string }][]) {
         super(template);
+        this.video = this.refs.get("video") as HTMLVideoElement
+        this.overlaysContainer = this.refs.get("overlays-container")!
         this.overlayResizeNotifier = new ResizeObserver(entries => {
             let entry = entries[0]
             if (entry.contentBoxSize) {
@@ -39,7 +43,7 @@ export class VideoControl extends BaseComponent {
                 }
             }
         })
-        this.overlayResizeNotifier.observe(this.refs.get("video"))
+        this.overlayResizeNotifier.observe(this.video)
         if (buttonMappings) {
             for (const [name, {action, label, title}] of buttonMappings) {
                 const button = this.shadowRoot.getElementById(name).querySelector("button")
@@ -68,17 +72,17 @@ export class VideoControl extends BaseComponent {
         return !this.classList.contains("no-icons")
     }
 
-    addRemoteStream(stream: string) {
-        this.refs.get("video").srcObject = stream;
+    addRemoteStream(stream: MediaStream) {
+        this.video.srcObject = stream;
     }
 
     removeRemoteStream() {
-        this.refs.get("video").srcObject = null
+        this.video.srcObject = null
     }
 
     addOverlay(overlay: Overlay, mode: string) {
         if (this.overlays.has(mode)) {
-            this.overlays.get(mode).push(overlay);
+            this.overlays.get(mode)!.push(overlay);
         } else {
             this.overlays.set(mode, [overlay]);
         }
@@ -87,19 +91,15 @@ export class VideoControl extends BaseComponent {
     setMode(modeId: string) {
         this.currentMode = modeId;
 
-        // Clean up the SVG
-        let overlays = this.refs.get("overlays-container")
-        while (overlays.lastChild) {
-            overlays.removeChild(overlays.lastChild);
+        // Remove all the overlays
+        while (this.overlaysContainer.lastChild) {
+            this.overlaysContainer.removeChild(this.overlaysContainer.lastChild);
         }
 
         for (let [m, modeOverlays] of this.overlays.entries()) {
             for (let o of modeOverlays) {
                 if (m === modeId || m === "all") {
-                    if (o.type === 'control')
-                        overlays.appendChild(o.svg);
-                    else if (o.type === 'viz')
-                        overlays.appendChild(o.getSVG());
+                    this.overlaysContainer.appendChild(o.getElementToDisplay());
                     o.show();
                 } else {
                     o.hide();

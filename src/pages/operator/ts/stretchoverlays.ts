@@ -1,6 +1,14 @@
 // Camera Position Information
-import { makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject } from "./overlay";
-import { Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler } from "three";
+import {
+    makeRectangle,
+    makeSquare,
+    OverlaySVG,
+    OverlayTHREE,
+    rectToPoly,
+    THREEObject,
+    TrajectoryOverlay
+} from "./overlay";
+import {Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler} from "three";
 import { OutlineEffect, EffectPass } from "postprocessing"
 import { Pose, Vector3 as ROSVector3 } from "roslib";
 
@@ -250,17 +258,14 @@ export class OverheadManipulationOverlay extends OverlaySVG {
     }
 }
 
-export class OverheadClickNavigationOverlay extends OverlaySVG {
+export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
     w
     h
 
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100
-        let cornerRectSize = 20
-        let mobile_base_width = w / 10.0;
-        let mobile_base_height = h / 10.0;
 
         let baseRect = makeSquare(0, 0, w, h);
         this.w = w;
@@ -349,7 +354,8 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
         });
         this.createRegion("translate_mobile_base_neg", {
             label: 'drive backward',
-            poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
+            // poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
+            poly: [leftRect.ul, leftRect.ll, rightRect.lr, rightRect.ur, smRect.lr, smRect.ll],
             iconImage: icon("arrow_down")
         });
         this.createRegion("rotate_mobile_base_pos", {
@@ -362,16 +368,16 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
             poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
             iconImage: icon("turn_right")
         });
-        this.createRegion("turnCCW", {
-            label: 'turn 90 degrees CCW',
-            poly: rectToPoly(leftRect),
-            iconImage: icon("rotate_ccw")
-        });
-        this.createRegion("turnCW", {
-            label: 'turn 90 degrees CW',
-            poly: rectToPoly(rightRect),
-            iconImage: icon("rotate_cw")
-        });
+        // this.createRegion("turnCCW", {
+        //     label: 'turn 90 degrees CCW',
+        //     poly: rectToPoly(leftRect),
+        //     iconImage: icon("rotate_ccw")
+        // });
+        // this.createRegion("turnCW", {
+        //     label: 'turn 90 degrees CW',
+        //     poly: rectToPoly(rightRect),
+        //     iconImage: icon("rotate_cw")
+        // });
 
     }
 }
