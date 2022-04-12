@@ -15,9 +15,11 @@ import {
 import {MapInteractive} from "./mapinteractive.cmp";
 import {Component} from "../../../shared/base.cmp";
 import {PerspectiveCamera} from "three";
-import { cmd } from "../../../shared/commands"
+import {cmd} from "../../../shared/commands"
 import ROSLIB from "roslib";
 import {SettingsModal} from "./settings.cmp";
+import {overheadManipCrop, overheadNavCrop} from "../../../shared/video_dimensions";
+import {ValidJoints} from "../../../shared/util";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -111,6 +113,8 @@ export class OperatorComponent extends PageComponent {
     activeVelocityAction
     velocityExecutionHeartbeat
 
+    controlsContainer: HTMLElement
+
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS = {
         "joint_head_tilt": 0.1,
@@ -146,6 +150,7 @@ export class OperatorComponent extends PageComponent {
         this.model = new LocalStorageModel()
         this.settingsPane = this.refs.get("settings") as SettingsModal
         this.settingsPane.configureInputs(this.model.getSettings())
+        this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
         this.addEventListener("posecreated", event => {
             let pose = event.detail
@@ -287,26 +292,17 @@ export class OperatorComponent extends PageComponent {
         let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
         let namespace = currMode === "nav" ? "nav" : "manip";
         let actionMode = this.model.getSetting("actionMode", namespace)
-        if (currMode === "nav") {
-            let displayMode = this.model.getSetting("displayMode", "nav")
-            if (displayMode === "predictive-display") {
-                this.setMode('clickNav')
-                this.robot.setRobotNavMode()
-            } else {
-                this.setMode('nav')
-                if (actionMode === "incremental") {
-                    this.robot.setRobotPosMode()
-                } else {
-                    this.robot.setRobotNavMode()
-                }
-            }
+        this.setMode(currMode)
+        let displayMode = this.model.getSetting("displayMode", "nav")
+        if (currMode === "nav" && displayMode === "predictive-display") {
+            this.robot?.setBaseMode("navigation")
+            return
+        }
+
+        if (actionMode === "incremental") {
+            this.robot?.setBaseMode("position")
         } else {
-            this.setMode(currMode)
-            if (actionMode === "incremental") {
-                this.robot.setRobotPosMode()
-            } else {
-                this.robot.setRobotNavMode()
-            }
+            this.robot?.setBaseMode("navigation")
         }
     }
 
@@ -331,14 +327,13 @@ export class OperatorComponent extends PageComponent {
         // this.shadowRoot.getElementById("slider").step = stepSize
     }
 
-    getVelocityForJoint(jointName) {
+    getVelocityForJoint(jointName: ValidJoints) {
         let scale = 1;
         // Do not scale velocity for head tilt/pan
         if (jointName in this.SETTING_NAMESPACES) {
-            let namespace = this.SETTING_NAMESPACES[jointName]
-            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+            scale = this.model.getSetting("velocityScale")
         }
-        if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
+        if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
@@ -346,14 +341,13 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    getIncrementForJoint(jointName) {
+    getIncrementForJoint(jointName: ValidJoints) {
         let scale = 1;
         // Do not scale velocity for head tilt/pan
         if (jointName in this.SETTING_NAMESPACES) {
-            let namespace = this.SETTING_NAMESPACES[jointName]
-            scale = parseFloat(this.model.getSetting("velocityScale", namespace))
+            scale = this.model.getSetting("velocityScale")
         }
-        if (this.model.getSetting("velocityControlMode", "setting") === "continuous") {
+        if (this.model.getSetting("velocityControlMode") === "continuous") {
             return this.refs.get("continuous-velocity-input").value * scale
         } else {
             let velocity = parseInt(this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value)
@@ -363,31 +357,30 @@ export class OperatorComponent extends PageComponent {
     }
 
     setMode(modeId) {
+        let displayMode = this.model.getSetting("displayMode", "nav")
+        // Tell the controls so they can swap out the overlays if necessary
         for (const control in this.controls) {
-            this.controls[control].setMode(modeId)
+            if (control === "overhead" && displayMode === "predictive-display" && modeId == "nav") {
+                this.controls[control].setMode("clickNav")
+            } else {
+                this.controls[control].setMode(modeId)
+            }
         }
 
         if (modeId === 'nav') {
-            this.robot.rotateCameraView();
-            if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
-                this.refs.get("video-control-container").removeChild(this.controls["gripper"])
+            this.robot?.configureOverheadCamera(true, overheadNavCrop)
+            if (this.controlsContainer.contains(this.controls["gripper"])) {
+                this.controlsContainer.removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
-            this.robot.lookAtBase()
+            this.robot?.lookAtBase()
         } else if (modeId === 'manip') {
-            this.robot.resetCameraView();
-            if (!this.refs.get("video-control-container").contains(this.controls["gripper"])) {
-                this.refs.get("video-control-container").appendChild(this.controls["gripper"])
+            this.robot?.configureOverheadCamera(false, overheadManipCrop)
+            if (!this.controlsContainer.contains(this.controls["gripper"])) {
+                this.controlsContainer.appendChild(this.controls["gripper"])
                 this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
             }
-            this.robot.lookAtArm()
-        } else if (modeId === 'clickNav') {
-            this.robot.rotateCameraView();
-            if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {
-                this.refs.get("video-control-container").removeChild(this.controls["gripper"])
-                this.controls["gripper"].removeRemoteStream()
-            }
-            this.robot.lookAtBase()
+            this.robot?.lookAtArm()
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -400,7 +393,7 @@ export class OperatorComponent extends PageComponent {
 
     disconnectFromRobot() {
         // Remove controls
-        this.refs.get("video-control-container").innerHTML = ""
+        this.controlsContainer.innerHTML = ""
 
         this.refs.get("pose-library").disabled = "true"
         this.refs.get("recorder").disabled = "true"
@@ -460,37 +453,37 @@ export class OperatorComponent extends PageComponent {
     }
 
     drawAndExecuteTraj(eventX, eventY, overlay, execute=true) {
-        let videoWidth = this.refs.get("video-control-container").firstChild.clientWidth;
-        let videoHeight = this.refs.get("video-control-container").firstChild.clientHeight;
+        let videoWidth = this.controlsContainer.firstChild.clientWidth;
+        let videoHeight = this.controlsContainer.firstChild.clientHeight;
         let overlayWidth = overlay.w;
         let overlayHeight = overlay.h;
-        let scaleWidth = videoWidth/overlayWidth;
-        let scaleHeight = videoHeight/overlayHeight;
-        let px = eventX/scaleWidth;
-        let py = eventY/scaleHeight;
+        let scaleWidth = videoWidth / overlayWidth;
+        let scaleHeight = videoHeight / overlayHeight;
+        let px = eventX / scaleWidth;
+        let py = eventY / scaleHeight;
 
         let dx = px - 45; // robot position x offset
         let dy = py - 70; // robot position y offset
-        let magnitude = Math.sqrt(Math.pow(dx/overlayWidth,2) + Math.pow(dy/overlayHeight,2));
+        let magnitude = Math.sqrt(Math.pow(dx / overlayWidth, 2) + Math.pow(dy / overlayHeight, 2));
         let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
         let circle = execute ? true : false;
-        let scale = parseFloat(this.model.getSetting("velocityScale"))
+        let scale = this.model.getSetting("velocityScale")
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
 	    if (execute) {
-        	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, scale * 0.3) : this.robot.clickMove(0, scale * -0.3);
+            this.activeVelocityAction = heading < Math.PI / 2 ? this.robot.driveWithVelocities(0, scale * 0.3) : this.robot.driveWithVelocities(0, scale * -0.3);
 	    }
 	    overlay.drawRotateIcon()
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = execute ? this.robot.clickMove(scale * -magnitude, 0.0) : null;
-            overlay.drawArc(px, py, Math.PI/2, Math.PI/2 - 0.001, circle);
+            this.activeVelocityAction = execute ? this.robot.driveWithVelocities(scale * -magnitude, 0.0) : null;
+            overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, circle);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = execute ? this.robot.clickMove(scale*magnitude*0.4, -(heading - Math.PI/2)*0.4*scale) : null;
-            overlay.drawArc(px, py, Math.PI/2, heading, circle);
+            this.activeVelocityAction = execute ? this.robot.driveWithVelocities(scale * magnitude * 0.4, -(heading - Math.PI / 2) * 0.4 * scale) : null;
+            overlay.drawArc(px, py, Math.PI / 2, heading, circle);
         }
     }
 
@@ -540,7 +533,7 @@ export class OperatorComponent extends PageComponent {
         this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
         for (let [name, control] of Object.entries(this.controls)) {
             let capitalizedName = name.substring(0, 1).toUpperCase() + name.substring(1)
-            control.showIcons = this.model.getSetting(`showPermanentIcons${capitalizedName}`) === "true"
+            control.showIcons = this.model.getSetting(`showPermanentIcons${capitalizedName}`)
         }
 
         for (const [streamName, info] of this.allRemoteStreams) {
@@ -548,7 +541,7 @@ export class OperatorComponent extends PageComponent {
         }
 
         Array(overhead, pantilt, gripper).forEach(control => {
-            this.refs.get("video-control-container").appendChild(control)
+            this.controlsContainer.appendChild(control)
         })
         let panTiltTrack = this.allRemoteStreams.get("pantilt").stream.getVideoTracks()[0]
 
@@ -590,8 +583,8 @@ export class OperatorComponent extends PageComponent {
 
         let gripperOverlay = new GripperOverlay(1);
         gripper.addOverlay(gripperOverlay, 'all');
-        this.setMode('nav')
 
+        let overheadControl = this.controls["overhead"]
         var mouseMoveX = 0;
         var mouseMoveY = 0;
         // Event handlers
@@ -603,8 +596,8 @@ export class OperatorComponent extends PageComponent {
         var stopAction = (event) => {
             this.stopCurrentAction();
             overheadClickNavOverlay.removeCircle();
-            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").firstChild.addEventListener('mousemove', drawTraj);
+            overheadControl.removeEventListener('mousemove', updateAction);
+            overheadControl.addEventListener('mousemove', drawTraj);
         };
         var drawTraj = (event) => {
             let x = event.offsetX;
@@ -619,40 +612,40 @@ export class OperatorComponent extends PageComponent {
             }
         }
 
-        this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
-        this.refs.get("video-control-container").firstChild.addEventListener("mouseout", event => {
+        overheadControl.addEventListener("mousemove", drawTraj)
+        overheadControl.addEventListener("mouseout", event => {
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
             if (this.model.getSetting("displayMode", 'nav') === "predictive-display" && mode === 'nav') {
                 stopAction(event);
                 overheadClickNavOverlay.removeTraj()
             }
-	    })
+        })
 
         // Predictive Display Mode
-        this.refs.get("video-control-container").firstChild.addEventListener("mousedown", event => {
+        overheadControl.addEventListener("mousedown", event => {
             let x = event.offsetX;
             let y = event.offsetY;
             mouseMoveX = x;
             mouseMoveY = y;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").firstChild.removeEventListener('mouseup', stopAction);
-            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', drawTraj);
+            overheadControl.removeEventListener('mouseup', stopAction);
+            overheadControl.removeEventListener('mousemove', updateAction);
+            overheadControl.removeEventListener('mousemove', drawTraj);
             let namespace = 'nav'
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").firstChild.addEventListener("mouseup", stopAction);
+                        overheadControl.addEventListener("mouseup", stopAction);
                     } else if (this.activeVelocityAction) {
                         stopAction(event);
                         return
                     }
 
                     // Update trajectory when mouse moves
-                    this.refs.get("video-control-container").firstChild.addEventListener("mousemove", updateAction);
+                    overheadControl.addEventListener("mousemove", updateAction);
 
                     // Execute trajectory as long as mouse is held down using last position of cursor
                     this.velocityExecutionHeartbeat = window.setInterval(() => {
@@ -664,8 +657,10 @@ export class OperatorComponent extends PageComponent {
                     // action mode is incremental/step actions
                     // execute trajectory once
                     this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
-                    setTimeout(() => {overheadClickNavOverlay.removeCircle()}, 1500);
-                    this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
+                    setTimeout(() => {
+                        overheadClickNavOverlay.removeCircle()
+                    }, 1500);
+                    overheadControl.addEventListener("mousemove", drawTraj)
                 }
             }
         });
@@ -679,7 +674,7 @@ export class OperatorComponent extends PageComponent {
         };
 
         // Action Overlay Display Mode
-        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+        this.controlsContainer.addEventListener("mousedown", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
 
             let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
@@ -690,7 +685,7 @@ export class OperatorComponent extends PageComponent {
             if (!regionName || regionName === "doNothing") return;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', onOverlayMouseUp);
+            this.controlsContainer.removeEventListener('mouseup', onOverlayMouseUp);
 
             if (regionName in this.robot) {
                 // This region is named after a command we can call directly on the robot
@@ -698,9 +693,9 @@ export class OperatorComponent extends PageComponent {
 
             } else {
                 // This region is named after a joint
-                let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
+                let sign = regionName.substring(regionName.length - 3, 3) === "pos" ? 1 : -1
                 jointName = regionName.substring(0, regionName.length - 4)
-                // let namespace = this.SETTING_NAMESPACES[jointName]
+
                 let namespace = currMode === "nav" ? "nav" : "manip";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
@@ -709,11 +704,11 @@ export class OperatorComponent extends PageComponent {
                         this.activeVelocityRegion = regionName
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
+                                this.activeVelocityAction = this.robot.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
+                                this.activeVelocityAction = this.robot.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
                         } else {
                             this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
@@ -723,7 +718,7 @@ export class OperatorComponent extends PageComponent {
                         }
 
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
+                        this.controlsContainer.addEventListener("mouseup", onOverlayMouseUp);
                     } else {
                         let lastActiveRegion = this.activeVelocityRegion
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
@@ -740,11 +735,11 @@ export class OperatorComponent extends PageComponent {
                         this.activeVelocityRegion = regionName
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
+                                this.activeVelocityAction = this.robot.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
+                                this.activeVelocityAction = this.robot.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
                         } else {
                             this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
@@ -771,16 +766,18 @@ export class OperatorComponent extends PageComponent {
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
                     let regionName = composedTarget.dataset.name
-		            let jointName = this.activeVelocityRegion.substring(0, this.activeVelocityRegion.length - 4)
+                    let jointName = this.activeVelocityRegion.substring(0, this.activeVelocityRegion.length - 4)
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
-                    	if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
+                        if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
                             this.robot.velocityMove(jointName, 0);
                         }
-		            }
+                    }
                 }
             }
         })
+        // Decide what to keep on screen based on what's saved in the settings
+        this.updateNavDisplay()
     }
 
     requestChannelReadyCallback() {
@@ -790,7 +787,7 @@ export class OperatorComponent extends PageComponent {
         });
         this.refs.get("map-interactive").append(mapInteractive);
         this.connection.makeRequest("mapView").then( ( map ) => {
-            mapInteractive.updateMap({...map});
+            mapInteractive.updateMap(map.data, map.width, map.height, map.resolution, map.origin)
         });
         this.robot?.sensors.listenToKeyChange("base", "transform", (value: ROSLIB.Transform) => {
             mapInteractive.updateMapDisplay(value);

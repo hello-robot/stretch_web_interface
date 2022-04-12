@@ -1,6 +1,14 @@
 // Camera Position Information
-import { makeRectangle, makeSquare, OverlaySVG, OverlayTHREE, rectToPoly, THREEObject } from "./overlay";
-import { Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler } from "three";
+import {
+    makeRectangle,
+    makeSquare,
+    OverlaySVG,
+    OverlayTHREE,
+    rectToPoly,
+    THREEObject,
+    TrajectoryOverlay
+} from "./overlay";
+import {Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler} from "three";
 import { OutlineEffect, EffectPass } from "postprocessing"
 import { Pose, Vector3 as ROSVector3 } from "roslib";
 
@@ -250,11 +258,11 @@ export class OverheadManipulationOverlay extends OverlaySVG {
     }
 }
 
-export class OverheadClickNavigationOverlay extends OverlaySVG {
+export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
     w
     h
 
-    constructor(aspectRatio) {
+    constructor(aspectRatio: number) {
         super(aspectRatio);
         let w = 100 * aspectRatio
         let h = 100

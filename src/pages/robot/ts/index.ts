@@ -1,9 +1,9 @@
 import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
 import { WebRTCConnection } from "../../../shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";
-import { MapROS } from "./mapros.cmp";
-import { gripperCrop, overheadNavCrop, overheadManipCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
-import { Transform } from "roslib";
+import {MapROS} from "./mapros.cmp";
+import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../../shared/video_dimensions";
+import {Transform} from "roslib";
 import { ROSJointState, ValidJoints } from "../../../shared/util";
 
 let audioInId;
@@ -32,13 +32,11 @@ robot.connect().then(() => {
     overheadStream.start();
     gripperStream.start();
 
-    const displayContainer = document.getElementById("video-display")
+    const displayContainer = document.getElementById("video-display")!
     displayContainer.appendChild(pantiltStream)
     displayContainer.appendChild(overheadStream)
     displayContainer.appendChild(gripperStream)
 
-
-    // TODO (kavi): get this value from the map file or map server
     mapROS = new MapROS();
     displayContainer.appendChild(mapROS);
     mapROS.init(robot.ros);
@@ -81,11 +79,11 @@ robot.connect().then(() => {
     connection.registerRequestResponder('mapView', async () => {
         const mapData = await mapROS.getMapB64();
         return {
-            mapData: mapData,
-            mapWidth: mapROS.width,
-            mapHeight: mapROS.height,
-            mapResolution: mapROS.resolution,
-            mapOrigin: mapROS.origin,
+            data: mapData,
+            width: mapROS.width,
+            height: mapROS.height,
+            resolution: mapROS.resolution,
+            origin: mapROS.origin,
         };
     });
 }).catch(handleError)
@@ -189,13 +187,13 @@ function handleSessionStart() {
 
     console.log('adding local media stream to peer connection');
 
-    let stream = pantiltStream.editedVideoStream;
+    let stream = pantiltStream.outputVideoStream!;
     stream.getTracks().forEach(t => connection.addTrack(t, stream, "pantilt"));
 
-    stream = overheadStream.editedVideoStream;
+    stream = overheadStream.outputVideoStream!;
     stream.getTracks().forEach(t => connection.addTrack(t, stream, "overhead"));
 
-    stream = gripperStream.editedVideoStream;
+    stream = gripperStream.outputVideoStream!;
     stream.getTracks().forEach(t => connection.addTrack(t, stream, "gripper"));
 
     // The real robot should have a mic, but we'll allow the call to proceed
@@ -217,6 +215,23 @@ function handleMessage(message) {
         case "command":
             robot.executeCommand(message.subtype, message.name, message.modifier)
             break
+        case "configure":
+            if (message.subtype === "head") {
+                if (message.name === "overhead_camera") {
+                    overheadStream.crop = message.crop;
+                    overheadStream.rotate = message.rotate;
+                    return;
+                } else if (message.name === "pantilt_camera") {
+                    pantiltStream.crop = message.crop
+                    pantiltStream.rotate = message.rotate
+                    return;
+                }
+            } else if (message.subtype === "gripper") {
+                gripperStream.crop = message.constructor;
+                gripperStream.rotate = message.rotate;
+                return;
+            }
+            throw new Error("Can't handle configuration message", message)
         case "incrementalMove":
             robot.executeIncrementalMove(message.jointName, message.increment)
             break
@@ -231,26 +246,6 @@ function handleMessage(message) {
             break
         case "navGoal":
             robot.executeNavGoal(message.goal);
-            break;
-        case "clickMove":
-            robot.executeClickMove(message.lin_vel, message.ang_vel);
-            break;
-        case "stopClickMove":
-            robot.stopClickMove();
-            break;
-        case "rotateCameraView":
-            overheadStream.crop = overheadNavCrop;
-            overheadStream.rotate = true;
-            break;
-        case "resetCameraView":
-            overheadStream.crop = overheadManipCrop;
-            overheadStream.rotate = false;
-            break;
-        case "setRobotNavMode":
-            robot.setRobotNavMode();
-            break;
-        case "setRobotPosMode":
-            robot.setRobotPosMode();
             break;
         default:
             console.error("Unknown message type received", message.type)

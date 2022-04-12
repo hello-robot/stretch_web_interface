@@ -1,5 +1,17 @@
 import { Pose2D, ValidJoints } from "../../../shared/util";
-import { cmd, generalCommand, incrementalMove, velocityMove, navGoal, clickMove, setRobotNavMode, setRobotPosMode, rotateCameraView, resetCameraView } from "../../../shared/commands";
+import {
+    cmd,
+    generalCommand,
+    incrementalMove,
+    velocityMove,
+    navGoal,
+    clickMove,
+    setRobotNavMode,
+    setRobotPosMode,
+    rotateCameraView,
+    resetCameraView
+} from "../../../shared/commands";
+import {Crop} from "../../../shared/video_dimensions";
 
 export type robotChannel = (message: cmd) => void;
 export class RemoteRobot {
@@ -29,15 +41,13 @@ export class RemoteRobot {
         },
         "gripper": {
             "open": null,
-            "close": null,
-            "configure_camera": "gripperConfigureCamera"
+            "close": null
         },
         "head": {
             "up": "lookUp",
             "down": "lookDown",
             "left": "lookLeft",
             "right": "lookRight",
-            "configure_overhead_camera": "headConfigureOverheadCamera"
         },
         "full": {
             "pose": "goToPose"
@@ -80,7 +90,7 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
-        let cmd: incrementalMove = { type: "incrementalMove", jointName: jointName, increment: direction * increment }
+        let cmd: incrementalMove = {type: "incrementalMove", jointName: jointName, increment: direction! * increment!}
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
@@ -101,53 +111,61 @@ export class RemoteRobot {
     }
 
     setNavGoal(goal: Pose2D) {
-        let cmd: navGoal = { type: "navGoal", goal: goal }
+        let cmd: navGoal = {type: "navGoal", goal: goal}
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
     }
 
     emitCommandEvent(cmd) {
-        window.dispatchEvent(new CustomEvent("commandsent", { bubbles: false, detail: cmd }))
+        window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
-    clickMove(lin_vel: number, ang_vel: number) {
-        let cmd: clickMove = {
-            type: "clickMove",
-            lin_vel: lin_vel,
-            ang_vel: ang_vel
+    driveWithVelocities(linVel: number, angVel: number) {
+        let cmd = {
+            type: "command",
+            subtype: "drive",
+            name: "velocities",
+            modifier: {
+                linVel: linVel,
+                angVel: angVel
+            }
         };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
         return {
             "stop": () => {
-                this.robotChannel({ type: "stopClickMove" })
-                this.emitCommandEvent({ type: "stopClickMove" })
+                let stopEvent = {
+                    type: "command",
+                    subtype: "drive",
+                    name: "velocities",
+                    modifier: {linVel: 0, angVel: 0}
+                }
+                this.robotChannel(stopEvent)
+                this.emitCommandEvent(stopEvent)
             }
         }
     }
 
-    // TODO (kavidey): combine these into one command with an additional property specifying the mode (and same for camera view)
-    setRobotNavMode() {
-        let cmd: setRobotNavMode = { type: "setRobotNavMode" }
+    setBaseMode(mode: "position" | "navigation") {
+        let cmd = {type: "command", subtype: "drive", name: "configure_mode", modifier: mode}
         this.robotChannel(cmd);
     }
 
-    setRobotPosMode() {
-        let cmd: setRobotPosMode = { type: "setRobotPosMode" }
+    configureGripperCamera(rotate: boolean, crop: Crop) {
+        let cmd = {type: "configure", subtype: "gripper", name: "camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
     }
 
-    rotateCameraView() {
-        let cmd: rotateCameraView = { type: "rotateCameraView" }
+    configureOverheadCamera(rotate: boolean, crop: Crop) {
+        let cmd = {type: "configure", subtype: "head", name: "overhead_camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
-        // this.emitCommandEvent(cmd);
     }
 
-    resetCameraView() {
-        let cmd: resetCameraView = { type: "resetCameraView" }
+    configurePanTiltCamera(rotate: boolean, crop: Crop) {
+        let cmd = {type: "configure", subtype: "head", name: "pantilt_camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
-        // this.emitCommandEvent(cmd);
     }
+
 }
 
 for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
@@ -155,7 +173,7 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
         if (methodName === null) {
             methodName = groupName + name[0].toUpperCase() + name.substr(1);
         }
-        RemoteRobot.prototype[methodName] = function (modifier) {
+        RemoteRobot.prototype[methodName] = function (modifier: string) {
             let cmd = {
                 type: "command",
                 subtype: groupName,

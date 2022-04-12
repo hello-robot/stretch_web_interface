@@ -9,8 +9,6 @@ export interface Overlay {
 
     configure(width: number, height: number): void;
 
-    addItem(item: any): void;
-
     hide(): void;
 
     show(): void;
@@ -28,8 +26,6 @@ export class OverlaySVG implements Overlay {
 
     constructor(aspectRatio: number) {
         this.regions = new Map();
-        this.traj = null;
-
         // The parent has now viewbox and will take the size of the container. Place children
         // using percentage units to have them be responsive to dimension changes
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -61,40 +57,6 @@ export class OverlaySVG implements Overlay {
         return region
     }
 
-    removeCircle() {
-        if (this.traj && this.traj.circle && this.stretchContainer.lastChild) {
-            this.stretchContainer.removeChild(this.stretchContainer.lastChild);
-            this.traj.removeCircle()
-        }
-    }
-
-    removeTraj() {
-        if (this.traj) {
-            for (const [key, value] of Object.entries(this.traj)) {
-                if (this.stretchContainer.contains(value)) {
-                    this.stretchContainer.removeChild(value);
-                }
-            }
-            this.traj = null
-        }
-    }
-
-    addTraj(traj) {
-        this.removeTraj();
-        this.traj = traj
-        for (const [key, value] of Object.entries(this.traj)) {
-            if (value) {
-                this.stretchContainer.appendChild(value);
-            }
-        }
-    }
-
-    createTraj(args) {
-        const traj = new Trajectory(args)
-        this.addTraj(traj)
-        return traj
-    }
-
     getElementToDisplay(): Element {
         return this.svg
     }
@@ -107,6 +69,35 @@ export class OverlaySVG implements Overlay {
         this.svg.style.display = ""
     }
 
+}
+
+export class TrajectoryOverlay extends OverlaySVG {
+    trajectory?: Trajectory
+
+    constructor(aspectRatio: number) {
+        super(aspectRatio);
+    }
+
+    removeCircle() {
+        this.trajectory?.removeCircle()
+    }
+
+    removeTraj() {
+        this.trajectory?.container.remove()
+        this.trajectory = undefined
+    }
+
+    addTraj(traj: Trajectory) {
+        this.removeTraj();
+        this.trajectory = traj
+        this.stretchContainer.appendChild(this.trajectory.container)
+    }
+
+    createTraj(args) {
+        const traj = new Trajectory(args)
+        this.addTraj(traj)
+        return traj
+    }
 }
 
 /*
@@ -239,12 +230,15 @@ export class Region {
 }
 
 export class Trajectory {
-    leftPath
-    centerPath
-    rightPath
-    circle
-    icon
+    container: SVGGElement
+    leftPath: SVGPathElement
+    centerPath: SVGPathElement
+    rightPath: SVGPathElement
+    circle?: SVGCircleElement
+    icon: SVGImageElement
+
     constructor({leftTraj, centerTraj, rightTraj, center, iconImage}) {
+        this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g')
         if (iconImage) {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             // icon.setAttribute("class", "overlay-icon")
@@ -253,6 +247,7 @@ export class Trajectory {
             icon.setAttribute('y', "69%");
             icon.setAttribute('width', "12")
             this.icon = icon
+            this.container.appendChild(icon)
         } else {
             let leftPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             leftPath.setAttribute('stroke', '#4169E1')
@@ -260,6 +255,7 @@ export class Trajectory {
             leftPath.setAttribute('stroke-width', '1')
             leftPath.setAttribute('d', leftTraj);
             this.leftPath = leftPath
+            this.container.appendChild(leftPath)
 
             let centerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             centerPath.setAttribute('stroke', '#4169E1')
@@ -268,6 +264,7 @@ export class Trajectory {
             centerPath.setAttribute('stroke-width', '1')
             centerPath.setAttribute('d', centerTraj);
             this.centerPath = centerPath
+            this.container.appendChild(centerPath)
 
             let rightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             rightPath.setAttribute('stroke', '#4169E1')
@@ -275,6 +272,7 @@ export class Trajectory {
             rightPath.setAttribute('stroke-width', '1')
             rightPath.setAttribute('d', rightTraj);
             this.rightPath = rightPath
+            this.container.appendChild(rightPath)
 
             if (center) {
                 let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -285,14 +283,14 @@ export class Trajectory {
                 circle.setAttribute('r', '6');
                 circle.setAttribute('fill-opacity', '0.3');
                 this.circle = circle;
+                this.container.appendChild(circle)
             }
         }
     }
 
     removeCircle() {
         if (this.circle) {
-            this.circle.remove()
-            this.circle = null
+            this.circle.style.visibility = "hidden"
         }
     }
 }

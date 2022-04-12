@@ -13,7 +13,8 @@
  */
 
 import {BaseComponent, Component} from "../../../shared/base.cmp";
-import { ROSCompressedImage } from "../../../shared/util";
+import {ROSCompressedImage} from "../../../shared/util";
+import {Crop, Dimension} from "../../../shared/video_dimensions";
 
 let debug = false;
 
@@ -24,8 +25,13 @@ const template = `<span data-ref="paused-ui">Click to start</span><video data-re
 export class VideoStream extends BaseComponent {
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D
+    inDim: Dimension
+    outDim: Dimension
+    outputVideoStream?: MediaStream
+    protected img: HTMLImageElement
+    private displayElement: HTMLVideoElement
 
-    constructor(inDim, outDim) {
+    constructor(inDim: Dimension, outDim?: Dimension) {
         super(template)
         if (outDim === undefined) {
             outDim = inDim
@@ -36,10 +42,10 @@ export class VideoStream extends BaseComponent {
         this.canvas = document.createElement('canvas');
         this.canvas.width = this.outDim.w;
         this.canvas.height = this.outDim.h;
-        this.displayElement = this.refs.get("video");
+        this.displayElement = this.refs.get("video") as HTMLVideoElement;
         this.displayElement.style.display = "block"
-        this.displayElement.setAttribute("width", outDim.w);
-        this.displayElement.setAttribute("height", outDim.h);
+        this.displayElement.setAttribute("width", String(this.outDim.w));
+        this.displayElement.setAttribute("height", String(this.outDim.h));
         this.displayElement.onclick = () => this.displayElement.play()
         this.displayElement.onplay = (event) => {
             let pausedUI = this.refs.get("paused-ui")
@@ -50,7 +56,7 @@ export class VideoStream extends BaseComponent {
             }
 
         }
-        this.context = this.canvas.getContext('2d');
+        this.context = this.canvas.getContext('2d')!;
         this.context.fillStyle = "pink";
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         // Using a bright color here can help you spot issues with crops
@@ -90,12 +96,12 @@ export class VideoStream extends BaseComponent {
 
     start() {
         // For debugging
-        if (debug){
+        if (debug) {
             // Hallucinate image messages so we don't have to run ROS to debug this
             window.setInterval(this.imageCallback.bind(this), 1000);
         }
-        this.editedVideoStream = this.canvas.captureStream(this.inDim.fps);
-        this.displayElement.srcObject = this.editedVideoStream; // display the stream
+        this.outputVideoStream = this.canvas.captureStream(this.inDim.fps);
+        this.displayElement.srcObject = this.outputVideoStream; // display the stream
         this.drawVideo();
     }
 }
@@ -103,8 +109,8 @@ export class VideoStream extends BaseComponent {
 
 @Component('rotated-video-stream')
 export class RotatedVideoStream extends VideoStream {
-    constructor(dimensions) {
-        let rotatedDim = {w: dimensions.h, h: dimensions.w};
+    constructor(dimensions: Dimension) {
+        let rotatedDim = {w: dimensions.h, h: dimensions.w, fps: dimensions.fps};
         super(rotatedDim);
     }
 
@@ -126,30 +132,18 @@ export class RotatedVideoStream extends VideoStream {
     }
 }
 
-
-interface crop {
-    sx: number,
-    sy: number,
-    sw: number,
-    sh: number,
-    dx: number,
-    dy: number,
-    dw: number,
-    dh: number
-}
-
 @Component('transformed-video-stream')
 export class TransformedVideoStream extends VideoStream {
     rotate: boolean
-    crop: crop
+    crop?: Crop
 
-    constructor(inDim, crop: crop, rotate = false) {
+    constructor(inDim: Dimension, crop?: Crop, rotate = false) {
         let outDim = inDim
         if (rotate) {
-            outDim = {w: inDim.h, h: inDim.w}
+            outDim = {w: inDim.h, h: inDim.w, fps: inDim.fps}
         }
         if (crop) {
-            outDim = {w: crop.dw, h: crop.dh}
+            outDim = {w: crop.dw, h: crop.dh, fps: inDim.fps}
         }
         super(inDim, outDim);
         this.crop = crop;
@@ -171,7 +165,7 @@ export class TransformedVideoStream extends VideoStream {
             this.context.save()
             this.context.translate(this.outDim.w, 0);
             this.context.rotate(rotation);
-            outDim = {w: this.outDim.h, h: this.outDim.w}
+            outDim = {w: this.outDim.h, h: this.outDim.w, fps: this.outDim.fps}
         }
         if (this.crop) {
             let dim = this.crop

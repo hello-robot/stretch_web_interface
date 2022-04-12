@@ -102,7 +102,7 @@ export class LocalStorageModel extends Model {
         if (namespace) {
             keyPath = `${keyPath}.${namespace}`
         }
-        return localStorage.getItem(`${keyPath}.${key}`)
+        return parseFromString(localStorage.getItem(`${keyPath}.${key}`)!)
     }
 
     getSettings(): object {

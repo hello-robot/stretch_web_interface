@@ -1,6 +1,23 @@
-export const realsenseDimensions = {w: 640, h: 360, fps: 6.0}
-export const wideVideoDimensions = {w: 1024, h: 768, fps: 6.0}
-export const gripperCrop = computeCrop(wideVideoDimensions, 0.8, 1.0)
+export interface Dimension {
+    w: number,
+    h: number,
+    fps: number
+}
+
+export interface Crop {
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number
+}
+
+export const realsenseDimensions: Dimension = {w: 640, h: 360, fps: 6.0}
+export const wideVideoDimensions: Dimension = {w: 1024, h: 768, fps: 6.0}
+export const gripperCrop: Crop = computeCrop(wideVideoDimensions, 0.8, 1.0)
 export const overheadNavCrop = ((x, y) => {
         return {
             sx: wideVideoDimensions.w * (1.0 - x) / 2.0,
@@ -15,9 +32,9 @@ export const overheadNavCrop = ((x, y) => {
     }
 )(0.75, 1.0)
 
-export const overheadManipCrop = ((x, y) => {
+export const overheadManipCrop: Crop = ((x: number, y: number) => {
     return {
-	sx: wideVideoDimensions.w * (1.0 - x) * 1.5 , //get more from the right
+        sx: wideVideoDimensions.w * (1.0 - x) * 1.5, //get more from the right
         sy: wideVideoDimensions.w * 0.225, // get more from the top
         sw: wideVideoDimensions.w / 1.5,
         sh: wideVideoDimensions.h / 1.5,
@@ -28,7 +45,7 @@ export const overheadManipCrop = ((x, y) => {
     }
 })(0.75, 1.0)
 
-function computeCrop(original, x, y) {
+function computeCrop(original: Dimension, x: number, y: number): Crop {
     return {
         sx: Math.round(original.w * (1.0 - x) / 2.0),
         sy: Math.round(original.h * (1.0 - y) / 2.0),
@@ -41,7 +58,7 @@ function computeCrop(original, x, y) {
     };
 }
 
-function computeZoomCrop(original, factor) {
+function computeZoomCrop(original: Dimension, factor: number): Crop {
     return {
         sx: original.w * (1.0 - 1.0 / factor) / 2.0,
         sy: original.h * (1.0 - 1.0 / factor) / 2.0,
