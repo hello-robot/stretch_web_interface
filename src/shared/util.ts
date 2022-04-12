@@ -1,6 +1,6 @@
 import { Message, Quaternion } from "roslib";
 
-type uuid = string;
+export type uuid = string;
 // From: https://stackoverflow.com/a/2117523/6454085
 export function generateUUID(): uuid {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -14,15 +14,15 @@ export function generateUUID(): uuid {
 // safelyParseJSON code copied from
 // https://stackoverflow.com/questions/29797946/handling-bad-json-parse-in-node-safely
 // on August 18, 2017
-export function safelyParseJSON(json: string): any {
+export function safelyParseJSON<T = any>(json: string): T {
     // This function cannot be optimized, it's best to
     // keep it small!
-    var parsed;
+    let parsed;
 
     try {
         parsed = JSON.parse(json);
     } catch (e) {
-        // Oh well, but whatever...
+        console.warn(e);
     }
 
     return parsed; // Could be undefined!
@@ -71,23 +71,6 @@ function quaternionToEuler(q: Quaternion, order: string) {
 export interface WebRTCMessage {
 
 }
-
-export interface Request {
-    type: "request",
-    requestType: string,
-    id: uuid,
-    data: any,
-}
-
-export interface Response {
-    type: "response",
-    requestType: string,
-    id: uuid,
-    data?: any,
-}
-
-export type Responder = () => {};
-
 export interface CameraInfo {
     [key: string]: string
 }
@@ -98,6 +81,8 @@ export interface SignallingMessage {
 
 // TODO (kavidey): this is currently a modified version of `ALL_JOINTS` in `robot.ts`, find a way to define them both in the same place
 export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_finger_left' | 'wrist_extension' | 'joint_lift' | 'joint_wrist_yaw' | "translate_mobile_base" | "rotate_mobile_base" | 'gripper_aperture' | 'joint_arm_l0' | 'joint_arm_l1' | 'joint_arm_l2' | 'joint_arm_l3';
+
+export type navModes = 'nav' | 'manip' | 'clickNav';
 export interface Pose {
     [key: string]: number // key should be validJoints
 }

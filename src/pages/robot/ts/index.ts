@@ -4,7 +4,8 @@ import { TransformedVideoStream } from "./videostream.cmp";
 import { MapROS } from "./mapros.cmp";
 import { gripperCrop, overheadNavCrop, overheadManipCrop, realsenseDimensions, wideVideoDimensions } from "../../../shared/video_dimensions";
 import { Transform } from "roslib";
-import { ROSJointState, ValidJoints } from "../../../shared/util";
+import { ROSJointState } from "../../../shared/util";
+import { mapView } from "../../../shared/requestresponse"
 
 let audioInId;
 let audioOutId;
@@ -79,14 +80,16 @@ robot.connect().then(() => {
         return processedJointPositions
     });
     connection.registerRequestResponder('mapView', async () => {
-        const mapData = await mapROS.getMapB64();
-        return {
-            mapData: mapData,
-            mapWidth: mapROS.width,
-            mapHeight: mapROS.height,
-            mapResolution: mapROS.resolution,
-            mapOrigin: mapROS.origin,
+        const mapData = await mapROS.getMap();
+        const mv: mapView = {
+            mapData: mapData!,
+            mapWidth: mapROS.width!,
+            mapHeight: mapROS.height!,
+            mapResolution: mapROS.resolution!,
+            mapOrigin: mapROS.origin!,
         };
+        console.log(mv);
+        return mv;
     });
 }).catch(handleError)
 

@@ -16,7 +16,9 @@ import {MapInteractive} from "./mapinteractive.cmp";
 import {Component} from "../../../shared/base.cmp";
 import {PerspectiveCamera} from "three";
 import { cmd } from "../../../shared/commands"
+import { mapView } from "../../../shared/requestresponse";
 import ROSLIB from "roslib";
+import { navModes, ValidJoints } from "../../../shared/util";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -166,30 +168,30 @@ export class OperatorComponent extends PageComponent {
             onRequestChannelOpen: this.requestChannelReadyCallback.bind(this),
         })
 
-        this.refs.get("hangup").addEventListener("click", () => {
+        this.refs.get("hangup")!.addEventListener("click", () => {
             this.disconnectFromRobot()
-            this.refs.get("select-robot").selectedIndex = 0
-            this.refs.get("hangup").disabled = "true"
+            this.refs.get("select-robot")!.selectedIndex = 0
+            this.refs.get("hangup")!.disabled = "true"
         })
 
-        this.refs.get("select-robot").onchange = () => {
-            const robot = this.refs.get("select-robot").value;
+        this.refs.get("select-robot")!.onchange = () => {
+            const robot = this.refs.get("select-robot")!.value;
             if (robot === 'no robot connected') {
                 console.log('no robot selected, hanging up');
-                this.refs.get("hangup").disabled = "true"
+                this.refs.get("hangup")!.disabled = "true"
                 this.disconnectFromRobot()
             } else {
-                this.refs.get("hangup").disabled = null
+                this.refs.get("hangup")!.disabled = null
                 this.connection.connectToRobot(robot)
             }
         };
-        this.refs.get("mode-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+        this.refs.get("mode-toggle")!.querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.updateNavDisplay()
                 this.dispatchCommand({type:"mode-toggle", mode:option.value})
             })
         })
-        this.refs.get("velocity-toggle").querySelectorAll("input[type=radio]").forEach(option => {
+        this.refs.get("velocity-toggle")!.querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.dispatchCommand({type:"velocity-toggle", mode:option.value})
             })
@@ -199,24 +201,24 @@ export class OperatorComponent extends PageComponent {
             this.connection.hangup()
         };
 
-        this.refs.get("settings-button").addEventListener("click", () => {
-            this.refs.get("settings").showModal()
+        this.refs.get("settings-button")!.addEventListener("click", () => {
+            this.refs.get("settings")!.showModal()
         })
-        this.refs.get("settings").refs.get("btn-save-settings").addEventListener("click", event => {
-            this.model.saveSettings(this.refs.get("settings").getSaveSettingName());
-            this.refs.get("settings").resetSettingName()
+        this.refs.get("settings")!.refs.get("btn-save-settings").addEventListener("click", event => {
+            this.model.saveSettings(this.refs.get("settings")!.getSaveSettingName());
+            this.refs.get("settings")!.resetSettingName()
         })
-        this.refs.get("settings").refs.get("btn-load-settings").addEventListener("click", event => {
-            this.model.loadSavedSettings(this.refs.get("settings").getLoadSettingName());
+        this.refs.get("settings")!.refs.get("btn-load-settings").addEventListener("click", event => {
+            this.model.loadSavedSettings(this.refs.get("settings")!.getLoadSettingName());
             this.configureInputs();
             this.updateNavDisplay()
         })
-        this.refs.get("settings").refs.get("btn-default-settings").addEventListener("click", event => {
+        this.refs.get("settings")!.refs.get("btn-default-settings").addEventListener("click", event => {
             this.model.reset();
             this.configureInputs();
             this.updateNavDisplay();
         })
-        this.refs.get("settings").refs.get("btn-download-settings").addEventListener("click", event => {
+        this.refs.get("settings")!.refs.get("btn-download-settings").addEventListener("click", event => {
             var element = document.createElement('a');
             var settings = Object.fromEntries(this.model.getSettings('setting'));
             var nav_settings = Object.fromEntries(this.model.getSettings('navsetting'))
@@ -274,13 +276,13 @@ export class OperatorComponent extends PageComponent {
     }
 
     configureInputs() {
-        this.refs.get("settings").configureInputs(this.model.getSettings("setting"))
-        this.refs.get("settings").configureNavInputs(this.model.getSettings("navsetting"))
-        this.refs.get("settings").configureManipInputs(this.model.getSettings("manipsetting"))
+        this.refs.get("settings")!.configureInputs(this.model.getSettings("setting"))
+        this.refs.get("settings")!.configureNavInputs(this.model.getSettings("navsetting"))
+        this.refs.get("settings")!.configureManipInputs(this.model.getSettings("manipsetting"))
     }
 
     updateNavDisplay() {
-        let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+        let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
         let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
         let actionMode = this.model.getSetting("actionMode", namespace)
         if (currMode === "nav") {
@@ -310,11 +312,11 @@ export class OperatorComponent extends PageComponent {
     configureVelocityControls(namespace) {
         const controlType = this.model.getSetting("velocityControlMode", namespace)
         if (controlType === "continuous") {
-            this.refs.get("velocity-toggle").style.display = "none";
-            this.refs.get("velocity-slider").style.display = null;
+            this.refs.get("velocity-toggle")!.style.display = "none";
+            this.refs.get("velocity-slider")!.style.display = null;
         } else {
-            this.refs.get("velocity-toggle").style.display = null;
-            this.refs.get("velocity-slider").style.display = "none";
+            this.refs.get("velocity-toggle")!.style.display = null;
+            this.refs.get("velocity-slider")!.style.display = "none";
         }
         // const stepSize = parseFloat(this.model.getSetting("continuousVelocityStepSize"))
         // this.shadowRoot.getElementById("slider").step = stepSize
@@ -352,14 +354,14 @@ export class OperatorComponent extends PageComponent {
     }
 
     connectedCallback() {
-        let poseLibrary = this.refs.get("pose-library")
+        let poseLibrary = this.refs.get("pose-library")!;
         poseLibrary.getCurrentPose = async () => {
             return await this.connection.makeRequest("jointState")
         }
         this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
     }
 
-    setMode(modeId, button) {
+    setMode(modeId: navModes) {
 
         for (const control in this.controls) {
             this.controls[control].setMode(modeId)
@@ -383,11 +385,11 @@ export class OperatorComponent extends PageComponent {
 
     disconnectFromRobot() {
         // Remove controls
-        this.refs.get("video-control-container").innerHTML = ""
+        this.refs.get("video-control-container")!.innerHTML = ""
 
-        this.refs.get("pose-library").disabled = "true"
-        this.refs.get("recorder").disabled = "true"
-        this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = true)
+        this.refs.get("pose-library")!.disabled = "true"
+        this.refs.get("recorder")!.disabled = "true"
+        this.shadowRoot!.querySelectorAll("input[name=mode]").forEach(input => input.disabled = true)
 
         this.connection.hangup()
         for (const control in this.controls) {
@@ -429,7 +431,7 @@ export class OperatorComponent extends PageComponent {
     availableRobotsChanged(available_robots) {
         const robotSelection = this.refs.get("select-robot")
         // remove any old options, leaving the "no robot" option at the front
-        for (let i = 1; i < this.refs.get("select-robot").options.length; i++) {
+        for (let i = 1; i < this.refs.get("select-robot")!.options.length; i++) {
             robotSelection.remove(i)
         }
 
@@ -443,8 +445,8 @@ export class OperatorComponent extends PageComponent {
     }
 
     drawAndExecuteTraj(eventX, eventY, overlay, execute=true) {
-        let videoWidth = this.refs.get("video-control-container").firstChild.nextSibling.clientWidth;
-        let videoHeight = this.refs.get("video-control-container").firstChild.nextSibling.clientHeight;
+        let videoWidth = this.refs.get("video-control-container")!.firstChild!.nextSibling!.clientWidth;
+        let videoHeight = this.refs.get("video-control-container")!.firstChild!.nextSibling!.clientHeight;
         let overlayWidth = overlay.w;
         let overlayHeight = overlay.h;
         let scaleWidth = videoWidth/overlayWidth;
@@ -586,8 +588,8 @@ export class OperatorComponent extends PageComponent {
         var stopAction = (event) => {
             this.stopCurrentAction();
             overheadClickNavOverlay.removeCircle();
-            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").addEventListener('mousemove', drawTraj);
+            this.refs.get("video-control-container")!.removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container")!.addEventListener('mousemove', drawTraj);
         };
         var drawTraj = (event) => {
             let x = event.offsetX;
@@ -595,47 +597,47 @@ export class OperatorComponent extends PageComponent {
             mouseMoveX = x;
             mouseMoveY = y;
             let namespace = 'navsetting'
-            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+            let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 overheadClickNavOverlay.removeTraj();
                 this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay, false)
             }
         }
 
-        this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
-        this.refs.get("video-control-container").addEventListener("mouseout", event => {
-            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
+        this.refs.get("video-control-container")!.addEventListener("mousemove", drawTraj)
+        this.refs.get("video-control-container")!.addEventListener("mouseout", event => {
+            let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;            if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
 	    	stopAction(event);
             	overheadClickNavOverlay.removeTraj()
             }
 	})
 
         // Predictive Display Mode
-        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+        this.refs.get("video-control-container")!.addEventListener("mousedown", event => {
             let x = event.offsetX;
             let y = event.offsetY;
             mouseMoveX = x;
             mouseMoveY = y;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', stopAction);
-            this.refs.get("video-control-container").removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").removeEventListener('mousemove', drawTraj);
+            this.refs.get("video-control-container")!.removeEventListener('mouseup', stopAction);
+            this.refs.get("video-control-container")!.removeEventListener('mousemove', updateAction);
+            this.refs.get("video-control-container")!.removeEventListener('mousemove', drawTraj);
 
             let namespace = 'navsetting'
-            let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
+            let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", stopAction);
+                        this.refs.get("video-control-container")!.addEventListener("mouseup", stopAction);
                     } else if (this.activeVelocityAction) {
                         stopAction(event);
                         return
                     }
 
                     // Update trajectory when mouse moves
-                    this.refs.get("video-control-container").addEventListener("mousemove", updateAction);
+                    this.refs.get("video-control-container")!.addEventListener("mousemove", updateAction);
 
                     // Execute trajectory as long as mouse is held down using last position of cursor
                     this.velocityExecutionHeartbeat = window.setInterval(() => {
@@ -648,24 +650,24 @@ export class OperatorComponent extends PageComponent {
                     // execute trajectory once
                     this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
                     setTimeout(() => {overheadClickNavOverlay.removeCircle()}, 1500);
-                    this.refs.get("video-control-container").addEventListener("mousemove", drawTraj)
+                    this.refs.get("video-control-container")!.addEventListener("mousemove", drawTraj)
                 }
             }
         });
 
-	    var jointName = null;
-        var onOverlayMouseUp = (event) => {
+	    let jointName: ValidJoints;
+        const onOverlayMouseUp = (event) => {
             this.stopCurrentAction();
             if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-	           this.robot.velocityMove(jointName, 0);
+	           this.robot?.velocityMove(jointName, 0);
             }
         };
 
         // Action Overlay Display Mode
-        this.refs.get("video-control-container").addEventListener("mousedown", event => {
+        this.refs.get("video-control-container")!.addEventListener("mousedown", event => {
             if (event.target.tagName !== "VIDEO-CONTROL") return;
 
-            let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+            let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
             if (currMode == 'nav' && this.model.getSetting("displayMode", "navsetting") === "predictive-display" ) return;
 
             let composedTarget = event.composedPath()[0]
@@ -673,7 +675,7 @@ export class OperatorComponent extends PageComponent {
             if (!regionName || regionName === "doNothing") return;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', onOverlayMouseUp);
+            this.refs.get("video-control-container")!.removeEventListener('mouseup', onOverlayMouseUp);
 
             if (regionName in this.robot) {
                 // This region is named after a command we can call directly on the robot
@@ -706,7 +708,7 @@ export class OperatorComponent extends PageComponent {
                         }
 
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
+                        this.refs.get("video-control-container")!.addEventListener("mouseup", onOverlayMouseUp);
                     } else {
                         let lastActiveRegion = this.activeVelocityRegion
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
@@ -746,10 +748,10 @@ export class OperatorComponent extends PageComponent {
             }
         })
 
-        // Saftey: Set velocity to 0 when mouse leaves clicked region
+        // Safety: Set velocity to 0 when mouse leaves clicked region
         this.addEventListener("mousemove", event => {
             if (this.activeVelocityAction) {
-                let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                 let navDisplayMode = this.model.getSetting("displayMode", "navsetting")
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
@@ -758,7 +760,7 @@ export class OperatorComponent extends PageComponent {
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
                     	if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-                            this.robot.velocityMove(jointName, 0);
+                            this.robot?.velocityMove(jointName, 0);
                         }
 		            }
                 }
@@ -767,13 +769,16 @@ export class OperatorComponent extends PageComponent {
     }
 
     requestChannelReadyCallback() {
-        this.refs.get("map-interactive").disabled = null;
+        this.refs.get("map-interactive")!.disabled = null;
         const mapInteractive = new MapInteractive((goal) => {
-            this.robot?.setNavGoal(goal);
+            this.robot!.setNavGoal(goal);
         });
-        this.refs.get("map-interactive").append(mapInteractive);
-        this.connection.makeRequest("mapView").then( ( map ) => {
-            mapInteractive.updateMap({...map});
+        this.refs.get("map-interactive")!.append(mapInteractive);
+        console.log("requesting map")
+        console.log(this.connection.requestChannel?.onmessage)
+        this.connection.makeRequest<mapView>("mapView").then( ( map ) => {
+            console.log(map);
+            mapInteractive.updateMap(map.mapData, map.mapWidth, map.mapHeight, map.mapResolution, map.mapOrigin);
         });
         this.robot?.sensors.listenToKeyChange("base", "transform", (value: ROSLIB.Transform) => {
             mapInteractive.updateMapDisplay(value);

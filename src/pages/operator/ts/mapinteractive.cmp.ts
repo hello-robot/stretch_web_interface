@@ -1,5 +1,7 @@
 import { BaseComponent, Component } from "../../../shared/base.cmp"
 import { Pose2D } from "../../../shared/util";
+import { pgmArray } from "../../../shared/requestresponse";
+import { Bitmap } from "../../../shared/bitmap";
 import * as ROSLIB from "roslib";
 
 const template = `
@@ -79,28 +81,27 @@ export class MapInteractive extends BaseComponent {
             this.mousePos.y = event.offsetY;
             this.updateMapDisplay();
 
-            if (this.mapResolution && this.mapOrigin) {
-                const x_in_map = (this.goalStartPos.x * this.mapResolution) + this.mapOrigin.position.x;
-                const y_in_map = (this.goalStartPos.y * this.mapResolution) + this.mapOrigin.position.y;
+            if (!this.mapResolution || !this.mapOrigin) throw 'Missing map data';
+            const x_in_map = (this.goalStartPos.x * this.mapResolution) + this.mapOrigin.position.x;
+            const y_in_map = (this.goalStartPos.y * this.mapResolution) + this.mapOrigin.position.y;
 
-                const theta = Math.atan2(this.mousePos.y - this.goalStartPos.y, this.mousePos.x - this.goalStartPos.x);
+            const theta = Math.atan2(this.mousePos.y - this.goalStartPos.y, this.mousePos.x - this.goalStartPos.x);
 
-                const goal = {
-                    x: x_in_map,
-                    y: y_in_map,
-                    theta: theta
-                };
+            const goal = {
+                x: x_in_map,
+                y: y_in_map,
+                theta: theta
+            };
 
-                console.log(goal);
+            console.log(goal);
 
-                this.navGoalCallback(goal);
-            }
+            this.navGoalCallback(goal);
         }
     }
 
-    updateMap(mapData: string, mapWidth: number, mapHeight: number, mapResolution: number, mapOrigin: ROSLIB.Pose) {
+    updateMap(mapData: pgmArray, mapWidth: number, mapHeight: number, mapResolution: number, mapOrigin: ROSLIB.Pose) {
         //console.log(mapData, mapWidth, mapHeight, mapResolution, mapOrigin);
-        this.mapImg.src = mapData;
+        this.mapImg.src = convertToImage(mapData, mapWidth, mapHeight);
 
         this.mapCanvas.width = mapWidth;
         this.mapCanvas.height = mapHeight;
@@ -118,26 +119,25 @@ export class MapInteractive extends BaseComponent {
         
         if (robotTransform) {
             this.robotTransform = robotTransform;
+        }
+        if (!this.mapCanvasCxt || !this.mapOrigin || !this.mapResolution || !this.mapHeight || !this.robotTransform) throw "Missing map data"
+        this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height); 4
+        this.mapCanvasCxt.beginPath();
 
-            if (this.mapCanvasCxt && this.mapOrigin && this.mapResolution && this.mapHeight) {
-                this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height); 4
-                this.mapCanvasCxt.beginPath();
+        // Draw robot position
+        this.mapCanvasCxt.arc(
+            (this.robotTransform.translation.x - this.mapOrigin.position.x) / this.mapResolution,
+            this.mapHeight - ((this.robotTransform.translation.y - this.mapOrigin.position.y) / this.mapResolution), 4, 0, 2 * Math.PI);
+        this.mapCanvasCxt.fillStyle = "blue";
+        this.mapCanvasCxt.fill();
 
-                // Draw robot position
-                this.mapCanvasCxt.arc(
-                    (this.robotTransform.translation.x - this.mapOrigin.position.x) / this.mapResolution,
-                    this.mapHeight - ((this.robotTransform.translation.y - this.mapOrigin.position.y) / this.mapResolution), 4, 0, 2 * Math.PI);
-                this.mapCanvasCxt.fillStyle = "blue";
-                this.mapCanvasCxt.fill();
+        if (this.creatingGoal) {
+            drawLineWithArrows(
+                this.mapCanvasCxt,
+                this.goalStartPos.x, this.goalStartPos.y,
+                this.mousePos.x, this.mousePos.y,
+                2, 3, false, true);
 
-                if (this.creatingGoal) {
-                    drawLineWithArrows(
-                        this.mapCanvasCxt,
-                        this.goalStartPos.x, this.goalStartPos.y,
-                        this.mousePos.x, this.mousePos.y,
-                        2, 3, false, true);
-                }
-            }
         }
     }
 
@@ -190,4 +190,30 @@ function drawLineWithArrows(ctx: CanvasRenderingContext2D, x0: number, y0: numbe
     //
     ctx.stroke();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function convertToImage(data: pgmArray, width: number, height: number) {
+    // data is a 1 x (width * height) array of -1,0,100
+
+    const bitmap = new Bitmap(width, height);
+
+    /// modified from ROS2D ///
+    for (var row = 0; row < height; row++) {
+        for (var col = 0; col < width; col++) {
+            const mapI = col + ((height - row - 1) * width);
+
+            const pixel = data[mapI];
+            let brightness;
+            if (pixel === 100) {
+                brightness = 0;
+            } else if (pixel === 0) {
+                brightness = 255;
+            } else {
+                brightness = 127;
+            }
+
+            bitmap.pixel[col][row] = [brightness, brightness, brightness, 255];
+        }
+    }
+    return bitmap.dataURL();
 }

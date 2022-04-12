@@ -6,9 +6,10 @@
 //
 
 import { io, Socket } from "socket.io-client";
-import { Robot } from "../pages/robot/js/robot";
+import { Robot } from "../pages/robot/ts/robot";
 import { generateUUID, safelyParseJSON } from "./util";
-import type { WebRTCMessage, Request, Response, Responder, CameraInfo, SignallingMessage } from "./util";
+import type { WebRTCMessage, CameraInfo } from "./util";
+import type { Request, Response, Responder } from "./requestresponse";
 
 // Free STUN server offered by Google
 const pcConfig = {
@@ -21,7 +22,7 @@ export class WebRTCConnection {
     private pc?: RTCPeerConnection
     private onConnectionStart: () => void
     private requestResponders: Map<string, Responder> = new Map()
-    private pendingRequests = new Map()
+    private pendingRequests: Map<string, (response: any) => void> = new Map()
     private cameraInfo: CameraInfo = {}
     private makingOffer = false
     private ignoreOffer = false
@@ -140,7 +141,7 @@ export class WebRTCConnection {
         this.messageChannel.onmessage = this.onReceiveMessageCallback.bind(this);
         // FIXME (kavidey): I think this error is due to how we are passing the function reference 
         // Additionally this exact same line of code appears in `createPeerConnection`, need to test if both are necessary
-        // this.requestChannel.onmessage = this.processRequestResponse.bind(this);
+        this.requestChannel.onmessage = this.processRequestResponse.bind(this);
     }
 
     createPeerConnection() {
@@ -292,54 +293,63 @@ export class WebRTCConnection {
         this.messageChannel.send(data)
     }
 
-    onReceiveMessageCallback(event: {data: string}) {
+    onReceiveMessageCallback(event: { data: string }) {
         const obj: WebRTCMessage = safelyParseJSON(event.data);
         if (this.onMessage) this.onMessage(obj)
     }
 
-    makeRequest(type: string) {
+    makeRequest<response>(type: string): Promise<response> {
         return new Promise((resolve, reject) => {
             let id = generateUUID();
-            if (!this.requestChannel) throw 'requestChannel is undefined';
-            this.requestChannel.send(JSON.stringify({
+            this.requestChannel!.send(JSON.stringify({
                 type: "request",
                 id: id,
                 requestType: type
             }));
 
-            this.pendingRequests.set(id, (responseData: any) => {
+            this.pendingRequests.set(id, (responseData: response) => {
                 resolve(responseData);
                 this.pendingRequests.delete(id);
             });
+
+            console.log(JSON.stringify({
+                type: "request",
+                id: id,
+                requestType: type
+            }))
+
+            console.log(this.pendingRequests, this.requestResponders)
         });
     }
 
     registerRequestResponder(requestType: string, responder: Responder) {
-        this.requestResponders.set(requestType, responder)
+        this.requestResponders.set(requestType, responder);
     }
 
-    processRequestResponse(message: Request | Response): void {
-        message = safelyParseJSON(message.data)
+    processRequestResponse(ev: MessageEvent<string>): void {
+        const message = safelyParseJSON<Request | Response>(ev.data);
+        console.log(message)
         if (message.type === "request") {
             let response: Response = {
                 type: "response",
                 id: message.id,
                 requestType: message.requestType
             }
-            if (!this.requestChannel) throw 'requestChannel is undefined';
             if (this.requestResponders.has(message.requestType)) {
-                // TODO (kavidey): find the correct way to do this
-                // response.data = await this.requestResponders.get(message.requestType)();
-                this.requestChannel.send(JSON.stringify(response))
+                this.requestResponders.get(message.requestType)!().then((data) => {
+                    response.data = data;
+                    console.log(response)
+                    this.requestChannel!.send(JSON.stringify(response));
+                    console.log("sent response")
+                });
             } else {
                 console.error("Heard request with no responder")
                 // Send a response so the other side can error out
-                this.requestChannel.send(JSON.stringify(response))
+                this.requestChannel!.send(JSON.stringify(response))
             }
-
-        } else {
+        } else if (message.type == "response") {
             if (this.pendingRequests.has(message.id)) {
-                this.pendingRequests.get(message.id)(message.data)
+                this.pendingRequests.get(message.id)!(message.data);
             } else {
                 console.error("Heard response for request we didn't send")
             }
