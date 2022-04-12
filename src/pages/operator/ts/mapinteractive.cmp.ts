@@ -120,20 +120,24 @@ export class MapInteractive extends BaseComponent {
         if (robotTransform) {
             this.robotTransform = robotTransform;
         }
-        if (!this.mapCanvasCxt || !this.mapOrigin || !this.mapResolution || !this.mapHeight || !this.robotTransform) throw "Missing map data"
-        this.mapCanvasCxt.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height); 4
-        this.mapCanvasCxt.beginPath();
+
+        if (!this.robotTransform) {
+            return
+        }
+
+        this.mapCanvasCxt!.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height); 4
+        this.mapCanvasCxt!.beginPath();
 
         // Draw robot position
-        this.mapCanvasCxt.arc(
-            (this.robotTransform.translation.x - this.mapOrigin.position.x) / this.mapResolution,
-            this.mapHeight - ((this.robotTransform.translation.y - this.mapOrigin.position.y) / this.mapResolution), 4, 0, 2 * Math.PI);
-        this.mapCanvasCxt.fillStyle = "blue";
-        this.mapCanvasCxt.fill();
+        this.mapCanvasCxt!.arc(
+            (this.robotTransform!.translation.x - this.mapOrigin!.position.x) / this.mapResolution!,
+            this.mapHeight! - ((this.robotTransform!.translation.y - this.mapOrigin!.position.y) / this.mapResolution!), 4, 0, 2 * Math.PI);
+        this.mapCanvasCxt!.fillStyle = "blue";
+        this.mapCanvasCxt!.fill();
 
         if (this.creatingGoal) {
             drawLineWithArrows(
-                this.mapCanvasCxt,
+                this.mapCanvasCxt!,
                 this.goalStartPos.x, this.goalStartPos.y,
                 this.mousePos.x, this.mousePos.y,
                 2, 3, false, true);

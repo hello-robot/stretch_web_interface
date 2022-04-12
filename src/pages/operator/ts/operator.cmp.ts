@@ -790,11 +790,12 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("map-interactive")!.append(mapInteractive);
 
         this.connection.makeRequest<mapView>("mapView").then( ( map ) => {
-            console.log(map);
             mapInteractive.updateMap(map.mapData, map.mapWidth, map.mapHeight, map.mapResolution, map.mapOrigin);
         });
-        this.robot?.sensors.listenToKeyChange("base", "transform", (value: ROSLIB.Transform) => {
-            mapInteractive.updateMapDisplay(value);
+
+        this.robot?.sensors.listenToKeyChange("base", "transform", (value) => {
+            // TODO (kavidey): find a way to do runtime type checking and verify that value is the correct type
+            mapInteractive.updateMapDisplay(value as ROSLIB.Transform);
         })
     }
 

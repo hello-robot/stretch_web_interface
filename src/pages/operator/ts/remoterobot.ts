@@ -12,6 +12,7 @@ import {
     resetCameraView
 } from "../../../shared/commands";
 import {Crop} from "../../../shared/video_dimensions";
+import ROSLIB from "roslib";
 
 export type robotChannel = (message: cmd) => void;
 export class RemoteRobot {
@@ -116,7 +117,7 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd)
     }
 
-    emitCommandEvent(cmd) {
+    emitCommandEvent(cmd: cmd) {
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
@@ -186,7 +187,7 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
     }
 }
 class RobotSensors {
-    sensors: { [group: string]: { [key: string]: number | undefined } } = {
+    sensors: { [group: string]: { [key: string]: number | ROSLIB.Transform | undefined } } = {
         //"drive": {},
         "lift": { "effort": undefined },
         "arm": { "effort": undefined },
@@ -208,14 +209,14 @@ class RobotSensors {
         }
     }
 
-    listenToKeyChange(group: string, key: string, listener: (value: number) => void) {
+    listenToKeyChange(group: string, key: string, listener: (value?: number | ROSLIB.Transform) => void) {
         this.listeners[group][key].push(listener)
     }
 
-    set(group: string, key: string, value: number) {
+    set(group: string, key: string, value: number | ROSLIB.Transform) {
         this.sensors[group][key] = value
         for (const listener of this.listeners[group][key]) {
-            listener(value)
+            listener(value as any)
         }
     }
 

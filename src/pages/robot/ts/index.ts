@@ -159,6 +159,7 @@ function forwardTF(frame: string, transform: Transform) {
     } else {
         return;
     }
+    // console.log(frame, transform);
     connection.sendData(toSend);
 }
 

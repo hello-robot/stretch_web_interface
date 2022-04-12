@@ -237,15 +237,17 @@ export class Robot {
             ros: this.ros,
             fixedFrame: 'base_link',
             angularThres: 0.01,
-            transThres: 0.01
+            transThres: 0.01,
+            rate: 10
         });
 
         this.globalFrameTfClient = new ROSLIB.TFClient({
-                ros: this.ros,
-                fixedFrame: 'map',
-                angularThres: 0.01,
-                transThres: 0.01
-            });
+            ros: this.ros,
+            fixedFrame: 'map',
+            angularThres: 0.01,
+            transThres: 0.01,
+            rate: 10
+        });
 
         this.robotFrameTfClient.subscribe('link_gripper_finger_left', transform => {
             this.linkGripperFingerLeftTF = transform;
