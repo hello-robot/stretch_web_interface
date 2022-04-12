@@ -1,5 +1,5 @@
 import * as ROSLIB from "roslib";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray } from "../../../shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D } from "../../../shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
@@ -532,8 +532,12 @@ export class Robot {
         }
     }
 
-    executeNavGoal(goal: ROSLIB.Goal) {
-        makeNavGoal(goal, this.moveBaseClient).send()
+    executeNavGoal(goal: Pose2D) {
+        makeNavGoal({
+            x: goal.x,
+            y: goal.y,
+            theta: goal.theta ? goal.theta : 0
+        }, this.moveBaseClient!).send()
     }
 }
 
@@ -654,7 +658,7 @@ function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient:
                         y: pos.y,
                         z: 0
                     },
-                    orientation: eulerToQuaternion(0, 0, pos.theta)
+                    orientation: eulerToQuaternion(pos.theta, 0, 0)
                 }
             }
         }
@@ -695,7 +699,7 @@ export function getJointValue(jointStateMessage: ROSJointState, jointName: Valid
 
 
 // Modified from: https://math.stackexchange.com/a/2975462
-function eulerToQuaternion(yaw, pitch, roll) {
+function eulerToQuaternion(yaw: number, pitch: number, roll: number) {
     const qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
     const qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
     const qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)

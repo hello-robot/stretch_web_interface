@@ -48,7 +48,7 @@ export class MapInteractive extends BaseComponent {
     }
 
     startGoalCreation(event: MouseEvent) {
-        if (this.disabled || !this.mapImg.src) {
+        if (this.disabled || !this.mapImg.src || !this.robotTransform) {
             return
         }
 
@@ -58,7 +58,7 @@ export class MapInteractive extends BaseComponent {
     }
 
     updateGoal(event: MouseEvent) {
-        if (this.disabled || !this.mapImg.src) {
+        if (this.disabled || !this.mapImg.src || !this.robotTransform) {
             return
         }
 
@@ -71,7 +71,7 @@ export class MapInteractive extends BaseComponent {
     }
 
     endGoalCreation(event: MouseEvent) {
-        if (this.disabled || !this.mapImg.src) {
+        if (this.disabled || !this.mapImg.src || !this.robotTransform) {
             return
         }
 
@@ -81,9 +81,8 @@ export class MapInteractive extends BaseComponent {
             this.mousePos.y = event.offsetY;
             this.updateMapDisplay();
 
-            if (!this.mapResolution || !this.mapOrigin) throw 'Missing map data';
-            const x_in_map = (this.goalStartPos.x * this.mapResolution) + this.mapOrigin.position.x;
-            const y_in_map = (this.goalStartPos.y * this.mapResolution) + this.mapOrigin.position.y;
+            const x_in_map = (this.goalStartPos.x * this.mapResolution!) + this.mapOrigin!.position.x;
+            const y_in_map = -((this.goalStartPos.y * this.mapResolution!) + this.mapOrigin!.position.y);
 
             const theta = Math.atan2(this.mousePos.y - this.goalStartPos.y, this.mousePos.x - this.goalStartPos.x);
 
