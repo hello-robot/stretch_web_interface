@@ -86,7 +86,7 @@ export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_
 
 export type navModes = 'nav' | 'manip' | 'clickNav';
 export interface Pose {
-    [key: string]: number // key should be validJoints
+    ValidJoints?: number // key should be validJoints
 }
 
 export interface JointState {

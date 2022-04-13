@@ -1,224 +1,205 @@
-import * as firebase from "firebase/app";
-import "firebase/database"
+import { FirebaseOptions, FirebaseError } from "firebase/app";
+import { initializeApp, FirebaseApp } from 'firebase/app' // no compat for new SDK
+import { getDatabase, ref, Database, set, child, get, onValue } from 'firebase/database'
+import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, GoogleAuthProvider, User, signOut } from "firebase/auth";
+
+const GAuthProvider = new GoogleAuthProvider();
 
 import { firebaseApiKey } from "./database.config";
+import { Pose } from './util';
+
 
 const config = {
-  apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",
-  authDomain: "stretchteleop.firebaseapp.com",
-  databaseURL: "https://stretchteleop.firebaseio.com",
-  projectId: "stretchteleop",
-  storageBucket: "stretchteleop.appspot.com",
-  messagingSenderId: "410461558772",
-  appId: "1:410461558772:web:e0bb0518c01269b1eacba1"
+	apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",
+	authDomain: "stretchteleop.firebaseapp.com",
+	databaseURL: "https://stretchteleop.firebaseio.com",
+	projectId: "stretchteleop",
+	storageBucket: "stretchteleop.appspot.com",
+	messagingSenderId: "410461558772",
+	appId: "1:410461558772:web:e0bb0518c01269b1eacba1"
 };
 
-function databaseReadyCallback() {
-  console.log("Ready to log data on the database.");
-  // Create directory in database to save this user's data
-  Database.logEvent("SessionStarted");
+function databaseReadyCallback(model: FirebaseModel) {
+	console.log("Ready to log data on the database.");
+
+	model.logEvent("SessionStarted");
 }
 
 /*
 * Database class for interfacing with the Firebase realtime database
 */
-class Database {
-  
-  constructor(config, readyCallback) {
-    this.isAnonymous = false;
-    this.uid = null;
-    this.userEmail = null;
-    this.isLogging = true;
+class FirebaseModel {
+	private isAnonymous: boolean;
+	private uid: string;
+	private userEmail: string;
+	private enabled: boolean;
+	private readyCallback: (model: FirebaseModel) => void;
+	private config: FirebaseOptions;
+	private app: FirebaseApp;
+	private database: Database;
+	private auth: any;
 
-    /*
-    * If somethings need to be initialized only after the database connection 
-    * has been established, the Database.readyCallback static variable should be
-    * set to the initialization function. If it is not null, it will be called
-    * when successful sign in happens.
-    */
-    this.readyCallback = readyCallback;
+	constructor(config: FirebaseOptions, readyCallback: (model: FirebaseModel) => void) {
+		this.isAnonymous = false;
+		this.uid = "";
+		this.userEmail = "";
+		this.enabled = true;
 
-    /* 
-    * Firebase configuration information obtained from the Firebase console
-    */
-    this.config = config;
+		/*
+		* If somethings need to be initialized only after the database connection 
+		* has been established, the Database.readyCallback static variable should be
+		* set to the initialization function. If it is not null, it will be called
+		* when successful sign in happens.
+		*/
+		this.readyCallback = readyCallback.bind(this);
 
+		/* 
+		* Firebase configuration information obtained from the Firebase console
+		*/
+		this.config = config;
 
-    // this.nLibrariesLoaded = 0;
-    // this.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js");
-    // this.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js");
-    // this.loadJSLibrary(src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js");
+		this.app = initializeApp(this.config);
+		this.database = getDatabase(this.app);
+		this.auth = getAuth(this.app);
+		onAuthStateChanged(this.auth, (user) => this.handleAuthStateChange(user));
+	}
 
-    this.initialize();
-  }
+	signInAnonymously() {
+		if (this.uid == null && this.userEmail == null) {
+			signInAnonymously(this.auth).catch(this.handleError);
+		}
+	}
 
-  /*
-  * Function to initialize firebase and sign in anonymously
-  */
-  initialize() {
-      this.app = firebase.initializeApp(this.config);
+	signInWithGoogle() {
+		if (this.userEmail == null) {
+			signInWithPopup(this.auth, GAuthProvider)
+				.then((result) => {
+					const credential = GoogleAuthProvider.credentialFromResult(result);
+					const token = credential!.accessToken;
+					const user = result.user;
+				})
+				.catch(this.handleError);
+		}
+	}
 
-      if (typeof firebaseApiKey !== 'undefined') {
-      /*
-       * This callback syntax is necessary to access
-       * `this` from the callback function.
-      */
-      firebase.auth().onAuthStateChanged((user) => this.handleAuthStateChange(user)); 
+	handleError(error: FirebaseError) {
+		const errorCode = error.code;
+		const errorMessage = error.message;
+		console.error("firebaseError: " + errorCode + ": " + errorMessage);
+		console.trace();
+	}
 
-      // Wait a little bit to see is we are already logged in
-      // then attempt an anonymous sign in
-      // window.setTimeout(function() {
-      //   this.signInAnonymously();
-      // }, 500);
+	handleAuthStateChange(user: User | null) {
+		if (user) {
+			this.isAnonymous = user.isAnonymous;
+			this.uid = user.uid;
 
-      //this.signInWithGoogle();
-      }
-  }
-  
-  /*
-  * Callback function for when a library is dynamically loaded
-  * Will need to wait for all libraries to be loaded before
-  * initializing the database.
-  */
-  
-  // libraryLoadCallback() {
-  //   this.nLibrariesLoaded++;
-  //   console.log("Loaded " + this.nLibrariesLoaded);
-  //   if (this.nLibrariesLoaded == 3) {
-  //     this.initialize();
-  //   }
-  // }
-  
-  // loadJSLibrary(path) {
-  //     var js = document.createElement("script");
-  //     js.type = "text/javascript";
-  //     //js.onreadystatechange = this.libraryLoadCallback;
-  //     js.onload = this.libraryLoadCallback;
-  //     js.src = path;
-  //     document.head.appendChild(js);
-  //     console.log("Will load: " + path);
-  // }
+			if (!this.isAnonymous) {
+				console.log("Signed in as " + user.displayName);
+				console.log("Email: " + user.email);
+				this.userEmail = user.email!;
 
+				console.log(user);
 
-  signInAnonymously() {
-    if (this.uid == null && this.userEmail == null) {
-      firebase
-        .auth()
-        .signInAnonymously()
-        .catch(this.handleError);
-    }
-  }
+				let signInButton = document.getElementById('googleSignInButton');
+				let signInInfo = document.getElementById('googleSignInInfo');
+				if (signInButton != null) {
+					signInButton.style.display = 'none';
+				}
+				if (signInInfo != null) {
+					signInInfo.style.display = 'block';
+					signInInfo.innerHTML = "<i>Signed in as " + user.displayName + "</i>";
+				}
+			} else {
+				console.log("Signed in anonymously as " + user.uid);
+				this.userEmail = "";
+				let signInButton = document.getElementById('googleSignInButton');
+				let signInInfo = document.getElementById('googleSignInInfo');
+				if (signInButton != null) {
+					signInButton.style.display = 'block';
+				}
+				if (signInInfo != null) {
+					signInInfo.style.display = 'none';
+				}
+			}
 
-  signInWithGoogle() {
-    if (this.userEmail == null) {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().useDeviceLanguage();
-      firebase
-        .auth()
-        .signInWithPopup(provider)
-        .then((result) => {
-          // This gives you a Google Access Token. You can use it to access the Google API.
-          var token = result.credential.accessToken;
-          // The signed-in user info.
-          var user = result.user;
-        })
-        .catch(this.handleError);
-    }
-  }
+			if (this.readyCallback != null || this.readyCallback != undefined)
+				this.readyCallback(this);
 
-  handleError(error) {
-    var errorCode = error.code;
-    var errorMessage = error.message;
-    console.error("firebaseError: " + errorCode + ": " + errorMessage);
-    console.trace();
-  }
+		} else {
+			console.log("User is signed out.");
+		}
+	}
 
-  handleAuthStateChange(user) {
-    if (user) {
-      this.isAnonymous = user.isAnonymous;
-      this.uid = user.uid;
+	signOut() {
+		signOut(this.auth).catch(this.handleError);
+		this.uid = "";
+	}
 
-      if (!this.isAnonymous) {
-        console.log("Signed in as " + user.displayName);
-        console.log("Email: " + user.email);
-        this.userEmail = user.email;
+	logEvent(eventName: string, eventInfo?: any) {
+		if (this.enabled!) {
+			return
+		}
+		var eventLog = {};
+		if (eventInfo == undefined)
+			eventInfo = "";
+		let dir = 'users/' + (this.uid);
+		let dbRef = ref(this.database, dir);
+		let date = new Date();
+		let timeStamp = date.getTime();
+		eventLog["eventName"] = eventName;
+		eventLog["eventInfo"] = eventInfo;
+		eventLog["date"] = date.toDateString();
+		eventLog["time"] = date.toTimeString();
+		let newEventLog = {};
+		newEventLog[timeStamp] = eventLog;
+		dbRef.update(newEventLog);
+		console.log("Logging event: ------");
+		console.log(newEventLog);
+	}
 
-        console.log(user);
+	addPose(name: string, pose: Pose) {
+		if (this.enabled!) {
+			return
+		}
+		let dir = 'users/' + (this.uid) + '/poses/' + (name);
+		let dbRef = ref(this.database, dir);
+		dbRef.update(pose);
+	}
 
-        let signInButton = document.getElementById('googleSignInButton');
-        let signInInfo = document.getElementById('googleSignInInfo');
-        if (signInButton != null) {
-          signInButton.style.display = 'none';
-        }
-        if (signInInfo != null) {
-          signInInfo.style.display = 'block';
-          signInInfo.innerHTML="<i>Signed in as " + user.displayName + "</i>";
-        }
-      } else {
-        console.log("Signed in anonymously as " + user.uid);
-        this.userEmail = null;
-        let signInButton = document.getElementById('googleSignInButton');
-        let signInInfo = document.getElementById('googleSignInInfo');
-        if (signInButton != null) {
-          signInButton.style.display = 'block';
-        }
-        if (signInInfo != null) {
-          signInInfo.style.display = 'none';
-        }
-      }
+	async getGlobalPoses(): Promise<Pose[]> {
+		const snapshot = await get(child(ref(this.database), '/poses'))
 
-      if (this.readyCallback != null || this.readyCallback != undefined)
-      this.readyCallback();
+		if (snapshot.exists()) {
+			const poses = snapshot.val() as { [key: string]: Pose };
+			return Object.keys(poses)
+				.map(function (key) {
+					return poses[key];
+				});
+		} else {
+			throw "No data available";
+		}
+	}
 
-    } else {
-      console.log("User is signed out.");
-    }
-  }
+	async getUserPoses(): Promise<Pose[]> {
+		const snapshot = await get(child(ref(this.database), 'users/' + (this.uid) + '/poses'))
 
-  signOut() {
-    firebase.auth().signOut().catch(this.handleError);
-    this.uid = null;
-  }
-  
-  logEvent(eventName, eventInfo) {
-    if (typeof this.config == 'undefined') {
-      return;
-    }
-    if (this.isLogging) {
-      var eventLog = {};
-      if (eventInfo == undefined)
-        eventInfo = "";
-      let dir = 'users/' + (this.uid);
-      let dbRef = firebase.database().ref(dir);
-      let date = new Date();
-      let timeStamp = date.getTime();
-      eventLog["eventName"] = eventName;
-      eventLog["eventInfo"] = eventInfo;
-      eventLog["date"] = date.toDateString();
-      eventLog["time"] = date.toTimeString();
-      let newEventLog = {};
-      newEventLog[timeStamp] = eventLog;
-      dbRef.update(newEventLog);
-      console.log("Logging event: ------");
-      console.log(newEventLog);
-    }
-  }
+		if (snapshot.exists()) {
+			const poses = snapshot.val() as { [key: string]: Pose };
+			return Object.keys(poses)
+				.map(function (key) {
+					return poses[key];
+				});
+		} else {
+			throw "No data available";
+		}
+	}
 
-  addPose(id, description, pose) {
-    let dir = 'users/' + (this.uid) + '/poses/' + (id);
-    let dbRef = firebase.database().ref(dir);
-    dbRef.update({pose: pose, description: description});
-  }
+	get disabled() {
+		return this.enabled;
+	}
 
-  getGlobalPoses() {
-    let dir = '/poses';
-    let dbRef = firebase.database().ref(dir);
-    return dbRef.once("value");
-  }
-
-  getUserPoses() {
-    let dir = 'users/' + (this.uid) + '/poses';
-    let dbRef = firebase.database().ref(dir);
-    return dbRef.once("value");
-  }
+	set disabled(value) {
+		this.enabled = value;
+	}
 }
