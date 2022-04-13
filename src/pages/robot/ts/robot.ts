@@ -1,5 +1,5 @@
 import * as ROSLIB from "roslib";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D } from "../../../shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage } from "../../../shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
@@ -16,13 +16,14 @@ export class Robot {
 
     robotFrameTfClient?: ROSLIB.TFClient
     globalFrameTfClient?: ROSLIB.TFClient
-    trajectoryClient: ROSLIB.ActionClient
+    trajectoryClient?: ROSLIB.ActionClient
     moveBaseClient?: ROSLIB.ActionClient
     jointStateTopic?: ROSLIB.Topic<ROSJointState>
-    cmdVel: ROSLIB.Topic
-    velocityGoal = null;
+    cmdVel?: ROSLIB.Topic
+    velocityGoal?: ROSLIB.Goal
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
+    goalCallback: (goal: GoalMessage) => void
 
     setNavMode?: ROSLIB.Service
     setPositionMode?: ROSLIB.Service
@@ -167,10 +168,10 @@ export class Robot {
         }
     }
 
-    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: ROSLIB.Transform) => void) {
+    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: ROSLIB.Transform) => void, goalCallback: (goal: GoalMessage) => void) {
         this.jointStateCallback = jointStateCallback
         this.tfCallback = tfCallback
-
+        this.goalCallback = goalCallback
     }
 
     async connect(): Promise<void> {
@@ -436,14 +437,14 @@ export class Robot {
     }
 
     goToPose(pose: Pose) {
-        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
+        this.moveBaseClient?.cancel()
         for (let key in pose) {
             if (ALL_JOINTS.indexOf(key) === -1) {
                 console.error(`No such joint '${key}' from pose goal`)
                 return
             }
         }
-        makePoseGoal(pose, this.trajectoryClient).send();
+        makePoseGoal(pose, this.trajectoryClient!).send();
     }
 
     executeCommand(type: string, name: string, modifier: any[]) {
@@ -452,6 +453,7 @@ export class Robot {
     }
 
     executeIncrementalMove(jointName: ValidJoints, increment: number) {
+        this.moveBaseClient?.cancel()
         this.makeIncrementalMoveGoal(jointName, increment).send()
     }
 
@@ -462,15 +464,13 @@ export class Robot {
         velocities[0][jointName] = velocity;
         velocities[1][jointName] = velocity;
         let positions: VelocityGoalArray = [{}, {}];
-        if (!this.jointState) throw 'jointState is undefined';
-        positions[0][jointName] = getJointValue(this.jointState, jointName)
+        positions[0][jointName] = getJointValue(this.jointState!, jointName)
 
         const jointLimit = JOINT_LIMITS[jointName];
         if (!jointLimit) throw `Joint ${jointName} does not have limits`
         positions[1][jointName] = jointLimit[Math.sign(velocity) === -1 ? 0 : 1]
 
-        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
-        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient)
+        this.velocityGoal = makeVelocityGoal(positions, velocities, this.trajectoryClient!)
         this.velocityGoal.send()
         this.affirmExecution()
     }
@@ -504,7 +504,7 @@ export class Robot {
                 z: angVel
             }
         });
-        this.cmdVel.publish(twist);
+        this.cmdVel!.publish(twist);
     }
 
     affirmExecution() {
@@ -517,8 +517,7 @@ export class Robot {
     }
 
     stopExecution() {
-        if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
-        this.trajectoryClient.cancel()
+        this.trajectoryClient!.cancel()
         // this.currentJointTrajectoryGoal = null
 
         if (this.currentTrajectoryKillInterval) {
@@ -528,7 +527,7 @@ export class Robot {
         this.moveBaseClient?.cancel()
 	    if (this.velocityGoal) {
             this.velocityGoal.cancel()
-            this.velocityGoal = null
+            this.velocityGoal = undefined
         }
     }
 
@@ -537,11 +536,11 @@ export class Robot {
             x: goal.x,
             y: goal.y,
             theta: goal.theta ? goal.theta : 0
-        }, this.moveBaseClient!).send()
+        }, this.moveBaseClient!, this.goalCallback).send()
     }
 }
 
-function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient) {
+function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
     let jointNames = []
     let jointPositions = []
     for (let key in pose) {
@@ -581,13 +580,20 @@ function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient) {
 
     newGoal.on('result', function (result) {
         console.log('Final Result: ' + result);
+
+        // if (goalCallback) {
+        //     goalCallback({
+        //         type: "pose",
+        //         goal: pose
+        //     })
+        // }
     });
 
     return newGoal
 
 }
 
-function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoalArray, trajectoryClient: ROSLIB.ActionClient) {
+function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoalArray, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
     let points = [];
     let jointNames;
     for (let i = 0; i < positions.length; i++) {
@@ -633,6 +639,16 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
 
     newGoal.on('result', function (result) {
         console.log('Final Result: ', result);
+
+        // if (goalCallback) {
+        //     goalCallback({
+        //         type: "velocity",
+        //         goal: {
+        //             positions: positions,
+        //             velocities: velocities
+        //         }
+        //     })
+        // }
     });
 
     //this.velocityGoal = newGoal;
@@ -640,7 +656,7 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
 
 }
 
-function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient: ROSLIB.ActionClient) {
+function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
     let newGoal = new ROSLIB.Goal({
         actionClient: moveBaseClient,
         goalMessage: {
@@ -670,8 +686,14 @@ function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient:
     });
 
     newGoal.on('result', function (result) {
-        console.log('Final Result:');
-        console.log(result);
+        console.log('Final Result:', result);
+
+        if (goalCallback) {
+            goalCallback({
+                type: "nav",
+                goal: pos
+            })
+        }
     });
 
     return newGoal

@@ -131,3 +131,10 @@ export interface Pose2D {
     y: number,
     theta?: number
 }
+
+export type GoalTypes = "pose" | "velocity" | "nav";
+
+export interface GoalMessage {
+    type: GoalTypes,
+    goal: any
+}

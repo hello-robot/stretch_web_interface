@@ -4,7 +4,7 @@ import { TransformedVideoStream } from "./videostream.cmp";
 import {MapROS} from "./mapros.cmp";
 import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../../shared/video_dimensions";
 import {Transform} from "roslib";
-import { ROSJointState, ValidJoints } from "../../../shared/util";
+import { ROSJointState, ValidJoints, GoalMessage } from "../../../shared/util";
 import { mapView } from "../../../shared/requestresponse";
 
 let audioInId;
@@ -13,6 +13,7 @@ let connection: WebRTCConnection;
 const robot = new Robot(
     forwardJointStates,
     forwardTF,
+    forwardGoalState,
 );
 
 let overheadStream: TransformedVideoStream, gripperStream: TransformedVideoStream, pantiltStream: TransformedVideoStream, audioStream: TransformedVideoStream;
@@ -179,6 +180,16 @@ function forwardJointStates(jointState: ROSJointState) {
     effort = getJointEffort(jointState, 'joint_arm_l0');
     messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort })
     connection.sendData(messages);
+}
+
+function forwardGoalState(goal: GoalMessage) {
+    if (!connection) return;
+
+    connection.sendData({
+        type: 'goal',
+        name: goal.type,
+        value: goal.goal
+    });
 }
 
 function handleError(error) {

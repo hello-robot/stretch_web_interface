@@ -20,6 +20,7 @@ export class MapInteractive extends BaseComponent {
     creatingGoal: boolean
     mousePos: Pose2D
     goalStartPos: Pose2D
+    navigatingToGoal?: Pose2D
 
     mapWidth?: number
     mapHeight?: number
@@ -94,12 +95,12 @@ export class MapInteractive extends BaseComponent {
 
             console.log(goal);
 
+            this.navigatingToGoal = { ...this.goalStartPos }; // Clone the start pos goal
             this.navGoalCallback(goal);
         }
     }
 
     updateMap(mapData: pgmArray, mapWidth: number, mapHeight: number, mapResolution: number, mapOrigin: ROSLIB.Pose) {
-        //console.log(mapData, mapWidth, mapHeight, mapResolution, mapOrigin);
         this.mapImg.src = convertToImage(mapData, mapWidth, mapHeight);
 
         this.mapCanvas.width = mapWidth;
@@ -115,7 +116,7 @@ export class MapInteractive extends BaseComponent {
         if (this.disabled || !this.mapImg.src) {
             return
         }
-        
+
         if (robotTransform) {
             this.robotTransform = robotTransform;
         }
@@ -132,6 +133,7 @@ export class MapInteractive extends BaseComponent {
             (this.robotTransform!.translation.x - this.mapOrigin!.position.x) / this.mapResolution!,
             this.mapHeight! - ((this.robotTransform!.translation.y - this.mapOrigin!.position.y) / this.mapResolution!), 4, 0, 2 * Math.PI);
         this.mapCanvasCxt!.fillStyle = "blue";
+        this.mapCanvasCxt!.closePath()
         this.mapCanvasCxt!.fill();
 
         if (this.creatingGoal) {
@@ -142,6 +144,22 @@ export class MapInteractive extends BaseComponent {
                 2, 3, false, true);
 
         }
+
+        if (this.navigatingToGoal) {
+            // Draw goal position
+            this.mapCanvasCxt!.beginPath();
+            this.mapCanvasCxt!.arc(
+                this.navigatingToGoal.x,
+                this.navigatingToGoal.y, 4, 0, 2 * Math.PI);
+            this.mapCanvasCxt!.fillStyle = "green";
+            this.mapCanvasCxt!.closePath()
+            this.mapCanvasCxt!.fill();
+        }
+    }
+
+    clearGoal() {
+        this.navigatingToGoal = undefined;
+        this.updateMapDisplay();
     }
 
     get disabled() {
@@ -190,7 +208,7 @@ function drawLineWithArrows(ctx: CanvasRenderingContext2D, x0: number, y0: numbe
         ctx.lineTo(length, 0);
         ctx.lineTo(length - aLength, aWidth);
     }
-    //
+
     ctx.stroke();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
@@ -210,12 +228,12 @@ function convertToImage(data: pgmArray, width: number, height: number) {
             if (pixel === 100) {
                 brightness = 0;
             } else if (pixel === 0) {
-                brightness = 255;
+                brightness = 1;
             } else {
-                brightness = 127;
+                brightness = 0.25;
             }
 
-            bitmap.pixel[col][row] = [brightness, brightness, brightness, 255];
+            bitmap.pixel[col][row] = [brightness, brightness, brightness, 1];
         }
     }
     return bitmap.dataURL();

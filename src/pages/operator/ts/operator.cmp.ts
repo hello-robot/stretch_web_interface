@@ -116,6 +116,7 @@ export class OperatorComponent extends PageComponent {
     velocityExecutionHeartbeat
 
     controlsContainer: HTMLElement
+    mapInteractive?: MapInteractive
 
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS: {[key in ValidJoints]?: number} = {
@@ -418,6 +419,11 @@ export class OperatorComponent extends PageComponent {
         switch (message.type) {
             case "sensor":
                 this.robot!.sensors.set(message.subtype, message.name, message.value)
+                break;
+            case "goal":
+                if (message.name == "nav") {
+                    this.mapInteractive?.clearGoal();
+                }
                 break;
             default:
                 console.error("Unknown message type", message.type)
@@ -785,20 +791,19 @@ export class OperatorComponent extends PageComponent {
 
     requestChannelReadyCallback() {
         this.refs.get("map-interactive")!.disabled = null;
-        const mapInteractive = new MapInteractive((goal) => {
+        this.mapInteractive = new MapInteractive((goal) => {
             this.robot!.setNavGoal(goal);
         });
         
-        this.refs.get("map-interactive")!.append(mapInteractive);
+        this.refs.get("map-interactive")!.append(this.mapInteractive);
 
         this.connection.makeRequest<mapView>("mapView").then( ( map ) => {
-            mapInteractive.updateMap(map.mapData, map.mapWidth, map.mapHeight, map.mapResolution, map.mapOrigin);
+            this.mapInteractive.updateMap(map.mapData, map.mapWidth, map.mapHeight, map.mapResolution, map.mapOrigin);
         });
 
         this.robot?.sensors.listenToKeyChange("base", "transform", (value) => {
             // TODO (kavidey): find a way to do runtime type checking and verify that value is the correct type
-            mapInteractive.updateMapDisplay(value as ROSLIB.Transform);
+            this.mapInteractive.updateMapDisplay(value as ROSLIB.Transform);
         })
     }
-
 }

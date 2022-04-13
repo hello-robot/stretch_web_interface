@@ -315,13 +315,6 @@ export class WebRTCConnection {
                 this.pendingRequests.delete(id);
             });
 
-            console.log(JSON.stringify({
-                type: "request",
-                id: id,
-                requestType: type
-            }))
-
-            console.log(this.pendingRequests, this.requestResponders)
         });
     }
 
