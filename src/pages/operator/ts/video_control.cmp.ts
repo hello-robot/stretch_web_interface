@@ -46,20 +46,20 @@ export class VideoControl extends BaseComponent {
         this.overlayResizeNotifier.observe(this.video)
         if (buttonMappings) {
             for (const [name, {action, label, title}] of buttonMappings) {
-                const button = this.shadowRoot.getElementById(name).querySelector("button")
-                button.title = title
-                button.textContent = label
-                button.onclick = action
+                const button = this.shadowRoot!.getElementById(name)!.querySelector("button")
+                button!.title = title
+                button!.textContent = label
+                button!.onclick = action
             }
         } else {
-            for (const button of this.shadowRoot.querySelectorAll(".control-button")) {
+            for (const button of this.shadowRoot!.querySelectorAll(".control-button")) {
                 button.remove()
             }
         }
     }
 
     setExtraContents(html: any) {
-        this.shadowRoot?.getElementById("extra")?.appendChild(html)
+        this.shadowRoot!.getElementById("extra")!.appendChild(html)
     }
 
     set showIcons(value) {

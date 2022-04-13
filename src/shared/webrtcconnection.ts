@@ -10,6 +10,7 @@ import { Robot } from "../pages/robot/ts/robot";
 import { generateUUID, safelyParseJSON } from "./util";
 import type { WebRTCMessage, CameraInfo } from "./util";
 import type { Request, Response, Responder } from "./requestresponse";
+import { AvailableRobots } from "./socketio";
 
 // Free STUN server offered by Google
 const pcConfig = {
@@ -23,7 +24,7 @@ export class WebRTCConnection {
     private onConnectionStart: () => void
     private requestResponders: Map<string, Responder> = new Map()
     private pendingRequests: Map<string, (response: any) => void> = new Map()
-    private cameraInfo: CameraInfo = {}
+    cameraInfo: CameraInfo = {}
     private makingOffer = false
     private ignoreOffer = false
     private isSettingRemoteAnswerPending = false
@@ -31,7 +32,7 @@ export class WebRTCConnection {
     private onConnectionEnd: () => void
     private onMessage: (obj: WebRTCMessage) => void
     private onMessageChannelOpen: () => void
-    private onTrackAdded: () => void
+    private onTrackAdded: (ev: RTCTrackEvent) => void
     private onRequestChannelOpen: () => void
 
     private messageChannel?: RTCDataChannel
@@ -41,10 +42,10 @@ export class WebRTCConnection {
         // TODO: make these placeholder functions match the definitions above
         onConnectionStart = () => { },
         onConnectionEnd = () => { },
-        onMessage = () => { },
+        onMessage = (message: WebRTCMessage) => { },
         onMessageChannelOpen = () => { },
-        onTrackAdded = () => { },
-        onAvailableRobotsChanged = () => { },
+        onTrackAdded = (ev: RTCTrackEvent) => { },
+        onAvailableRobotsChanged = (available_robots: AvailableRobots) => { },
         onRequestChannelOpen = () => { }
     } = {}) {
         this.onConnectionStart = onConnectionStart;

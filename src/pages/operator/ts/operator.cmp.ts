@@ -19,8 +19,9 @@ import {cmd} from "../../../shared/commands"
 import ROSLIB from "roslib";
 import {SettingsModal} from "./settings.cmp";
 import {overheadManipCrop, overheadNavCrop} from "../../../shared/video_dimensions";
-import {navModes, ValidJoints} from "../../../shared/util";
+import {navModes, ValidJoints, WebRTCMessage} from "../../../shared/util";
 import { mapView } from "../../../shared/requestresponse";
+import { AvailableRobots } from "../../../shared/socketio";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -104,7 +105,7 @@ export class OperatorComponent extends PageComponent {
     controls = {}
     robot?: RemoteRobot
     connection
-    pc: WebRTCConnection
+    pc?: WebRTCConnection
     allRemoteStreams = new Map()
     currentMode = undefined
     model: LocalStorageModel
@@ -117,7 +118,7 @@ export class OperatorComponent extends PageComponent {
     controlsContainer: HTMLElement
 
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
-    JOINT_INCREMENTS = {
+    JOINT_INCREMENTS: {[key in ValidJoints]?: number} = {
         "joint_head_tilt": 0.1,
         "joint_head_pan": 0.1,
         "gripper_aperture": .01,
@@ -128,7 +129,7 @@ export class OperatorComponent extends PageComponent {
         "rotate_mobile_base": .2
     }
 
-    JOINT_VELOCITIES = {
+    JOINT_VELOCITIES: {[key in ValidJoints]?: number} = {
         "joint_head_tilt": .3,
         "joint_head_pan": .3,
         "wrist_extension": .04,
@@ -138,7 +139,7 @@ export class OperatorComponent extends PageComponent {
         "rotate_mobile_base": .2
     }
 
-    SETTING_NAMESPACES = {
+    SETTING_NAMESPACES: {[key: string]: "manip" | "nav"} = {
         "wrist_extension": "manip",
         "joint_lift": "manip",
         "joint_wrist_yaw": "manip",
@@ -163,7 +164,7 @@ export class OperatorComponent extends PageComponent {
         })
         this.addEventListener("poseclicked", event => {
             let pose = event.detail
-            this.robot.goToPose(pose)
+            this.robot!.goToPose(pose)
         })
         this.connection = new WebRTCConnection("OPERATOR", true, {
             onConnectionEnd: this.disconnectFromRobot.bind(this),
@@ -332,13 +333,13 @@ export class OperatorComponent extends PageComponent {
         let scale = 1;
         // Do not scale velocity for head tilt/pan
         if (jointName in this.SETTING_NAMESPACES) {
-            scale = this.model.getSetting("velocityScale")
+            scale = Number(this.model.getSetting("velocityScale"));
         }
         if (this.model.getSetting("velocityControlMode") === "continuous") {
-            return this.refs.get("continuous-velocity-input").value * scale
+            return this.refs.get("continuous-velocity-input")!.value * scale
         } else {
-            let velocity = this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value
-            return this.JOINT_VELOCITIES[jointName] * this.VELOCITIES[velocity] * scale
+            let velocity = this.refs.get("velocity-toggle")!.querySelector("input[type=radio]:checked")!.value
+            return this.JOINT_VELOCITIES[jointName]! * this.VELOCITIES[velocity] * scale
         }
     }
 
@@ -349,10 +350,10 @@ export class OperatorComponent extends PageComponent {
             scale = this.model.getSetting("velocityScale")
         }
         if (this.model.getSetting("velocityControlMode") === "continuous") {
-            return this.refs.get("continuous-velocity-input").value * scale
+            return this.refs.get("continuous-velocity-input")!.value * scale
         } else {
-            let velocity = parseInt(this.refs.get("velocity-toggle").querySelector("input[type=radio]:checked").value)
-            var increment = (this.JOINT_INCREMENTS[jointName] * this.VELOCITIES[velocity] * scale)
+            let velocity = parseInt(this.refs.get("velocity-toggle")!.querySelector("input[type=radio]:checked")!.value)
+            var increment = (this.JOINT_INCREMENTS[jointName]! * this.VELOCITIES[velocity] * scale)
             return increment
         }
     }
@@ -398,6 +399,7 @@ export class OperatorComponent extends PageComponent {
 
         this.refs.get("pose-library")!.disabled = "true"
         this.refs.get("recorder")!.disabled = "true"
+        this.refs.get("map-interactive")!.disabled = "true";
         this.shadowRoot!.querySelectorAll("input[name=mode]").forEach(input => input.disabled = true)
 
         this.connection.hangup()
@@ -406,7 +408,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    handleMessage(message) {
+    handleMessage(message: WebRTCMessage) {
         if (message instanceof Array) {
             for (const subMessage of message) {
                 this.handleMessage(subMessage)
@@ -422,7 +424,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    handleRemoteTrackAdded(event) {
+    handleRemoteTrackAdded(event: RTCTrackEvent) {
         console.log('Remote track added.');
         const track = event.track;
         const stream = event.streams[0];
@@ -437,7 +439,7 @@ export class OperatorComponent extends PageComponent {
 
     }
 
-    availableRobotsChanged(available_robots) {
+    availableRobotsChanged(available_robots: AvailableRobots) {
         const robotSelection = this.refs.get("select-robot")! as HTMLSelectElement
         // remove any old options, leaving the "no robot" option at the front
         for (let i = 1; i < robotSelection.options.length; i++) {
@@ -468,22 +470,22 @@ export class OperatorComponent extends PageComponent {
         let magnitude = Math.sqrt(Math.pow(dx / overlayWidth, 2) + Math.pow(dy / overlayHeight, 2));
         let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
         let circle = execute ? true : false;
-        let scale = this.model.getSetting("velocityScale")
+        let scale = Number(this.model.getSetting("velocityScale"))
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
 	    if (execute) {
-            this.activeVelocityAction = heading < Math.PI / 2 ? this.robot.driveWithVelocities(0, scale * 0.3) : this.robot.driveWithVelocities(0, scale * -0.3);
+            this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.3) : this.robot!.driveWithVelocities(0, scale * -0.3);
 	    }
 	    overlay.drawRotateIcon()
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = execute ? this.robot.driveWithVelocities(scale * -magnitude, 0.0) : null;
+            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * -magnitude, 0.0) : null;
             overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, circle);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = execute ? this.robot.driveWithVelocities(scale * magnitude * 0.4, -(heading - Math.PI / 2) * 0.4 * scale) : null;
+            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * magnitude * 0.4, -(heading - Math.PI / 2) * 0.4 * scale) : null;
             overlay.drawArc(px, py, Math.PI / 2, heading, circle);
         }
     }
@@ -501,11 +503,11 @@ export class OperatorComponent extends PageComponent {
     configureRobot() {
         this.robot = new RemoteRobot((message: cmd) => this.connection.sendData(message));
 
-        this.refs.get("pose-library").disabled = null
-        this.refs.get("recorder").disabled = null
-        this.shadowRoot.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
+        this.refs.get("pose-library")!.disabled = null
+        this.refs.get("recorder")!.disabled = null
+        this.shadowRoot!.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
-        const overhead = new VideoControl();
+        const overhead = new VideoControl([]);
         const pantilt = new VideoControl(new Map([["left", {
             title: "look left",
             action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
@@ -523,13 +525,13 @@ export class OperatorComponent extends PageComponent {
             }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
         extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
-            this.robot.setPanTiltFollowGripper(event.target.checked)
+            this.robot!.setPanTiltFollowGripper(event.target.checked)
         }
         extraPanTiltButtons.querySelector("button").onclick = () => {
-            this.robot.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
+            this.robot!.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
         }
         pantilt.setExtraContents(extraPanTiltButtons)
-        const gripper = new VideoControl();
+        const gripper = new VideoControl([]);
 
         this.controls = {"overhead": overhead, "pantilt": pantilt, "gripper": gripper}
         for (let [name, control] of Object.entries(this.controls)) {
@@ -600,7 +602,7 @@ export class OperatorComponent extends PageComponent {
             overheadControl.removeEventListener('mousemove', updateAction);
             overheadControl.addEventListener('mousemove', drawTraj);
         };
-        var drawTraj = (event) => {
+        var drawTraj = (event: MouseEvent) => {
             let x = event.offsetX;
             let y = event.offsetY;
             mouseMoveX = x;
@@ -614,7 +616,7 @@ export class OperatorComponent extends PageComponent {
         }
 
         overheadControl.addEventListener("mousemove", drawTraj)
-        overheadControl.addEventListener("mouseout", event => {
+        overheadControl.addEventListener("mouseout", (event: MouseEvent) => {
             let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", 'nav') === "predictive-display" && mode === 'nav') {
                 stopAction(event);
@@ -623,7 +625,7 @@ export class OperatorComponent extends PageComponent {
         })
 
         // Predictive Display Mode
-        overheadControl.addEventListener("mousedown", event => {
+        overheadControl.addEventListener("mousedown", (event: MouseEvent) => {
             let x = event.offsetX;
             let y = event.offsetY;
             mouseMoveX = x;
@@ -667,7 +669,7 @@ export class OperatorComponent extends PageComponent {
         });
 
 	    let jointName: ValidJoints;
-        const onOverlayMouseUp = (event) => {
+        const onOverlayMouseUp = (event: MouseEvent) => {
             this.stopCurrentAction();
             if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
 	           this.robot?.velocityMove(jointName, 0);
@@ -675,8 +677,8 @@ export class OperatorComponent extends PageComponent {
         };
 
         // Action Overlay Display Mode
-        this.controlsContainer.addEventListener("mousedown", event => {
-            if (event.target.tagName !== "VIDEO-CONTROL") return;
+        this.controlsContainer.addEventListener("mousedown", (event: MouseEvent) => {
+            if (event.target!.tagName !== "VIDEO-CONTROL") return;
 
             let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
             if (currMode == 'nav' && this.model.getSetting("displayMode", "nav") === "predictive-display") return;
@@ -688,9 +690,9 @@ export class OperatorComponent extends PageComponent {
             // Remove old event handlers
             this.controlsContainer.removeEventListener('mouseup', onOverlayMouseUp);
 
-            if (regionName in this.robot) {
+            if (regionName in this.robot!) {
                 // This region is named after a command we can call directly on the robot
-                this.robot[regionName](2)
+                this.robot![regionName](2)
 
             } else {
                 // This region is named after a joint
@@ -699,20 +701,20 @@ export class OperatorComponent extends PageComponent {
 
                 let namespace = currMode === "nav" ? "nav" : "manip";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
-                    this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                    this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
+                                this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
+                                this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
                         } else {
-                            this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction.affirm()
                             }, 150)
@@ -726,7 +728,7 @@ export class OperatorComponent extends PageComponent {
                         if (lastActiveRegion === regionName && this.activeVelocityAction) {
                             this.stopCurrentAction()
 		                    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-                                this.robot.velocityMove(jointName, 0);
+                                this.robot!.velocityMove(jointName, 0);
                             }
                             return;
                         }
@@ -736,14 +738,14 @@ export class OperatorComponent extends PageComponent {
                         this.activeVelocityRegion = regionName
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
+                                this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                             }, 150);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
+                                this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 150)
                         } else {
-                            this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 if (!this.activeVelocityAction) {
                                     // clean up
@@ -771,7 +773,7 @@ export class OperatorComponent extends PageComponent {
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
                         if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-                            this.robot.velocityMove(jointName, 0);
+                            this.robot!.velocityMove(jointName, 0);
                         }
                     }
                 }
