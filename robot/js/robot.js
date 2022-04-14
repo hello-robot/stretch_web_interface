@@ -363,15 +363,15 @@ export class Robot {
 
     lookAtBase() {
         makePoseGoal({
-            'joint_head_pan': 0,
-            'joint_head_tilt': -1.19
+            'joint_head_pan': 0.05,
+            'joint_head_tilt': -1.4
         }, this.trajectoryClient).send()
     }
 
     lookAtArm() {
         makePoseGoal({
-            'joint_head_pan': -1.42,
-            'joint_head_tilt': -1.19
+            'joint_head_pan': -1.5,
+            'joint_head_tilt': -1.4
         }, this.trajectoryClient).send()
     }
 
