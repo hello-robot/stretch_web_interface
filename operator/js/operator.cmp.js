@@ -477,10 +477,10 @@ export class OperatorComponent extends PageComponent {
         let scale = parseFloat(this.model.getSetting("velocityScale"))
         // If click on the robot, rotate in place
         if (Math.abs(magnitude) <= 0.1) {
-	    if (execute) {
-        	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, scale * 0.3) : this.robot.clickMove(0, scale * -0.3);
-	    }
-	    overlay.drawRotateIcon()
+    	    if (execute) {
+            	this.activeVelocityAction = heading < Math.PI/2 ? this.robot.clickMove(0, scale * 0.3) : this.robot.clickMove(0, scale * -0.3);
+    	    }
+    	    overlay.drawRotateIcon()
         } 
         // If clicking behind the robot, move backward
         else if (heading < 0) {
@@ -598,11 +598,13 @@ export class OperatorComponent extends PageComponent {
         var mouseMoveY = 0;
         // Event handlers
         var updateAction = (event) => {
+            overheadClickNavOverlay.removeTraj();
             mouseMoveX = event.offsetX
             mouseMoveY = event.offsetY
             this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
         } 
         var stopAction = (event) => {
+            event.stopPropagation();
             this.stopCurrentAction();
             overheadClickNavOverlay.removeCircle();
             this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
@@ -621,7 +623,7 @@ export class OperatorComponent extends PageComponent {
             }
         }
 
-        this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
+        // this.refs.get("video-control-container").firstChild.addEventListener("mousemove", drawTraj)
         this.refs.get("video-control-container").firstChild.addEventListener("mouseout", event => {
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;            
             if (this.model.getSetting("displayMode", 'navsetting') === "predictive-display" && mode === 'nav') {
@@ -632,23 +634,23 @@ export class OperatorComponent extends PageComponent {
 
         // Predictive Display Mode
         this.refs.get("video-control-container").firstChild.addEventListener("mousedown", event => {
-            let x = event.offsetX;
-            let y = event.offsetY;
-            mouseMoveX = x;
-            mouseMoveY = y;
-
-            // Remove old event handlers
-            this.refs.get("video-control-container").firstChild.removeEventListener('mouseup', stopAction);
-            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
-            this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', drawTraj);
-            
             let namespace = 'navsetting'
             let mode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
+                let x = event.offsetX;
+                let y = event.offsetY;
+                mouseMoveX = x;
+                mouseMoveY = y;
+
+                // Remove old event handlers
+                document.body.removeEventListener('mouseup', stopAction);
+                this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', updateAction);
+                this.refs.get("video-control-container").firstChild.removeEventListener('mousemove', drawTraj);
+                
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").firstChild.addEventListener("mouseup", stopAction);
+                        document.body.addEventListener("mouseup", stopAction);
                     } else if (this.activeVelocityAction) {
                         stopAction(event);
                         return
@@ -661,7 +663,7 @@ export class OperatorComponent extends PageComponent {
                     this.velocityExecutionHeartbeat = window.setInterval(() => {
                         overheadClickNavOverlay.removeTraj();
                         this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
-                    }, 100);
+                    }, 10);
 
                 } else { 
                     // action mode is incremental/step actions
@@ -675,14 +677,16 @@ export class OperatorComponent extends PageComponent {
 
 	    var jointName = null;
         var onOverlayMouseUp = (event) => {
-            this.stopCurrentAction();
+            event.stopPropagation()
             if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
 	           this.robot.velocityMove(jointName, 0);
             }
+            this.stopCurrentAction();
         };
 
         // Action Overlay Display Mode
         this.refs.get("video-control-container").addEventListener("mousedown", event => {
+            event.preventDefault();
             if (event.target.tagName !== "VIDEO-CONTROL") return;
 
             let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
@@ -693,12 +697,11 @@ export class OperatorComponent extends PageComponent {
             if (!regionName || regionName === "doNothing") return;
 
             // Remove old event handlers
-            this.refs.get("video-control-container").removeEventListener('mouseup', onOverlayMouseUp);
+            document.body.removeEventListener('click', onOverlayMouseUp);
             
             if (regionName in this.robot) {
                 // This region is named after a command we can call directly on the robot
                 this.robot[regionName](2)
-
             } else {
                 // This region is named after a joint
                 let sign = regionName.substr(regionName.length - 3, 3) === "pos" ? 1 : -1
@@ -713,20 +716,21 @@ export class OperatorComponent extends PageComponent {
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
-                            }, 150);
+                            }, 10);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
-                            }, 150)
+                            }, 10)
                         } else {
                             this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction.affirm()
-                            }, 150)
+                            }, 10)
                         }
 
                         // When mouse is up, delete trajectory
-                        this.refs.get("video-control-container").addEventListener("mouseup", onOverlayMouseUp);
+                        document.body.addEventListener("click", onOverlayMouseUp);
+
                     } else {
                         let lastActiveRegion = this.activeVelocityRegion
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
@@ -744,11 +748,11 @@ export class OperatorComponent extends PageComponent {
                         if (jointName == "translate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(sign * this.getVelocityForJoint(jointName), 0.0)
-                            }, 150);
+                            }, 10);
                         } else if (jointName == "rotate_mobile_base") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot.clickMove(0.0, sign * this.getVelocityForJoint(jointName))
-                            }, 150)
+                            }, 10)
                         } else {
                             this.activeVelocityAction = this.robot.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
@@ -759,11 +763,19 @@ export class OperatorComponent extends PageComponent {
                                 } else {
                                     this.activeVelocityAction.affirm()
                                 }
-                            }, 150)
+                            }, 10)
                         }
                     }
                 }
             }
+
+            // this.connection.makeRequest("inJointLimits").then(res => {
+            //     let jointLimits = res
+            //     if (!jointLimits['wrist_extension']) {
+            //         overheadManipOverlay.getRegion('wrist_extension_neg').setJointLimitRegion()
+            //         console.log("jointlimit")
+            //     }
+            // })
         })
 
         // Saftey: Set velocity to 0 when mouse leaves clicked region
