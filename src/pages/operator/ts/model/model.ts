@@ -29,16 +29,17 @@ export const DEFAULTS = {
 
 export type SettingEntry = boolean | number | string;
 export interface Settings {
-    [key: string]: Settings | SettingEntry;
+    [key: string]: SettingEntry | { [key: string]: SettingEntry };
 }
 
 export abstract class Model {
     protected enabled: boolean = true;
-    abstract addPose(id: string, pose: Pose) : void;
 
-    abstract getPose(name: string): Pose | undefined;
+    // NOTE: Any functions that don't return void have return promises because of firebase
 
-    abstract getPoses(): Pose[];
+    abstract getPose(id: string): Promise<Pose | undefined>;
+
+    abstract getPoses(): Promise<Pose[]>;
     
     abstract removePose(id: string): void;
     
@@ -46,13 +47,13 @@ export abstract class Model {
 
     abstract loadSettingProfile(profileName: string): void;
 
-    abstract deleteSettingProfile(profileName: string): boolean;
+    abstract deleteSettingProfile(profileName: string): Promise<boolean>;
 
     abstract saveSettingProfile(profileName: string): void;
 
-    abstract getSetting(key: string, namespace?: string): SettingEntry;
+    abstract getSetting(key: string, namespace?: string): Promise<SettingEntry>;
 
-    abstract getSettings(): Settings;
+    abstract getSettings(): Promise<Settings>;
 
     abstract reset(): void
 

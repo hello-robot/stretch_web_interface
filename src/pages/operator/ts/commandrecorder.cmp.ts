@@ -62,6 +62,7 @@ export class CommandRecorder extends BaseComponent {
     }
 
     logCommand = (event) => {
+        // TODO (kavidey): this should reference the database model we're using (LocalStorageModel or FirebaseModel)
         var commandData = localStorage.getItem('commands')
         var commands = commandData ? JSON.parse(commandData) : []
         commands.push(event.detail)

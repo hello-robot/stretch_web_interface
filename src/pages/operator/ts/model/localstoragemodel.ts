@@ -16,11 +16,11 @@ export class LocalStorageModel extends Model {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose));
     }
 
-    getPose(name: string): Pose | undefined {
+    async getPose(name: string): Promise<Pose | undefined> {
         return JSON.parse(localStorage.getItem(`pose.${name}`)!);
     }
 
-    getPoses(): Pose[] {
+    async getPoses(): Promise<Pose[]> {
         let poses = this.getAllForKeyPrefix("pose");
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose));
@@ -45,7 +45,7 @@ export class LocalStorageModel extends Model {
         }
     }
 
-    deleteSettingProfile(profileName: string): boolean {
+    async deleteSettingProfile(profileName: string) {
         if (localStorage.getItem(`settingsProfiles.${profileName}`)) {
             localStorage.removeItem(`settingsProfiles.${profileName}`);
             return true;
@@ -58,7 +58,7 @@ export class LocalStorageModel extends Model {
         localStorage.setItem(`settingsProfiles.${profileName}`, toSave);
     }
 
-    getSetting(key: string, namespace?: string) {
+    async getSetting(key: string, namespace?: string) {
         let keyPath = "setting";
         if (namespace) {
             keyPath = `${keyPath}.${namespace}`;
@@ -66,7 +66,7 @@ export class LocalStorageModel extends Model {
         return parseFromString(localStorage.getItem(`${keyPath}.${key}`)!);
     }
 
-    getSettings(): Settings {
+    async getSettings(): Promise<Settings> {
         let settings = this.getAllForKeyPrefix("setting");
         // Try to restore type information for stored numbers, bools
         settings = settings.map(([key, value]) => [key, parseFromString(value) as string]);
