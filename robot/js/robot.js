@@ -657,6 +657,16 @@ export function getJointValue(jointStateMessage, jointName) {
     return jointStateMessage.position[jointIndex]
 }
 
+export function inJointLimits(jointStateMessage, jointName) {
+    let jointValue = getJointValue(jointStateMessage, jointName)
+    let jointLimits = JOINT_LIMITS[jointName]
+    var eps = 0.05
+    let inLimits = []
+
+    jointValue - eps >= jointLimits[0] ? inLimits.push(true) : inLimits.push(false)
+    jointValue + eps <= jointLimits[1] ? inLimits.push(true) : inLimits.push(false)
+    return inLimits
+}
 ////////////////////////////////////////////////////////////////////////////////////
 
 // Modified from https://schteppe.github.io/cannon.js/docs/files/src_math_Quaternion.js.html

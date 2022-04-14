@@ -101,10 +101,10 @@ video {
     display: none;
 }
 
-.overlay-region {
+/*.overlay-region {
     fill: white;
     fill-opacity: 0.0;
-}
+}*/
 
 .overlay-region:hover {
     fill-opacity: 0.1;

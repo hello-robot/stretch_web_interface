@@ -564,21 +564,31 @@ export class OperatorComponent extends PageComponent {
         })
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
-        this.robot.sensors.listenToKeyChange("lift", "effort", value => {
-            ptManipOverlay.updateLiftEffort(value)
+        // this.robot.sensors.listenToKeyChange("lift", "effort", value => {
+        //     ptManipOverlay.updateLiftEffort(value)
+        // })
+
+        // this.robot.sensors.listenToKeyChange("arm", "effort", value => {
+        //     ptManipOverlay.updateExtensionEffort(value)
+        // })
+
+        // this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
+        //     ptManipOverlay.updateGripperEffort(value)
+        // })
+
+        // this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+        //     ptManipOverlay.updateWrist                           (value)
+        // })
+        this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+            ptManipOverlay.updateLiftJointLimits(value)
+        })
+        this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
+            ptManipOverlay.updateExtensionJointLimits(value)
+        })
+        this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+            ptManipOverlay.updateWristJointLimits(value)
         })
 
-        this.robot.sensors.listenToKeyChange("arm", "effort", value => {
-            ptManipOverlay.updateExtensionEffort(value)
-        })
-
-        this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
-            ptManipOverlay.updateGripperEffort(value)
-        })
-
-        this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
-            ptManipOverlay.updateWristEffort(value)
-        })
         pantilt.addOverlay(reachOverlayTHREE, "all");
         pantilt.addOverlay(ptNavOverlay, 'nav');
         pantilt.addOverlay(ptManipOverlay, 'manip');

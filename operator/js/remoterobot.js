@@ -165,10 +165,10 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
 class RobotSensors {
     sensors = {
         //"drive": {},
-        "lift": {"effort": undefined},
-        "arm": {"effort": undefined},
+        "lift": {"effort": undefined, "inJointLimits": undefined},
+        "arm": {"effort": undefined, "inJointLimits": undefined},
         // Yaw effort is primary, bend and roll are for dex wrist only
-        "wrist": {"effort": undefined, "bend_torque": undefined, "roll_torque": undefined},
+        "wrist": {"effort": undefined, "bend_torque": undefined, "roll_torque": undefined, "inJointLimits": undefined},
         "gripper": {"effort": undefined, "transform": undefined},
         "head": {"transform": undefined},
         "base": {"transform": undefined}

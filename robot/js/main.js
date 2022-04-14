@@ -1,4 +1,4 @@
-import { ALL_JOINTS, JOINT_LIMITS, getJointEffort, getJointValue, Robot } from "./robot.js";
+import { ALL_JOINTS, JOINT_LIMITS, getJointEffort, getJointValue, inJointLimits, Robot } from "./robot.js";
 import { WebRTCConnection } from "../../shared/webrtcconnection.js";
 import { TransformedVideoStream } from "./videostream.cmp.js";
 import { MapROS } from "./mapros.cmp.js";
@@ -74,6 +74,13 @@ robot.connect().then(() => {
             processedJointPositions[key] = getJointValue(robot.jointState, key)
         });
         return processedJointPositions
+    });
+    connection.registerRequestResponder("inJointLimits", async () => {
+        let processedJointLimits = {};
+        Object.keys(JOINT_LIMITS).forEach((key, i) => {
+            processedJointLimits[key] = inJointLimits(robot.jointState, key)
+        });
+        return processedJointLimits
     });
     connection.registerRequestResponder('mapView', async () => {
         const mapData = await mapROS.getMapB64();
@@ -165,14 +172,22 @@ function forwardJointStates(jointState) {
     let effort = getJointEffort(jointState, 'joint_wrist_yaw');
     messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort })
 
+    let inLimits = inJointLimits(jointState, 'joint_wrist_yaw')
+    messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
+
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
     messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
 
     effort = getJointEffort(jointState, 'joint_lift');
     messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort })
+    inLimits = inJointLimits(jointState, 'joint_lift')
+    messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
 
     effort = getJointEffort(jointState, 'joint_arm_l0');
     messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort })
+    inLimits = inJointLimits(jointState, 'wrist_extension')
+    messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
+
     connection.sendData(messages);
 }
 
