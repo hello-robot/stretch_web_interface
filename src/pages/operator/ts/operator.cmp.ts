@@ -702,7 +702,7 @@ export class OperatorComponent extends PageComponent {
 
             } else {
                 // This region is named after a joint
-                let sign = regionName.substring(regionName.length - 3, 3) === "pos" ? 1 : -1
+                let sign = regionName.substring(regionName.length - 3) === "pos" ? 1 : -1
                 jointName = regionName.substring(0, regionName.length - 4)
 
                 let namespace = currMode === "nav" ? "nav" : "manip";
