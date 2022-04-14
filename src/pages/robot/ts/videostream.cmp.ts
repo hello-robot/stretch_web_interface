@@ -12,9 +12,9 @@
  *
  */
 
-import {BaseComponent, Component} from "../../../shared/base.cmp";
-import {ROSCompressedImage} from "../../../shared/util";
-import {Crop, Dimension} from "../../../shared/video_dimensions";
+import {BaseComponent, Component} from "shared/base.cmp";
+import {ROSCompressedImage} from "shared/util";
+import {Crop, Dimension} from "shared/video_dimensions";
 
 let debug = false;
 

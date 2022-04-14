@@ -1,5 +1,5 @@
 import * as ROSLIB from "roslib";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage } from "../../../shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {

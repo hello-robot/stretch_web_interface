@@ -1,7 +1,7 @@
 import * as ROSLIB from "roslib";
-import { BaseComponent, Component } from "../../../shared/base.cmp";
-import { ROSOccupancyGrid } from "../../../shared/util";
-import { pgmArray } from "../../../shared/requestresponse";
+import { BaseComponent, Component } from "shared/base.cmp";
+import { ROSOccupancyGrid } from "shared/util";
+import { pgmArray } from "shared/requestresponse";
 
 const template = `<div id="map_viewer"></div>`;
 

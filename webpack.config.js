@@ -42,7 +42,10 @@ module.exports = {
         ],
     },
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts', '.js'],
+        alias: {
+            shared: path.resolve(__dirname, 'src/shared/'),
+        }
     },
     watch: true,
 };

@@ -1,6 +1,6 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp";
+import {BaseComponent, Component} from "shared/base.cmp";
 import {Modal} from "bootstrap";
-import { Pose } from "../../../shared/util";
+import { Pose } from "shared/util";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">

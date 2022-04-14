@@ -1,11 +1,11 @@
 import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
-import { WebRTCConnection } from "../../../shared/webrtcconnection";
+import { WebRTCConnection } from "shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";
 import {MapROS} from "./mapros.cmp";
-import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "../../../shared/video_dimensions";
+import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "shared/video_dimensions";
 import {Transform} from "roslib";
-import { ROSJointState, ValidJoints, GoalMessage } from "../../../shared/util";
-import { mapView } from "../../../shared/requestresponse";
+import { ROSJointState, ValidJoints, GoalMessage } from "shared/util";
+import { mapView } from "shared/requestresponse";
 
 let audioInId;
 let audioOutId;

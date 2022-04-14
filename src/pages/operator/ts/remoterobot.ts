@@ -1,4 +1,4 @@
-import { Pose2D, ValidJoints } from "../../../shared/util";
+import { Pose2D, ValidJoints } from "shared/util";
 import {
     cmd,
     generalCommand,
@@ -10,11 +10,12 @@ import {
     setRobotPosMode,
     rotateCameraView,
     resetCameraView
-} from "../../../shared/commands";
-import {Crop} from "../../../shared/video_dimensions";
+} from "shared/commands";
+import { Crop } from "shared/video_dimensions";
 import ROSLIB from "roslib";
 
 export type robotChannel = (message: cmd) => void;
+export interface VelocityCommand { stop: () => void; affirm?: () => void; }
 export class RemoteRobot {
     sensors = new RobotSensors()
     robotChannel: robotChannel
@@ -96,7 +97,7 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
     }
 
-    velocityMove(jointName: ValidJoints, velocity: number) {
+    velocityMove(jointName: ValidJoints, velocity: number): VelocityCommand {
         let cmd: velocityMove = { type: "velocityMove", jointName: jointName, velocity: velocity }
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
@@ -121,7 +122,7 @@ export class RemoteRobot {
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
-    driveWithVelocities(linVel: number, angVel: number) {
+    driveWithVelocities(linVel: number, angVel: number): VelocityCommand {
         let cmd = {
             type: "command",
             subtype: "drive",

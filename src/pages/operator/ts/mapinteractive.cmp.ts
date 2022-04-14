@@ -1,7 +1,7 @@
-import { BaseComponent, Component } from "../../../shared/base.cmp"
-import { Pose2D } from "../../../shared/util";
-import { pgmArray } from "../../../shared/requestresponse";
-import { Bitmap } from "../../../shared/bitmap";
+import { BaseComponent, Component } from "shared/base.cmp"
+import { Pose2D } from "shared/util";
+import { pgmArray } from "shared/requestresponse";
+import { Bitmap } from "shared/bitmap";
 import * as ROSLIB from "roslib";
 
 const template = `

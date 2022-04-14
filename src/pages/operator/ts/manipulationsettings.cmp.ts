@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp";
+import {BaseComponent, Component} from "shared/base.cmp";
 import {configureNamedInputs} from "./settings.cmp";
 
 

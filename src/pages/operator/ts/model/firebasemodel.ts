@@ -6,11 +6,13 @@ import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, Google
 const GAuthProvider = new GoogleAuthProvider();
 
 import { firebaseApiKey } from "./database.config";
-import { Pose } from './util';
+// import { Pose } from 'shared/util';
+import { Pose } from 'shared/util';
+import { Model } from "./model";
 
 
-const config = {
-	apiKey: typeof firebaseApiKey !== 'undefined' ? firebaseApiKey : "",
+const DEFAULT_CONFIG = {
+	apiKey: firebaseApiKey,
 	authDomain: "stretchteleop.firebaseapp.com",
 	databaseURL: "https://stretchteleop.firebaseio.com",
 	projectId: "stretchteleop",
@@ -25,25 +27,22 @@ function databaseReadyCallback(model: FirebaseModel) {
 	model.logEvent("SessionStarted");
 }
 
-/*
-* Database class for interfacing with the Firebase realtime database
-*/
-class FirebaseModel {
+export class FirebaseModel extends Model {
 	private isAnonymous: boolean;
 	private uid: string;
 	private userEmail: string;
-	private enabled: boolean;
-	private readyCallback: (model: FirebaseModel) => void;
+	protected enabled = true;
+	private readyCallback?: (model: FirebaseModel) => void;
 	private config: FirebaseOptions;
 	private app: FirebaseApp;
 	private database: Database;
 	private auth: any;
 
-	constructor(config: FirebaseOptions, readyCallback: (model: FirebaseModel) => void) {
+	constructor(config?: FirebaseOptions, readyCallback?: (model: FirebaseModel) => void) {
+		super();
 		this.isAnonymous = false;
 		this.uid = "";
 		this.userEmail = "";
-		this.enabled = true;
 
 		/*
 		* If somethings need to be initialized only after the database connection 
@@ -51,12 +50,14 @@ class FirebaseModel {
 		* set to the initialization function. If it is not null, it will be called
 		* when successful sign in happens.
 		*/
-		this.readyCallback = readyCallback.bind(this);
+		if (readyCallback != null) {
+			this.readyCallback = readyCallback.bind(this);
+		}
 
 		/* 
 		* Firebase configuration information obtained from the Firebase console
 		*/
-		this.config = config;
+		this.config = config ? config : DEFAULT_CONFIG;
 
 		this.app = initializeApp(this.config);
 		this.database = getDatabase(this.app);
@@ -82,14 +83,14 @@ class FirebaseModel {
 		}
 	}
 
-	handleError(error: FirebaseError) {
+	private handleError(error: FirebaseError) {
 		const errorCode = error.code;
 		const errorMessage = error.message;
 		console.error("firebaseError: " + errorCode + ": " + errorMessage);
 		console.trace();
 	}
 
-	handleAuthStateChange(user: User | null) {
+	private handleAuthStateChange(user: User | null) {
 		if (user) {
 			this.isAnonymous = user.isAnonymous;
 			this.uid = user.uid;
@@ -195,11 +196,4 @@ class FirebaseModel {
 		}
 	}
 
-	get disabled() {
-		return this.enabled;
-	}
-
-	set disabled(value) {
-		this.enabled = value;
-	}
 }

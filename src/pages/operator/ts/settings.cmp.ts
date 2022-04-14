@@ -1,4 +1,4 @@
-import {BaseComponent, Component} from "../../../shared/base.cmp"
+import {BaseComponent, Component} from "shared/base.cmp"
 import {ManipulationSettings} from "./manipulationsettings.cmp";
 import {NavigationSettings} from "./navigationsettings.cmp";
 import {Modal} from "bootstrap";
