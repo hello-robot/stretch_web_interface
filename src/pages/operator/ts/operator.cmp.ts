@@ -152,9 +152,18 @@ export class OperatorComponent extends PageComponent {
 
     constructor() {
         super(template);
-        this.model = new LocalStorageModel()
         this.settingsPane = this.refs.get("settings") as SettingsModal
-        this.settingsPane.configureInputs(this.model.getSettings())
+
+        // Firebase Code
+        this.model = new FirebaseModel(undefined, (model) => {
+            console.log(model.getSettings())
+            this.settingsPane.configureInputs(model.getSettings())
+        })
+
+        // Local Storage Code
+        // this.model = new LocalStorageModel();
+        // this.settingsPane.configureInputs(this.model.getSettings())
+
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
         this.addEventListener("posecreated", event => {

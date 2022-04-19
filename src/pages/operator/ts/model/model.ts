@@ -1,5 +1,5 @@
 import { Pose } from "shared/util"
-export const DEFAULTS = {
+export const DEFAULTS: Settings = {
     "pose": {},
     "setting": {
         "armReachVisualization": false,
@@ -19,27 +19,29 @@ export const DEFAULTS = {
             "startStopMode": "click-click",
         },
     },
-    "settingsProfiles": [],
+    "settingsProfiles": {},
 
     // Set a flag so that we know whether a model was initialized from defaults
     "reserved": {
         "initialized": true
     }
 }
-
 export type SettingEntry = boolean | number | string;
 export interface Settings {
-    [key: string]: SettingEntry | { [key: string]: SettingEntry };
+    "pose": { [key: string]: Pose};
+    "setting": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
+    "settingsProfiles": { [key: string]: { [key: string]: SettingEntry | { [key: string]: SettingEntry } } };
+    "reserved": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
 }
 
 export abstract class Model {
     protected enabled: boolean = true;
 
-    // NOTE: Any functions that don't return void have return promises because of firebase
+    abstract addPose(name: string, pose: Pose): void;
 
-    abstract getPose(id: string): Promise<Pose | undefined>;
+    abstract getPose(id: string): Pose | undefined;
 
-    abstract getPoses(): Promise<Pose[]>;
+    abstract getPoses(): Pose[];
     
     abstract removePose(id: string): void;
     
@@ -47,13 +49,13 @@ export abstract class Model {
 
     abstract loadSettingProfile(profileName: string): void;
 
-    abstract deleteSettingProfile(profileName: string): Promise<boolean>;
+    abstract deleteSettingProfile(profileName: string): boolean;
 
     abstract saveSettingProfile(profileName: string): void;
 
-    abstract getSetting(key: string, namespace?: string): Promise<SettingEntry>;
+    abstract getSetting(key: string, namespace?: string): SettingEntry;
 
-    abstract getSettings(): Promise<Settings>;
+    abstract getSettings(): Settings;
 
     abstract reset(): void
 

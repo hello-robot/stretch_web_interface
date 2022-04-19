@@ -13,7 +13,7 @@ node_modules
 .vscode/
 
 # Environment variables
-src/pages/operator/ts/model/database.config.ts
+src/pages/operator/ts/model/firebase.config.ts
 
 pnpm-lock.yaml
 dist

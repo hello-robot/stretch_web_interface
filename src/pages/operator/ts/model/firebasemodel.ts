@@ -5,68 +5,43 @@ import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, Google
 
 const GAuthProvider = new GoogleAuthProvider();
 
-import { firebaseApiKey } from "./database.config";
-// import { Pose } from 'shared/util';
+import { CONFIG } from "./firebase.config";
 import { Pose } from 'shared/util';
-import { Model, SettingEntry, Settings } from "./model";
-
-
-const DEFAULT_CONFIG = {
-	apiKey: firebaseApiKey,
-	authDomain: "stretchteleop.firebaseapp.com",
-	databaseURL: "https://stretchteleop.firebaseio.com",
-	projectId: "stretchteleop",
-	storageBucket: "stretchteleop.appspot.com",
-	messagingSenderId: "410461558772",
-	appId: "1:410461558772:web:e0bb0518c01269b1eacba1"
-};
-
-function databaseReadyCallback(model: FirebaseModel) {
-	console.log("Ready to log data on the database.");
-
-	model.logEvent("SessionStarted");
-}
+import { Model, SettingEntry, Settings, DEFAULTS } from "./model";
 
 export class FirebaseModel extends Model {
 	private isAnonymous: boolean;
 	private uid: string;
 	private userEmail: string;
 	protected enabled = true;
-	private readyCallback?: (model: FirebaseModel) => void;
+	private readyCallback: (model: FirebaseModel) => void;
 	private config: FirebaseOptions;
 	private app: FirebaseApp;
 	private database: Database;
 	private auth: any;
 
-	constructor(config?: FirebaseOptions, readyCallback?: (model: FirebaseModel) => void) {
+	private localSettings?: Settings
+
+	constructor(config = CONFIG, readyCallback = (model: FirebaseModel) => {}) {
 		super();
 		this.isAnonymous = false;
 		this.uid = "";
 		this.userEmail = "";
 
-		/*
-		* If somethings need to be initialized only after the database connection 
-		* has been established, the Database.readyCallback static variable should be
-		* set to the initialization function. If it is not null, it will be called
-		* when successful sign in happens.
-		*/
-		if (readyCallback != null) {
-			this.readyCallback = readyCallback.bind(this);
-		}
+		this.readyCallback = readyCallback.bind(this);
 
-		/* 
-		* Firebase configuration information obtained from the Firebase console
-		*/
-		this.config = config ? config : DEFAULT_CONFIG;
+		this.config = config;
 
 		this.app = initializeApp(this.config);
 		this.database = getDatabase(this.app);
 		this.auth = getAuth(this.app);
 		onAuthStateChanged(this.auth, (user) => this.handleAuthStateChange(user));
+
+		this.signInAnonymous(); // the user can manually sign in with google later
 	}
 
-	signInAnonymously() {
-		if (this.uid == null && this.userEmail == null) {
+	signInAnonymous() {
+		if (!(this.uid && this.userEmail) ) {
 			signInAnonymously(this.auth).catch(this.handleError);
 		}
 	}
@@ -124,9 +99,13 @@ export class FirebaseModel extends Model {
 				}
 			}
 
-			if (this.readyCallback != null || this.readyCallback != undefined)
+			this.getSettingsFirebase().then(async (settings) => {
+				this.localSettings = settings;
 				this.readyCallback(this);
-
+			}).catch(() => {
+				this.reset();
+				this.readyCallback(this);
+			})
 		} else {
 			console.log("User is signed out.");
 		}
@@ -164,140 +143,109 @@ export class FirebaseModel extends Model {
 		if (!this.enabled) {
 			return
 		}
-		let updates: any = {};
-		updates['/users/' + this.uid + '/poses/' + id] = pose;
-		return update(ref(this.database), updates);
+		this.localSettings!.pose[id] = pose;
+		return this.writeSettings(this.localSettings!)
 	}
 
-	async getPose(id: string): Promise<Pose | undefined> {
-		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/poses'))
-
-		if (snapshot.exists()) {
-			const poses = snapshot.val() as { [key: string]: Pose };
-			if (id in poses) {
-				return poses[id];
-			} else {
-				return
-			}
-		} else {
-			throw "No data available";
-		}
+	getPose(id: string): Pose | undefined {
+		return this.localSettings!.pose[id];
 	}
 
-	async getPoses(): Promise<Pose[]> {
+	getPoses(): Pose[] {
 		if (!this.enabled) {
 			return []
 		}
 
-		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/poses'))
 
-		if (snapshot.exists()) {
-			const poses = snapshot.val() as { [key: string]: Pose };
-			return Object.keys(poses)
-				.map(function (key) {
-					return poses[key];
-				});
-		} else {
-			throw "No data available";
-		}
+		const poses = this.localSettings!.pose
+		return Object.keys(poses)
+			.map(function (key) {
+				return poses[key];
+			});
 	}
 
 	removePose(id: string) {
 		if (!this.enabled) {
 			return
 		}
-		let updates: any = {};
-		updates['/users/' + (this.uid) + '/poses/' + (id)] = null;
-		return update(ref(this.database), updates);
+		delete this.localSettings!.pose[id]
+		return this.writeSettings(this.localSettings!);
 	}
 
-	async setSetting(key: string, value: SettingEntry, namespace?: string) {
+	setSetting(key: string, value: SettingEntry, namespace?: string) {
 		if (!this.enabled) {
 			return
 		}
 
-		let updates: any = {};
-		if (namespace == undefined) {
-			updates['/users/' + (this.uid) + '/settings/' + (key)] = value;
+		if (namespace == '') {
+			this.localSettings!.setting[key] = value;
 		} else {
-			updates['/users/' + (this.uid) + '/settings/' + (namespace) + '/' + (key)] = value;
+			if (this.localSettings!.setting[namespace!]) {
+				(this.localSettings!.setting[namespace!] as { [key: string]: SettingEntry })[key] = value;
+			} else {
+				this.localSettings!.setting[namespace!] = {key: value}
+			}
 		}
 
-		return update(ref(this.database), updates);
+		return this.writeSettings(this.localSettings!);
 	}
 
-	async loadSettingProfile(profileName: string): Promise<void> {
+	loadSettingProfile(profileName: string) {
 		if (!this.enabled) {
 			return
 		}
 
-		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/settingProfiles/' + (profileName)))
-
-		if (snapshot.exists()) {
-			const settings = snapshot.val() as Settings;
-			let updates: any = {};
-			updates['/users/' + (this.uid) + '/settings'] = settings;
-
-			return update(ref(this.database), updates);
-		} else {
-			throw "No data available";
-		}
+		this.localSettings!.setting = { ...this.localSettings!.settingsProfiles[profileName] }
+		return this.writeSettings(this.localSettings!)
 	}
 
-	async deleteSettingProfile(profileName: string): Promise<boolean> {
-		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/settingProfiles/' + (profileName)));
+	deleteSettingProfile(profileName: string): boolean {
+		if (this.localSettings!.settingsProfiles[profileName]) {
+			delete this.localSettings!.settingsProfiles[profileName];
 
-		if (snapshot.exists()) {
-			const updates: any = {};
-			updates['/users/' + (this.uid) + '/settingProfiles/' + (profileName)] = null;
-
-			await update(ref(this.database), updates)
-			return true;
+			this.writeSettings(this.localSettings!)
+			return true
 		} else {
 			return false
 		}
 	}
 
-	async saveSettingProfile(profileName: string): Promise<void> {
+	async saveSettingProfile(profileName: string) {
 		if (!this.enabled) {
 			return
 		}
 
-		const settings = await this.getSettings();
-
-		let updates: any = {};
-		updates['/users/' + (this.uid) + '/settingProfiles/' + (profileName)] = settings;
-
-		return update(ref(this.database), updates);
+		this.localSettings!.settingsProfiles[profileName] = { ...this.localSettings!.setting }
+		return this.writeSettings(this.localSettings!)
 	}
 
-	async getSetting(key: string, namespace?: string): Promise<SettingEntry> {
+	getSetting(key: string, namespace?: string): SettingEntry {
 		if (!this.enabled) {
 			return false
 		}
 
-		const settings = await this.getSettings();
+		const settings = this.localSettings!;
 
 		if (namespace == undefined) {
-			if (key in settings) {
-				return settings[key] as SettingEntry;
+			if (key in settings.setting) {
+				return settings.setting[key] as SettingEntry;
 			} else {
 				throw "Invalid key";
 			}
 		} else {
-			if (key in (settings[namespace] as { [key: string]: SettingEntry })) {
-				return (settings[namespace] as { [key: string]: SettingEntry })[key];
+			if (key in (settings.setting[namespace] as { [key: string]: SettingEntry })) {
+				return (settings.setting[namespace] as { [key: string]: SettingEntry })[key];
 			} else {
 				throw "Invalid key or namespace";
 			}
 		}
 	}
 
-	async getSettings(): Promise<Settings> {
-		if (!this.enabled) {
-			return {}
-		}
+	getSettings(): Settings {
+		return this.localSettings!
+	}
 
+	async getSettingsFirebase(): Promise<Settings> {
 		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/settings'))
 
 		if (snapshot.exists()) {
@@ -311,8 +259,19 @@ export class FirebaseModel extends Model {
 		if (!this.enabled) {
 			return
 		}
+
+		return this.writeSettings(DEFAULTS);
+	}
+
+	private async writeSettings(settings: Settings) {
+		if (!this.enabled) {
+			return
+		}
+
+		this.localSettings = settings;
+
 		let updates: any = {};
-		updates['/users/' + (this.uid)] = null;
+		updates['/users/' + (this.uid) + '/settings'] = settings;
 		return update(ref(this.database), updates);
 	}
 }
