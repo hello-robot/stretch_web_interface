@@ -55,7 +55,7 @@ export abstract class Model {
 
     abstract getSetting(key: string, namespace?: string): SettingEntry;
 
-    abstract getSettings(): Settings;
+    abstract getSettings(): { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
 
     abstract reset(): void
 
@@ -65,5 +65,14 @@ export abstract class Model {
 
     set disabled(value: boolean) {
         this.enabled = !value;
+    }
+}
+
+export function parseFromString(asString: string): string | number | boolean {
+    try {
+        // Will catch numbers, booleans (and objects, though we won't pass them)
+        return JSON.parse(asString)
+    } catch (e) {
+        return asString
     }
 }

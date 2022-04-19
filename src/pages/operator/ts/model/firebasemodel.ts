@@ -7,7 +7,7 @@ const GAuthProvider = new GoogleAuthProvider();
 
 import { CONFIG } from "./firebase.config";
 import { Pose } from 'shared/util';
-import { Model, SettingEntry, Settings, DEFAULTS } from "./model";
+import { Model, SettingEntry, Settings, DEFAULTS, parseFromString } from "./model";
 
 export class FirebaseModel extends Model {
 	private isAnonymous: boolean;
@@ -22,7 +22,7 @@ export class FirebaseModel extends Model {
 
 	private localSettings?: Settings
 
-	constructor(config = CONFIG, readyCallback = (model: FirebaseModel) => {}) {
+	constructor(config = CONFIG, readyCallback = (model: FirebaseModel) => { }) {
 		super();
 		this.isAnonymous = false;
 		this.uid = "";
@@ -41,7 +41,7 @@ export class FirebaseModel extends Model {
 	}
 
 	signInAnonymous() {
-		if (!(this.uid && this.userEmail) ) {
+		if (!(this.uid && this.userEmail)) {
 			signInAnonymously(this.auth).catch(this.handleError);
 		}
 	}
@@ -102,7 +102,8 @@ export class FirebaseModel extends Model {
 			this.getSettingsFirebase().then(async (settings) => {
 				this.localSettings = settings;
 				this.readyCallback(this);
-			}).catch(() => {
+			}).catch((error) => {
+				console.warn("Detected that FirebaseModel isn't initialized. Reinitializing.");
 				this.reset();
 				this.readyCallback(this);
 			})
@@ -158,10 +159,12 @@ export class FirebaseModel extends Model {
 
 
 		const poses = this.localSettings!.pose
-		return Object.keys(poses)
-			.map(function (key) {
-				return poses[key];
-			});
+		if (poses)
+			return Object.keys(poses)
+				.map(function (key) {
+					return poses[key];
+				});
+		return []
 	}
 
 	removePose(id: string) {
@@ -183,7 +186,7 @@ export class FirebaseModel extends Model {
 			if (this.localSettings!.setting[namespace!]) {
 				(this.localSettings!.setting[namespace!] as { [key: string]: SettingEntry })[key] = value;
 			} else {
-				this.localSettings!.setting[namespace!] = {key: value}
+				this.localSettings!.setting[namespace!] = { key: value }
 			}
 		}
 
@@ -241,15 +244,15 @@ export class FirebaseModel extends Model {
 		}
 	}
 
-	getSettings(): Settings {
-		return this.localSettings!
+	getSettings() {
+		return JSON.parse(JSON.stringify(this.localSettings!.setting));
 	}
 
-	async getSettingsFirebase(): Promise<Settings> {
+	private async getSettingsFirebase() {
 		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/settings'))
 
 		if (snapshot.exists()) {
-			return snapshot.val() as Settings;
+			return snapshot.val();
 		} else {
 			throw "No data available";
 		}

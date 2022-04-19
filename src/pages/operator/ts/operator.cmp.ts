@@ -153,16 +153,25 @@ export class OperatorComponent extends PageComponent {
     constructor() {
         super(template);
         this.settingsPane = this.refs.get("settings") as SettingsModal
+        let poseLibrary = this.refs.get("pose-library")!
+        poseLibrary.getCurrentPose = async () => {
+            return await this.connection.makeRequest("jointState")
+        }
 
         // Firebase Code
         this.model = new FirebaseModel(undefined, (model) => {
-            console.log(model.getSettings())
+            // TODO (kavidey): this function can get called twice if the user authenticates with google
+            // make sure that each of these functions reacts okay to that
             this.settingsPane.configureInputs(model.getSettings())
+            this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
+            this.configureVelocityControls()
         })
 
         // Local Storage Code
         // this.model = new LocalStorageModel();
         // this.settingsPane.configureInputs(this.model.getSettings())
+        // this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
+        // this.configureVelocityControls()
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -282,13 +291,7 @@ export class OperatorComponent extends PageComponent {
 
         })
 
-        let poseLibrary = this.refs.get("pose-library")!
-        poseLibrary.getCurrentPose = async () => {
-            return await this.connection.makeRequest("jointState")
-        }
-        this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
-
-        this.configureVelocityControls()
+        
         // this.refs.get("slider-step-up").addEventListener("click", () => {
         //     this.shadowRoot.getElementById("slider").value =
         //         parseFloat(this.shadowRoot.getElementById("slider").value) +
@@ -320,7 +323,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    configureVelocityControls(namespace) {
+    configureVelocityControls(namespace?: string) {
         const displayMode = this.model.getSetting("displayMode", "nav")
         let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
         if (displayMode == "predictive-display" && mode == "nav") {

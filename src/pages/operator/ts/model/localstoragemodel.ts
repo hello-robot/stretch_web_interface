@@ -1,5 +1,5 @@
 import { Pose } from "shared/util";
-import { Model, DEFAULTS, Settings } from "./model";
+import { Model, DEFAULTS, Settings, parseFromString } from "./model";
 
 
 export class LocalStorageModel extends Model {
@@ -66,7 +66,7 @@ export class LocalStorageModel extends Model {
         return parseFromString(localStorage.getItem(`${keyPath}.${key}`)!);
     }
 
-    getSettings(): Settings {
+    getSettings() {
         let settings = this.getAllForKeyPrefix("setting");
         // Try to restore type information for stored numbers, bools
         settings = settings.map(([key, value]) => [key, parseFromString(value) as string]);
@@ -126,13 +126,4 @@ export function unflatten(data: any): any {
         cur[prop] = data[p];
     }
     return resultholder[""] || resultholder;
-}
-
-export function parseFromString(asString: string): string | number | boolean {
-    try {
-        // Will catch numbers, booleans (and objects, though we won't pass them)
-        return JSON.parse(asString)
-    } catch (e) {
-        return asString
-    }
 }
