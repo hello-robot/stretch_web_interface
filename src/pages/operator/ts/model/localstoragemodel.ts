@@ -12,6 +12,10 @@ export class LocalStorageModel extends Model {
         }
     }
 
+    authenticate(): void {
+        
+    }
+
     addPose(name: string, pose: Pose) {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose));
     }

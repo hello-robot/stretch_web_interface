@@ -40,14 +40,14 @@ export class FirebaseModel extends Model {
 		this.signInAnonymous(); // the user can manually sign in with google later
 	}
 
-	signInAnonymous() {
+	private signInAnonymous() {
 		if (!(this.uid && this.userEmail)) {
 			signInAnonymously(this.auth).catch(this.handleError);
 		}
 	}
 
-	signInWithGoogle() {
-		if (this.userEmail == null) {
+	private signInWithGoogle() {
+		if (this.userEmail == "") {
 			signInWithPopup(this.auth, GAuthProvider)
 				.then((result) => {
 					const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -56,6 +56,10 @@ export class FirebaseModel extends Model {
 				})
 				.catch(this.handleError);
 		}
+	}
+
+	authenticate() {
+		this.signInWithGoogle();
 	}
 
 	private handleError(error: FirebaseError) {

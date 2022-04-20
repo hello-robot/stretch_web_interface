@@ -37,6 +37,8 @@ export interface Settings {
 export abstract class Model {
     protected enabled: boolean = true;
 
+    abstract authenticate(): void;
+
     abstract addPose(name: string, pose: Pose): void;
 
     abstract getPose(id: string): Pose | undefined;

@@ -152,6 +152,13 @@ const template = `
                         </button>
                     </div>
                 </div>
+
+                <hr>
+                <div class="d-flex flex-fill justify-content-left">
+                    <button type="button" class="btn btn-primary btn-sm" data-ref="btn-authenticate">
+                        Authenticate
+                    </button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -175,6 +182,7 @@ export class SettingsModal extends BaseComponent {
     profileSelect: HTMLSelectElement
     deleteProfileButton: HTMLElement
     removeAllProfilesButton: HTMLElement
+    authButton: HTMLElement
 
     constructor() {
         super(template, false);
@@ -188,6 +196,7 @@ export class SettingsModal extends BaseComponent {
         this.profileSelect = this.refs.get("select-profile") as HTMLSelectElement
         this.deleteProfileButton = this.refs.get("delete-profile")!
         this.removeAllProfilesButton = this.refs.get("remove-all-profiles")!
+        this.authButton = this.refs.get("btn-authenticate")!
         this.hideContinuousSettings()
 
         // Tell anyone who cares that the user has changed a setting
@@ -284,6 +293,12 @@ export class SettingsModal extends BaseComponent {
             delete values.manip
         }
         configureNamedInputs(values, this.modalContainer)
+    }
+
+    configureAuthCallback(callback: () => void) {
+        this.authButton.addEventListener("click", () => {
+            callback()
+        });
     }
 
     showModal() {

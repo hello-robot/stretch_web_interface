@@ -166,6 +166,9 @@ export class OperatorComponent extends PageComponent {
             this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
             this.configureVelocityControls()
         })
+        this.settingsPane.configureAuthCallback(() => {
+            this.model.authenticate();
+        })
 
         // Local Storage Code
         // this.model = new LocalStorageModel();
