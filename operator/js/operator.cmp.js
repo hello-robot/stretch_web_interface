@@ -45,7 +45,7 @@ const template = `
         <input type="radio" name="velocity" id="speed-5" class="btn-check" value="4" autocomplete="off">
         <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
     </div>
-    <div id="velocity-slider" data-ref="velocity-slider">
+    <div hidden id="velocity-slider" data-ref="velocity-slider">
         <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
         <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.125" min="0.025" max="0.2" step=0.025>
         <!-- <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
@@ -187,6 +187,18 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("velocity-toggle").querySelectorAll("input[type=radio]").forEach(option => {
             option.addEventListener("click", () => {
                 this.dispatchCommand({type:"velocity-toggle", mode:option.value})
+
+                let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
+                let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
+                this.dispatchEvent(new CustomEvent("settingchanged", {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        key: "velocity",
+                        value: option.value,
+                        namespace: namespace
+                    }
+                }))
             })
         })
         this.connection.availableRobots()
@@ -374,6 +386,8 @@ export class OperatorComponent extends PageComponent {
                 this.controls["gripper"].removeRemoteStream()
             }
             this.robot.lookAtBase()
+            let velocity = this.model.getSetting("velocity", "navsetting")
+            this.refs.get("velocity-toggle").querySelector(`input[value='${velocity}']`).checked = true
         } else if (modeId === 'manip') {
             this.robot.resetCameraView();
             if (!this.refs.get("video-control-container").contains(this.controls["gripper"])) {
@@ -381,6 +395,8 @@ export class OperatorComponent extends PageComponent {
                 this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
             }
             this.robot.lookAtArm()
+            let velocity = this.model.getSetting("velocity", "manipsetting")
+            this.refs.get("velocity-toggle").querySelector(`input[value='${velocity}']`).checked = true
         } else if (modeId === 'clickNav') {
             this.robot.rotateCameraView();
             if (this.refs.get("video-control-container").contains(this.controls["gripper"])) {

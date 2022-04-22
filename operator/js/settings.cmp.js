@@ -63,7 +63,7 @@ const template = `
                     </div>
                 </div>
                 
-                <fieldset class="row mb-3" data-ref="settings-vmode">
+                <fieldset hidden class="row mb-3" data-ref="settings-vmode">
                    <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
                     <div class="col-sm-10">
                         <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">

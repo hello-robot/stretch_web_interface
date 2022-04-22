@@ -46,6 +46,8 @@ export class ManipulationSettings extends BaseComponent {
     configureInputs(values) {
         for (let [key, value] of values) {
             let inputForSetting = this.manipTabContainer.querySelector(`input[name='${key}']`)
+            if (!inputForSetting) continue;
+            
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null
             } else if (inputForSetting.type === "radio") {

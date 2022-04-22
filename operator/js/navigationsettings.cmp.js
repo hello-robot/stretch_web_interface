@@ -63,6 +63,7 @@ export class NavigationSettings extends BaseComponent {
     configureInputs(values) {
         for (let [key, value] of values) {
             let inputForSetting = this.navTabContainer.querySelector(`input[name='${key}']`)
+            if (!inputForSetting) continue;
 
             if (inputForSetting.type === "checkbox") {
                 inputForSetting.checked = value === "true" ? "true" : null

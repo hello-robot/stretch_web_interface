@@ -13,10 +13,12 @@ const DEFAULTS = {
         "displayMode": "action-overlay",
         "actionMode": "incremental",
         "startStopMode": "click-click",
+        "velocity": 2
     },
     "manipsetting": {
         "actionMode": "incremental",
         "startStopMode": "click-click",
+        "velocity": 2
     },
     // Set a flag so that we know whether a model was initialized from defaults
     "reserved": {
