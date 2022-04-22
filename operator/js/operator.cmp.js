@@ -17,39 +17,39 @@ import { MapInteractive } from "./mapinteractive.cmp.js";
 
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
-<div class="px-2 py-3 d-flex justify-content-left">
-
+<div class="mode-buttons px-3 py-3 d-flex justify-content-left">
     <div class="d-flex flex-fill justify-content-start ">
-    <div class="btn-group" role="group" aria-label="Select mode" id="mode-toggle" data-ref="mode-toggle">
-      <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked disabled> 
-      <label class="btn btn-secondary btn-sm" for="mode-navigation">Navigation</label>
-  
-      <input type="radio" id="mode-manipulation" class="btn-check" name="mode" value="manip" autocomplete="off" disabled> 
-      <label class="btn btn-secondary btn-sm" for="mode-manipulation">Manipulation</label>
+        <div class="btn-group" role="group" aria-label="Select mode" id="mode-toggle" data-ref="mode-toggle">
+            <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked disabled> 
+            <label class="btn btn-secondary btn-sm" for="mode-navigation">Navigation</label>
+      
+            <input type="radio" id="mode-manipulation" class="btn-check" name="mode" value="manip" autocomplete="off" disabled> 
+            <label class="btn btn-secondary btn-sm" for="mode-manipulation">Manipulation</label>
+        </div>
     </div>
-    </div>
-    
     <command-recorder data-ref="recorder"></command-recorder>
+</div>
 
-    <div class="d-flex flex-fill justify-content-end">
-        <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
-            <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
-            <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
-            <input type="radio" name="velocity" id="speed-2" class="btn-check" value="1" autocomplete="off">
-            <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
-            <input type="radio" name="velocity" id="speed-3" class="btn-check" value="2" autocomplete="off" checked>
-            <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
-            <input type="radio" name="velocity" id="speed-4" class="btn-check" value="3" autocomplete="off">
-            <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
-            <input type="radio" name="velocity" id="speed-5" class="btn-check" value="4" autocomplete="off">
-            <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
-        </div>
-        <div id="velocity-slider" data-ref="velocity-slider">
-            <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
-            <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.125" min="0.025" max="0.2" step=0.025>
-            <!-- <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
-            <button class="down-btn" data-ref="slider-step-down">&#8595;</button> -->
-        </div>
+<div class="card mx-auto text-left">
+<div class="card-body">
+<div class="d-flex flex-fill justify-content-end">
+    <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
+        <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
+        <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
+        <input type="radio" name="velocity" id="speed-2" class="btn-check" value="1" autocomplete="off">
+        <label class="btn btn-sm btn-outline-secondary" for="speed-2">Slow</label>
+        <input type="radio" name="velocity" id="speed-3" class="btn-check" value="2" autocomplete="off" checked>
+        <label class="btn btn-sm btn-outline-secondary" for="speed-3">Medium</label>
+        <input type="radio" name="velocity" id="speed-4" class="btn-check" value="3" autocomplete="off">
+        <label class="btn btn-sm btn-outline-secondary" for="speed-4">Fast</label>
+        <input type="radio" name="velocity" id="speed-5" class="btn-check" value="4" autocomplete="off">
+        <label class="btn btn-sm btn-outline-secondary" for="speed-5">Fastest</label>
+    </div>
+    <div id="velocity-slider" data-ref="velocity-slider">
+        <!-- <span id="rangeValue" class="justify-content-end">0.1</span> -->
+        <input id="slider" data-ref="continuous-velocity-input" class="range" type="range" value="0.125" min="0.025" max="0.2" step=0.025>
+        <!-- <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
+        <button class="down-btn" data-ref="slider-step-down">&#8595;</button> -->
     </div>
 </div>
 
@@ -64,15 +64,13 @@ const template = `
     </div>
 </template>
 
-<section class="container-fluid px-sm-2" data-ref="map-interactive"></section>
+<section class="justify-content-left d-flex px-sm-2" data-ref="map-interactive"></section>
 
 <section class="container-fluid px-sm-2">
     <pose-library data-ref="pose-library" disabled></pose-library>
 </section>
-
-<hr />
-
-<div class="container-fluid d-flex flex-row">
+<br/>
+<div class="container-fluid d-flex flex-row card-footer">
     <div class="d-flex justify-content-start">
         <div class="input-group input-group-sm" >
             <select data-ref="select-robot" class="form-select" aria-label="Select robot">
@@ -87,6 +85,8 @@ const template = `
             Settings
         </button>
     </div>
+</div>
+</div>
 </div>
 <settings-modal data-ref="settings"></settings-modal>
 `;

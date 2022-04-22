@@ -3,7 +3,7 @@ export const ALL_JOINTS = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_f
 export const JOINT_LIMITS = {
     "wrist_extension": [0, .51],
     "joint_wrist_yaw": [-1.38, 4.58],
-    "joint_lift": [0, 1.1],
+    "joint_lift": [0.15, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
     "rotate_mobile_base": [-3.14, 3.14]
 }
