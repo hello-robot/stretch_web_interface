@@ -24,6 +24,8 @@
     display: inline-block;
     text-align: center;
     vertical-align: middle;
+    font-size: x-large;
+    padding: 0;
 }
 
 #top {

@@ -75,13 +75,13 @@ robot.connect().then(() => {
         });
         return processedJointPositions
     });
-    connection.registerRequestResponder("inJointLimits", async () => {
-        let processedJointLimits = {};
-        Object.keys(JOINT_LIMITS).forEach((key, i) => {
-            processedJointLimits[key] = inJointLimits(robot.jointState, key)
-        });
-        return processedJointLimits
-    });
+    // connection.registerRequestResponder("inJointLimits", async () => {
+    //     let processedJointLimits = {};
+    //     Object.keys(JOINT_LIMITS).forEach((key, i) => {
+    //         processedJointLimits[key] = inJointLimits(robot.jointState, key)
+    //     });
+    //     return processedJointLimits
+    // });
     connection.registerRequestResponder('mapView', async () => {
         const mapData = await mapROS.getMapB64();
         return {

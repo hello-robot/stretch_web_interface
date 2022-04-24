@@ -3,7 +3,7 @@ import {BaseComponent, Component} from '../../shared/base.cmp.js';
 const template = `
 <link href="/shared/bootstrap.min.css" rel="stylesheet">
 <div id="top" class="control-button">
-    <button  class="btn btn-secondary"></button>
+    <button  class="btn btn-secondary">Up</button>
 </div>
 <div id="right" class="control-button">
     <button  class="btn btn-secondary"></button>
@@ -40,7 +40,7 @@ export class VideoControl extends BaseComponent {
             for (const [name, {action, label, title}] of buttonMappings) {
                 const button = this.shadowRoot.getElementById(name).querySelector("button")
                 button.title = title
-                button.textContent = label
+                button.innerHTML = label
                 button.onclick = action
             }
         } else {

@@ -56,10 +56,10 @@ const template = `
 <section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container"></section>
 <template id="pantilt-extra-controls">
     <div class="d-flex justify-content-around mt-2">
-        <!-- <div class='form-check form-check-inline'>
+        <div class='form-check form-check-inline'>
             <input type='checkbox' class="form-check-input" value='follow' id="follow-check" />
             <label class="form-check-label" for="follow-check">Follow gripper</label>
-        </div> -->
+        </div>
         <button class='btn btn-secondary btn-sm'>Reset view</button>
     </div>
 </template>
@@ -532,23 +532,27 @@ export class OperatorComponent extends PageComponent {
         const overhead = new VideoControl();
         const pantilt = new VideoControl(new Map([["left", {
             title: "look left",
+            label: "&#8592",
             action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
         }], ["right", {
             title: "look right",
+            label: "&#8594",
             action: () => this.robot.incrementalMove("joint_head_pan", -1, this.getIncrementForJoint("joint_head_pan"))
         }],
             ["top", {
                 title: "look up",
+                label: "&#8593",
                 action: () => this.robot.incrementalMove("joint_head_tilt", 1, this.getIncrementForJoint("joint_head_tilt"))
             }],
             ["bottom", {
                 title: "look down",
+                label: "&#8595",
                 action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
             }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
-        // extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
-        //     this.robot.setPanTiltFollowGripper(event.target.checked)
-        // }
+        extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
+            this.robot.setPanTiltFollowGripper(event.target.checked)
+        }
         extraPanTiltButtons.querySelector("button").onclick = () => {
             this.robot.goToPose({joint_head_tilt: 0, joint_head_pan: 0})
         }
@@ -580,30 +584,30 @@ export class OperatorComponent extends PageComponent {
         })
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
-        // this.robot.sensors.listenToKeyChange("lift", "effort", value => {
-        //     ptManipOverlay.updateLiftEffort(value)
-        // })
-
-        // this.robot.sensors.listenToKeyChange("arm", "effort", value => {
-        //     ptManipOverlay.updateExtensionEffort(value)
-        // })
-
-        // this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
-        //     ptManipOverlay.updateGripperEffort(value)
-        // })
-
-        // this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
-        //     ptManipOverlay.updateWrist                           (value)
-        // })
-        this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
-            ptManipOverlay.updateLiftJointLimits(value)
+        this.robot.sensors.listenToKeyChange("lift", "effort", value => {
+            ptManipOverlay.updateLiftEffort(value)
         })
-        this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
-            ptManipOverlay.updateExtensionJointLimits(value)
+
+        this.robot.sensors.listenToKeyChange("arm", "effort", value => {
+            ptManipOverlay.updateExtensionEffort(value)
         })
-        this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
-            ptManipOverlay.updateWristJointLimits(value)
+
+        this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
+            ptManipOverlay.updateGripperEffort(value)
         })
+
+        this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+            ptManipOverlay.updateWrist(value)
+        })
+        // this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+        //     ptManipOverlay.updateLiftJointLimits(value)
+        // })
+        // this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
+        //     ptManipOverlay.updateExtensionJointLimits(value)
+        // })
+        // this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+        //     ptManipOverlay.updateWristJointLimits(value)
+        // })
 
         pantilt.addOverlay(reachOverlayTHREE, "all");
         pantilt.addOverlay(ptNavOverlay, 'nav');
