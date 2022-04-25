@@ -499,7 +499,6 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let redRegion1;
         let nothingRegion1;
 
-        console.log(adjusted_value)
         if (adjusted_value > 0.0) {
             redRegion1 = armUpRegion1;
             nothingRegion1 = armDownRegion1;

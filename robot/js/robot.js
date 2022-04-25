@@ -307,7 +307,7 @@ export class Robot {
         newJointValue = newJointValue + jointValueInc
         let pose = {[jointName]: newJointValue}
         console.log(pose)
-        // return makePoseGoal(pose, this.trajectoryClient)
+        //return makePoseGoal(pose, this.trajectoryClient)
 
         let velocities = [{}]
         velocities[0][jointName] = jointValueInc

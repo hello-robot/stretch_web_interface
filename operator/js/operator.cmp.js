@@ -123,8 +123,8 @@ export class OperatorComponent extends PageComponent {
         "wrist_extension": .04,
         "joint_lift": .04,
         "joint_wrist_yaw": .1,
-        "translate_mobile_base": .2,
-        "rotate_mobile_base": .2
+        "translate_mobile_base": .1,
+        "rotate_mobile_base": .1
     }
 
     SETTING_NAMESPACES = {
@@ -298,7 +298,7 @@ export class OperatorComponent extends PageComponent {
             } else {
                 this.setMode('nav')
                 if (actionMode === "incremental") {
-                    this.robot.setRobotPosMode()
+                    this.robot.setRobotNavMode()
                 } else {
                     this.robot.setRobotNavMode()
                 }
@@ -597,7 +597,7 @@ export class OperatorComponent extends PageComponent {
         })
 
         this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
-            ptManipOverlay.updateWrist(value)
+            ptManipOverlay.updateWristEffort(value)
         })
         // this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
         //     ptManipOverlay.updateLiftJointLimits(value)
@@ -623,6 +623,7 @@ export class OperatorComponent extends PageComponent {
         let gripperOverlay = new GripperOverlay(1);
         gripper.addOverlay(gripperOverlay, 'all');
         this.setMode('nav')
+        this.updateNavDisplay()
 
         var mouseMoveX = 0;
         var mouseMoveY = 0;
@@ -740,10 +741,18 @@ export class OperatorComponent extends PageComponent {
                 let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     let vel = sign * this.getVelocityForJoint(jointName)
-                    if (jointName == "translate_mobile_base") {
-                        this.robot.clickMove(vel, 0);
-                    } else if (jointName == "rotate_mobile_base") {
-                        this.robot.clickMove(0, vel);
+		    if (jointName == "translate_mobile_base") {
+			this.stopCurrentAction()
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+			    this.activeVelocityAction = this.robot.clickMove(vel, 0);
+                        }, 100);
+			setTimeout(() => {this.stopCurrentAction()}, 1000)
+		    } else if (jointName == "rotate_mobile_base") {
+			this.stopCurrentAction()
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+			    this.activeVelocityAction = this.robot.clickMove(0, vel);
+			}, 100);
+		        setTimeout(() => {this.stopCurrentAction()}, 1000)
                     } else {
                         this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                     }
