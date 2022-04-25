@@ -8,7 +8,7 @@ import {
     THREEObject,
     TrajectoryOverlay
 } from "./overlay";
-import {Vector3, Camera, CircleGeometry, MeshBasicMaterial, Quaternion, Euler} from "three";
+import {Vector3, Camera, RingGeometry, MeshBasicMaterial, Quaternion, Euler} from "three";
 import { OutlineEffect, EffectPass } from "postprocessing"
 import { Pose, Vector3 as ROSVector3 } from "roslib";
 
@@ -34,12 +34,14 @@ let reference_to_rotation_offset = global_rotation_point.clone().sub(global_refe
 let rotation_to_target_offset = global_target_point.clone().sub(global_rotation_point);
 
 export class ReachOverlay extends OverlayTHREE {
+    outer_reach = 0.31 + 0.52 // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm) + the 31 cm width of the base
+    inner_reach = 0.28 - 0.21 // The length of the arm when fully contracted +/- the length of the gripper
 
     constructor(camera: Camera) {
         super(camera);
         let reachCircle = new THREEObject(
             'reach_visualization_circle',
-            new CircleGeometry(0.52, 32), // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm)
+            new RingGeometry(this.inner_reach, this.outer_reach, 32), 
             new MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
         )
         this.addItem(reachCircle);
