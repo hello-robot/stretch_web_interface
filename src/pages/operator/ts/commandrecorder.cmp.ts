@@ -1,5 +1,4 @@
 import { BaseComponent, Component } from "shared/base.cmp"
-import { CommandSentEvent } from "shared/commands"
 import { Model } from "./model/model"
 import { cmd } from "shared/commands"
 
@@ -81,7 +80,9 @@ export class CommandRecorder extends BaseComponent {
         this.model = model;
     }
 
-    logCommand(event: CommandSentEvent) {
+    logCommand(event: CustomEvent<cmd>) {
+        console.log(event.detail)
+        console.log(this.model)
         this.model?.logComand(event.detail);
     };
 
@@ -89,13 +90,13 @@ export class CommandRecorder extends BaseComponent {
         if (value === this._recording) return;
         this._recording = value
         if (value) {
-            this.refs.get("start-stop-recording")!.innerText = "Stop"
+            this.refs.get("start-stop-recording")!.innerText = "Stop";
             this.model?.startSession()
-            window.addEventListener("commandsent", this.logCommand);
+            window.addEventListener("commandsent", this.logCommand.bind(this));
         } else {
-            window.removeEventListener('commandsent', this.logCommand);
-            this.model?.stopSession()
-            this.refs.get("start-stop-recording")!.innerText = "Record"
+            window.removeEventListener('commandsent', this.logCommand.bind(this));
+            this.model?.stopSession();
+            this.refs.get("start-stop-recording")!.innerText = "Record";
         }
     }
 

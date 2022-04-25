@@ -1,4 +1,4 @@
-import { Pose } from "shared/util"
+import { NamedPose } from "shared/util"
 import { cmd } from "shared/commands"
 
 export const DEFAULTS: Settings = {
@@ -30,7 +30,7 @@ export const DEFAULTS: Settings = {
 }
 export type SettingEntry = boolean | number | string;
 export interface Settings {
-    "pose": { [key: string]: Pose};
+    "pose": { [key: string]: NamedPose};
     "setting": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
     "settingsProfiles": { [key: string]: { [key: string]: SettingEntry | { [key: string]: SettingEntry } } };
     "reserved": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
@@ -41,9 +41,9 @@ export abstract class Model {
 
     abstract authenticate(): void;
 
-    abstract addPose(name: string, pose: Pose): void;
-    abstract getPose(id: string): Pose | undefined;
-    abstract getPoses(): Pose[];
+    abstract addPose(name: string, pose: NamedPose): void;
+    abstract getPose(id: string): NamedPose | undefined;
+    abstract getPoses(): NamedPose[];
     abstract removePose(id: string): void;
     
     abstract loadSettingProfile(profileName: string): void;

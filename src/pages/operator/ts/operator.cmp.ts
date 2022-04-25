@@ -24,6 +24,7 @@ import { overheadManipCrop, overheadNavCrop } from "shared/video_dimensions";
 import { navModes, ValidJoints, WebRTCMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 import { AvailableRobots } from "shared/socketio";
+import { CommandRecorder } from "./commandrecorder.cmp";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -158,6 +159,8 @@ export class OperatorComponent extends PageComponent {
             return await this.connection.makeRequest("jointState")
         }
 
+        let commandRecorder = this.refs.get("recorder") as CommandRecorder;
+
         // Firebase Code
         this.model = new FirebaseModel(undefined, (model) => {
             // TODO (kavidey): this function can get called twice if the user authenticates with google
@@ -165,6 +168,7 @@ export class OperatorComponent extends PageComponent {
             this.settingsPane.configureInputs(model.getSettings())
             this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
             this.configureVelocityControls()
+            commandRecorder.initializeLogging(this.model);
         })
         this.settingsPane.configureAuthCallback(() => {
             this.model.authenticate();

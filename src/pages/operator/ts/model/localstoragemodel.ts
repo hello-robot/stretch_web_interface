@@ -1,5 +1,5 @@
 import { cmd } from "shared/commands";
-import { Pose } from "shared/util";
+import { NamedPose } from "shared/util";
 import { Model, DEFAULTS, Settings, parseFromString, generateSessionID } from "./model";
 
 
@@ -21,15 +21,15 @@ export class LocalStorageModel extends Model {
         
     }
 
-    addPose(name: string, pose: Pose) {
+    addPose(name: string, pose: NamedPose) {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose));
     }
 
-    getPose(name: string): Pose | undefined {
+    getPose(name: string): NamedPose | undefined {
         return JSON.parse(localStorage.getItem(`pose.${name}`)!);
     }
 
-     getPoses(): Pose[] {
+     getPoses(): NamedPose[] {
         let poses = this.getAllForKeyPrefix("pose");
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose));

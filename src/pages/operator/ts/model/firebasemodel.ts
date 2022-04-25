@@ -1,12 +1,12 @@
 import { FirebaseOptions, FirebaseError } from "firebase/app";
-import { initializeApp, FirebaseApp } from 'firebase/app' // no compat for new SDK
-import { getDatabase, ref, Database, set, child, get, onValue, update, push } from 'firebase/database'
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getDatabase, ref, Database, set, child, get, onValue, update, push } from 'firebase/database';
 import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, GoogleAuthProvider, User, signOut } from "firebase/auth";
 
 const GAuthProvider = new GoogleAuthProvider();
 
 import { CONFIG } from "./firebase.config";
-import { Pose } from 'shared/util';
+import { NamedPose } from 'shared/util';
 import { cmd } from "shared/commands"
 import { Model, SettingEntry, Settings, DEFAULTS, generateSessionID } from "./model";
 
@@ -107,8 +107,9 @@ export class FirebaseModel extends Model {
 				}
 			}
 
-			this.getSettingsFirebase().then(async (settings) => {
-				this.localSettings = settings;
+			this.getUserDataFirebase().then(async (userData) => {
+				this.localSettings = userData.settings;
+				this.sessions = userData.sessions ? userData.sessions : [];
 				this.readyCallback(this);
 			}).catch((error) => {
 				console.warn("Detected that FirebaseModel isn't initialized. Reinitializing.");
@@ -126,23 +127,26 @@ export class FirebaseModel extends Model {
 		this.enabled = false;
 	}
 
-	addPose(id: string, pose: Pose) {
+	addPose(id: string, pose: NamedPose) {
 		if (!this.enabled) {
 			return
 		}
+		if (!("pose" in this.localSettings!))
+			this.localSettings!.pose = {}
+		
 		this.localSettings!.pose[id] = pose;
+
 		return this.writeSettings(this.localSettings!)
 	}
 
-	getPose(id: string): Pose | undefined {
+	getPose(id: string): NamedPose | undefined {
 		return this.localSettings!.pose[id];
 	}
 
-	getPoses(): Pose[] {
+	getPoses(): NamedPose[] {
 		if (!this.enabled) {
 			return []
 		}
-
 
 		const poses = this.localSettings!.pose
 		if (poses)
@@ -234,8 +238,8 @@ export class FirebaseModel extends Model {
 		return JSON.parse(JSON.stringify(this.localSettings!.setting));
 	}
 
-	private async getSettingsFirebase() {
-		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid) + '/settings'))
+	private async getUserDataFirebase() {
+		const snapshot = await get(child(ref(this.database), '/users/' + (this.uid)))
 
 		if (snapshot.exists()) {
 			return snapshot.val();
@@ -265,12 +269,11 @@ export class FirebaseModel extends Model {
 		if (!this.enabled) {
 			return
 		}
-
-		this.sid = "";
-
-		return this.logComand({
+		this.logComand({
 			type: "stopSession",
 		})
+		
+		this.sid = "";
 	}
 
 	async logComand(cmd: cmd) {
@@ -294,11 +297,11 @@ export class FirebaseModel extends Model {
 	}
 
 	async getCommands(sessionId: string): Promise<cmd[]> {
-		if (!this.enabled || this.sid == "") {
+		if (!this.enabled) {
 			return []
 		}
 
-		let snapshot = await get(child(ref(this.database), `sessions/${sessionId}`));
+		let snapshot = await get(child(ref(this.database), `/sessions/${sessionId}`));
 
 		if (snapshot.exists()) {
 			let commands = snapshot.val();

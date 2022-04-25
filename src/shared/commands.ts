@@ -1,9 +1,5 @@
 import { ValidJoints, Pose2D } from "./util";
 
-export interface CommandSentEvent extends Event {
-    bubbles: boolean;
-    detail: cmd;
-}
 export interface cmd {
     type: string
     timestamp?: number
