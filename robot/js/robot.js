@@ -314,7 +314,6 @@ export class Robot {
         let positions = [{}]
         positions[0][jointName] = newJointValue
         return makeVelocityGoal(positions, velocities, this.trajectoryClient)
-
     }
 
     setPanTiltFollowGripper(value) {

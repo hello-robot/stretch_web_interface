@@ -739,7 +739,14 @@ export class OperatorComponent extends PageComponent {
                 // let namespace = this.SETTING_NAMESPACES[jointName]
                 let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
-                    this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                    let vel = sign * this.getVelocityForJoint(jointName)
+                    if (jointName == "translate_mobile_base") {
+                        this.robot.clickMove(vel, 0);
+                    } else if (jointName == "rotate_mobile_base") {
+                        this.robot.clickMove(0, vel);
+                    } else {
+                        this.robot.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                    }
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
