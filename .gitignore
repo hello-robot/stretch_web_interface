@@ -13,4 +13,8 @@ node_modules
 .vscode/
 
 # Environment variables
-shared/database.config.js
+src/pages/operator/ts/model/firebase.config.ts
+
+pnpm-lock.yaml
+dist
+build

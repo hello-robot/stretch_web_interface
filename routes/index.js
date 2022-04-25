@@ -21,19 +21,13 @@ router.post('/login', auth.doLogin);
 router.get('/logout', auth.logout);
 
 // route for robot directory
-router.get('/robot/:file', auth.robot);
-router.get('/robot/js/:file', auth.robot);
-router.get('/robot/css/:file', auth.robot);
+router.get('/robot/*', auth.robot);
 
 // route for operator directory
-router.get('/operator/:file', auth.operator);
-router.get('/operator/icons/:file', auth.operator);
-router.get('/operator/js/:file', auth.operator);
-router.get('/operator/css/:file', auth.operator);
-router.get('/operator/images/:file', auth.operator);
+router.get('/operator/*', auth.operator);
+
 
 // route for shared directory
-router.get('/shared/:file', auth.shared);
-router.get('/shared/assets/web/2x/:file', auth.shared);
+router.get('/shared/*', auth.shared);
 
 module.exports = router;

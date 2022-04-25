@@ -1,9 +1,6 @@
-![](./README/images/banner.png)
-
 # Table of Contents
 
 + [Overview](#over)
-  + [History](#hist)
   + [The Robot and the Operator both use Web Browsers](#browsers)
   + [The Web Server](#server)
 + [Getting Started](#getting_started)
@@ -20,25 +17,38 @@
 
 # Overview
 
-This repository holds code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
+Enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web
+browser on an Android mobile phone, laptop, or desktop. This code is a heavily modified fork of
+the [original interface from Hello Robot](https://github.com/hello-robot/stretch_web_interface).
 
-**WARNING: This prototype code has been useful to the community, but is not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
+* Multiple command modes: incremental and continuous
+* Beam-style click-to-drive
+* Map UI for navigation
+* Supports add-on camera feeds
+* Written in [Typescript](https://www.typescriptlang.org/)
+* Vanilla, component-based code
 
-<a name="hist"/>
-
-## History
-
-When we started [Hello Robot Inc.](https://hello-robot.com) back in 2017, part of our goal was to create a robot that could be intuitively teleoperated from afar. We took an iterative approach, building a series of 7 prototype robots before the Stretch RE1 that we sell today. In conjunction with these prototypes, we developed a series of web interfaces, so that we could control our robots via a web browser and test remote teleoperation. While we eventually deemphasized this aspect of the robot, we thought it could be useful to the community. With this goal in mind, we ported parts of our old web interface code to the Stretch RE1 and made them available in this repository back in June of 2020.
-
-Since then, we've been gratified to learn of others working with this code. For example, [The Human Centered Robotics Lab](https://hcrlab.cs.washington.edu/) at the University Washington has made impressive improvements to the code, which can be found in [their repository](https://github.com/hcrlab/stretch_web_interface). We've also learned that the [The Human Factors and Aging Laboratory](https://hfaging.ahs.illinois.edu/) at the University of Illinois at Urbana-Champaign has explored this interface as part of their impressive research to improve the lives of older adults.
+**WARNING: This prototype code has been useful to the community, but is not well tested. There are also security issues,
+especially if you use the default credentials. Use this code at your own risk.**
 
 <a name="browsers"/>
 
 ## The Robot and the Operator both use Web Browsers
 
-This web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous to the robot and the operator video conferencing with one another, although they communicate via realtime data in addition to audio and video. By using web browsers, the robot and the operator make use of well-tested high-performance implementations of WebRTC. This symmetry also simplifies development, since a developer can use the same browser-based developer tools on both sides of the communication. The robot's browser and the operator's browser first login to the server, which helps connect them and provides them with the interface code.
+This web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in
+a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous
+to the robot and the operator video conferencing with one another, although they communicate via realtime data in
+addition to audio and video. By using web browsers, the robot and the operator make use of well-tested high-performance
+implementations of WebRTC. This symmetry also simplifies development, since a developer can use the same browser-based
+developer tools on both sides of the communication. The robot's browser and the operator's browser first login to the
+server, which helps connect them and provides them with the interface code.
 
-The robot’s browser uses [rosbridge](http://wiki.ros.org/rosbridge_suite) to connect with ROS on the robot. Rosbridge translates [JSON](https://en.wikipedia.org/wiki/JSON) from the robot’s browser into ROS communications and vice versa. The JavaScript code used by the robot’s browser to connect with ROS can be found in [ros_connect.js](https://github.com/hello-robot/stretch_web_interface/blob/master/robot/ros_connect.js) under the [robot directory](https://github.com/hello-robot/stretch_web_interface/tree/master/robot), which holds files made available to the robot's browser. 
+The robot’s browser uses [rosbridge](http://wiki.ros.org/rosbridge_suite) to connect with ROS on the robot. Rosbridge
+translates [JSON](https://en.wikipedia.org/wiki/JSON) from the robot’s browser into ROS communications and vice versa.
+The JavaScript code used by the robot’s browser to connect with ROS can be found
+in [ros_connect.js](https://github.com/hello-robot/stretch_web_interface/blob/master/robot/ros_connect.js) under
+the [robot directory](https://github.com/hello-robot/stretch_web_interface/tree/master/robot), which holds files made
+available to the robot's browser.
 
 With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browers.js](https://github.com/hello-robot/stretch_web_interface/blob/master/start_robot_browser.js) uses puppeteer to launch the robot's browser and login.
 
@@ -159,12 +169,6 @@ Open the browser goto the robot’s IP address. You can use `ifconfig` on the ro
 
 Select "Advanced" and then click on "Proceed to localhost (unsafe)".
 
-<img src="./README/images/operator_browser_1.png" width="200">
-
-<img src="./README/images/operator_browser_2.png" width="200">
-
-<img src="./README/images/operator_browser_3.png" width="200">
-
 Click on "Login" and use the following username and password.
 
 ```
@@ -177,18 +181,12 @@ xXTgfdH8
 
 **WARNING: This is a default operator account provided for simple testing. Since this username and password are public on the Internet, this is not secure. You should only use this behind a firewall during development and testing. Deployment would require new credentials and security measures.**
 
-<img src="./README/images/operator_browser_4.png" width="200">
+You should now see a screen like the following. Click on "no robot connected" and select the robot "r1" to connect to
+it.
 
-<img src="./README/images/operator_browser_5.png" width="200">
-
-You should now see a screen like the following. Click on "no robot connected" and select the robot "r1" to connect to it. 
-
-<img src="./README/images/operator_browser_6.png" width="200">
-<img src="./README/images/operator_browser_7.png" width="200">
-
-You should now see video from the robot on your mobile phone or other device. Click in the designated regions to command the robot to move. You can also click on "Drive", "Arm" down, "Arm" up, "Hand" and "Look" to move different joints on the robot. 
-
-<img src="./README/images/operator_browser_8.png" width="200">
+You should now see video from the robot on your mobile phone or other device. Click in the designated regions to command
+the robot to move. You can also click on "Drive", "Arm" down, "Arm" up, "Hand" and "Look" to move different joints on
+the robot.
 
 <a name="slower"/>
 
@@ -225,8 +223,6 @@ roscd stretch_web_interface/bash_scripts/
 
 Open a Chromium browser on the robot and go to localhost. Select "Advanced" and then click on "Proceed to localhost (unsafe)".
 
-<img src="./README/images/robot_browser_1.png" width="400">
-
 Click on "Login" and use the following username and password.
 
 ```
@@ -239,13 +235,8 @@ NQUeUb98
 
 **WARNING: This is a default robot account provided for simple testing. Since this username and password are public on the Internet, this is not secure. You should only use this behind a firewall during development and testing. Deployment would require new credentials and security measures.**
 
-<img src="./README/images/robot_browser_2.png" width="400">
-
-<img src="./README/images/robot_browser_3.png" width="400">
-
 You should now see video from the robot's camera in the browser window. 
 
-<img src="./README/images/robot_browser_4.png" width="400">
 
 #### Start the Operator's Browser
 
