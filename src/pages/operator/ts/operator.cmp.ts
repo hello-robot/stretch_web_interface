@@ -407,7 +407,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    dispatchCommand(cmd) {
+    dispatchCommand(cmd: cmd) {
         window.dispatchEvent(new CustomEvent("commandsent", { bubbles: false, detail: cmd }))
     }
 

@@ -1,8 +1,11 @@
+import { cmd } from "shared/commands";
 import { Pose } from "shared/util";
-import { Model, DEFAULTS, Settings, parseFromString } from "./model";
+import { Model, DEFAULTS, Settings, parseFromString, generateSessionID } from "./model";
 
 
 export class LocalStorageModel extends Model {
+    sid: string;
+    sessions: string[] = []
 
     constructor() {
         super();
@@ -10,6 +13,8 @@ export class LocalStorageModel extends Model {
             console.warn("Detected that LocalStorageModel isn't initialized. Reinitializing.");
             this.reset();
         }
+
+        this.sid = "";
     }
 
     authenticate(): void {
@@ -111,6 +116,43 @@ export class LocalStorageModel extends Model {
             }
 
         }
+    }
+
+    startSession(sessionId?: string): void {
+        this.sid = sessionId ? sessionId : generateSessionID();
+
+        this.sessions.push(this.sid);
+
+        this.logComand({
+			type: "startSession",
+		});
+    }
+
+    stopSession(): void {
+        this.sid = "";
+
+        this.logComand({
+			type: "stopSession",
+		});
+    }
+
+    logComand(cmd: cmd): void {
+        if (this.sid) {
+            let commands = JSON.parse(localStorage.getItem(`session.${this.sid}`)!);
+            if (!commands) {
+                commands = [];
+            }
+            commands.push(cmd);
+            localStorage.setItem(`session.${this.sid}`, JSON.stringify(commands));
+        }
+    }
+
+    getSessions(): string[] {
+        return this.sessions;
+    }
+
+    async getCommands(sessionId: string): Promise<cmd[]> {
+        return JSON.parse(localStorage.getItem(`session.${sessionId}`)!);
     }
 }
 

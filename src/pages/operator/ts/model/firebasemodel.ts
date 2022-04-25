@@ -1,17 +1,19 @@
 import { FirebaseOptions, FirebaseError } from "firebase/app";
 import { initializeApp, FirebaseApp } from 'firebase/app' // no compat for new SDK
-import { getDatabase, ref, Database, set, child, get, onValue, update } from 'firebase/database'
+import { getDatabase, ref, Database, set, child, get, onValue, update, push } from 'firebase/database'
 import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, GoogleAuthProvider, User, signOut } from "firebase/auth";
 
 const GAuthProvider = new GoogleAuthProvider();
 
 import { CONFIG } from "./firebase.config";
 import { Pose } from 'shared/util';
-import { Model, SettingEntry, Settings, DEFAULTS, parseFromString } from "./model";
+import { cmd } from "shared/commands"
+import { Model, SettingEntry, Settings, DEFAULTS, generateSessionID } from "./model";
 
 export class FirebaseModel extends Model {
 	private isAnonymous: boolean;
 	private uid: string;
+	private sid: string;
 	private userEmail: string;
 	protected enabled = true;
 	private readyCallback: (model: FirebaseModel) => void;
@@ -21,11 +23,13 @@ export class FirebaseModel extends Model {
 	private auth: any;
 
 	private localSettings?: Settings
+	private sessions: string[] = [];
 
 	constructor(config = CONFIG, readyCallback = (model: FirebaseModel) => { }) {
 		super();
 		this.isAnonymous = false;
 		this.uid = "";
+		this.sid = "";
 		this.userEmail = "";
 
 		this.readyCallback = readyCallback.bind(this);
@@ -120,28 +124,6 @@ export class FirebaseModel extends Model {
 		signOut(this.auth).catch(this.handleError);
 		this.uid = "";
 		this.enabled = false;
-	}
-
-	logEvent(eventName: string, eventInfo?: any) {
-		if (!this.enabled) {
-			return
-		}
-		var eventLog = {};
-		if (eventInfo == undefined)
-			eventInfo = "";
-		let dir = '/users/' + (this.uid);
-		let dbRef = ref(this.database, dir);
-		let date = new Date();
-		let timeStamp = date.getTime();
-		eventLog["eventName"] = eventName;
-		eventLog["eventInfo"] = eventInfo;
-		eventLog["date"] = date.toDateString();
-		eventLog["time"] = date.toTimeString();
-		let newEventLog = {};
-		newEventLog[timeStamp] = eventLog;
-		dbRef.update(newEventLog);
-		console.log("Logging event: ------");
-		console.log(newEventLog);
 	}
 
 	addPose(id: string, pose: Pose) {
@@ -257,6 +239,73 @@ export class FirebaseModel extends Model {
 
 		if (snapshot.exists()) {
 			return snapshot.val();
+		} else {
+			throw "No data available";
+		}
+	}
+
+	async startSession(sessionId: string) {
+		if (!this.enabled) {
+			return
+		}
+        this.sid = sessionId ? sessionId : generateSessionID();
+
+        this.sessions.push(this.sid);
+
+		const updates: any = {};
+		updates[`/users/${this.uid}/sessions`] = this.sessions;
+		await update(ref(this.database), updates);
+
+		return this.logComand({
+			type: "startSession",
+		});
+	}
+
+	stopSession() {
+		if (!this.enabled) {
+			return
+		}
+
+		this.sid = "";
+
+		return this.logComand({
+			type: "stopSession",
+		})
+	}
+
+	async logComand(cmd: cmd) {
+		if (!this.enabled || this.sid == "") {
+			return
+		}
+
+		let command = { ...cmd };
+		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
+
+		const commandKey = push(child(ref(this.database), `/sessions/${this.sid}`)).key;
+
+		const updates: any = {};
+		updates[`/sessions/${this.sid}/${commandKey}`] = command;
+
+		return update(ref(this.database), updates);
+	}
+
+	getSessions(): string[] {
+		return this.sessions;
+	}
+
+	async getCommands(sessionId: string): Promise<cmd[]> {
+		if (!this.enabled || this.sid == "") {
+			return []
+		}
+
+		let snapshot = await get(child(ref(this.database), `sessions/${sessionId}`));
+
+		if (snapshot.exists()) {
+			let commands = snapshot.val();
+			return Object.keys(commands)
+				.map(function (key) {
+					return commands[key];
+				});
 		} else {
 			throw "No data available";
 		}

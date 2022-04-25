@@ -1,4 +1,6 @@
 import { Pose } from "shared/util"
+import { cmd } from "shared/commands"
+
 export const DEFAULTS: Settings = {
     "pose": {},
     "setting": {
@@ -40,25 +42,24 @@ export abstract class Model {
     abstract authenticate(): void;
 
     abstract addPose(name: string, pose: Pose): void;
-
     abstract getPose(id: string): Pose | undefined;
-
     abstract getPoses(): Pose[];
-    
     abstract removePose(id: string): void;
     
-    abstract setSetting(key: string, value: SettingEntry, namespace?: string): void;
-
     abstract loadSettingProfile(profileName: string): void;
-
     abstract deleteSettingProfile(profileName: string): boolean;
-
     abstract saveSettingProfile(profileName: string): void;
 
+    abstract setSetting(key: string, value: SettingEntry, namespace?: string): void;
     abstract getSetting(key: string, namespace?: string): SettingEntry;
-
     abstract getSettings(): { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
 
+    abstract startSession(sessionId?: string): void;
+    abstract stopSession(): void;
+    abstract logComand(cmd: cmd): void;
+    abstract getSessions(): string[];
+    abstract getCommands(sessionId: string): Promise<cmd[]>;
+    
     abstract reset(): void
 
     get disabled(): boolean {
@@ -77,4 +78,8 @@ export function parseFromString(asString: string): string | number | boolean {
     } catch (e) {
         return asString
     }
+}
+
+export function generateSessionID(): string {
+    return Date.now().toString() + "-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
