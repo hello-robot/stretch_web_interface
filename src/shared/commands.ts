@@ -2,6 +2,7 @@ import { ValidJoints, Pose2D } from "./util";
 
 export interface cmd {
     type: string
+    timestamp?: number
 }
 
 export interface generalCommand extends cmd {

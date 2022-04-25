@@ -56,6 +56,8 @@ export class MapInteractive extends BaseComponent {
         this.creatingGoal = true;
         this.goalStartPos.x = event.offsetX;
         this.goalStartPos.y = event.offsetY;
+
+        this.navigatingToGoal = { ...this.goalStartPos }; // Clone the start pos goal
     }
 
     updateGoal(event: MouseEvent) {
@@ -95,7 +97,6 @@ export class MapInteractive extends BaseComponent {
 
             console.log(goal);
 
-            this.navigatingToGoal = { ...this.goalStartPos }; // Clone the start pos goal
             this.navGoalCallback(goal);
         }
     }

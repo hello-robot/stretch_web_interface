@@ -1,8 +1,11 @@
-import { Pose } from "shared/util";
-import { Model, DEFAULTS, Settings, parseFromString } from "./model";
+import { cmd } from "shared/commands";
+import { NamedPose } from "shared/util";
+import { Model, DEFAULTS, Settings, parseFromString, generateSessionID } from "./model";
 
 
 export class LocalStorageModel extends Model {
+    sid: string;
+    sessions: string[] = []
 
     constructor() {
         super();
@@ -10,21 +13,23 @@ export class LocalStorageModel extends Model {
             console.warn("Detected that LocalStorageModel isn't initialized. Reinitializing.");
             this.reset();
         }
+
+        this.sid = "";
     }
 
     authenticate(): void {
         
     }
 
-    addPose(name: string, pose: Pose) {
+    addPose(name: string, pose: NamedPose) {
         localStorage.setItem(`pose.${name}`, JSON.stringify(pose));
     }
 
-    getPose(name: string): Pose | undefined {
+    getPose(name: string): NamedPose | undefined {
         return JSON.parse(localStorage.getItem(`pose.${name}`)!);
     }
 
-     getPoses(): Pose[] {
+     getPoses(): NamedPose[] {
         let poses = this.getAllForKeyPrefix("pose");
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose));
@@ -111,6 +116,43 @@ export class LocalStorageModel extends Model {
             }
 
         }
+    }
+
+    startSession(sessionId?: string): void {
+        this.sid = sessionId ? sessionId : generateSessionID();
+
+        this.sessions.push(this.sid);
+
+        this.logComand({
+			type: "startSession",
+		});
+    }
+
+    stopSession(): void {
+        this.sid = "";
+
+        this.logComand({
+			type: "stopSession",
+		});
+    }
+
+    logComand(cmd: cmd): void {
+        if (this.sid) {
+            let commands = JSON.parse(localStorage.getItem(`session.${this.sid}`)!);
+            if (!commands) {
+                commands = [];
+            }
+            commands.push(cmd);
+            localStorage.setItem(`session.${this.sid}`, JSON.stringify(commands));
+        }
+    }
+
+    getSessions(): string[] {
+        return this.sessions;
+    }
+
+    async getCommands(sessionId: string): Promise<cmd[]> {
+        return JSON.parse(localStorage.getItem(`session.${sessionId}`)!);
     }
 }
 

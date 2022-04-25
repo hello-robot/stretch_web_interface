@@ -1,6 +1,6 @@
 import {BaseComponent, Component} from "shared/base.cmp";
 import {Modal} from "bootstrap";
-import { Pose } from "shared/util";
+import { NamedPose, Pose } from "shared/util";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -105,7 +105,7 @@ export class PoseSaveModal extends BaseComponent {
         form.reset()
     }
 
-    currentState() {
+    currentState(): NamedPose {
         const checkedParts = this.modalContainer.querySelectorAll(".pose-part:checked")
         const partsToKeep = new Set(Array(...checkedParts).map(checkbox => checkbox.value))
 
@@ -127,8 +127,8 @@ export class PoseSaveModal extends BaseComponent {
         }
 
         return {
-            name: this.modalContainer.querySelector("#poseName").value,
-            description: this.modalContainer.querySelector("#poseDescription").value,
+            name: this.modalContainer!.querySelector("#poseName")!.value,
+            description: this.modalContainer!.querySelector("#poseDescription")!.value,
             jointState: pose
         }
     }

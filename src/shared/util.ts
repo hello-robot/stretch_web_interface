@@ -85,8 +85,15 @@ export interface SignallingMessage {
 export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_finger_left' | 'wrist_extension' | 'joint_lift' | 'joint_wrist_yaw' | "translate_mobile_base" | "rotate_mobile_base" | 'gripper_aperture' | 'joint_arm_l0' | 'joint_arm_l1' | 'joint_arm_l2' | 'joint_arm_l3';
 
 export type navModes = 'nav' | 'manip' | 'clickNav';
+
 export interface Pose {
-    ValidJoints?: number // key should be validJoints
+    ValidJoints?: number
+}
+
+export interface NamedPose {
+    name: string,
+    description: string,
+    jointState: Pose
 }
 
 export interface JointState {

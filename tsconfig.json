@@ -20,8 +20,9 @@
       "noEmitOnError": true,
       "paths": {
         "shared/*": ["./src/shared/*"]
-      }
+      },
+      "typeRoots": ["src/@types"]
     },
-    "include": ["src", "webpack.config.js"]
+    "include": ["src", "webpack.config.js", "src/@types"]
   }
   
