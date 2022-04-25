@@ -81,8 +81,6 @@ export class CommandRecorder extends BaseComponent {
     }
 
     logCommand(event: CustomEvent<cmd>) {
-        console.log(event.detail)
-        console.log(this.model)
         this.model?.logComand(event.detail);
     };
 
