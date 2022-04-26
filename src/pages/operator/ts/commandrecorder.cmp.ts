@@ -149,6 +149,10 @@ export class CommandRecorder extends BaseComponent {
             this.replayer?.restart();
         }
     }
+
+    completeGoal(goal: cmd) {
+        console.log("goal complete")
+    }
 }
 
 // https://stackoverflow.com/a/61890905/6454085

@@ -1,4 +1,5 @@
-import { Message, Quaternion } from "roslib";
+import ROSLIB, { Message, Quaternion } from "roslib";
+import { cmd } from "./commands";
 
 export type uuid = string;
 // From: https://stackoverflow.com/a/2117523/6454085
@@ -68,9 +69,28 @@ function quaternionToEuler(q: Quaternion, order: string) {
     }
 }
 
-export interface WebRTCMessage {
+export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage;
 
+interface SensorMessage {
+    type: "sensor",
+    subtype: string,
+    value: number | ROSLIB.Transform
 }
+
+export type GoalMessage =  {
+    type: "goal",
+    name: "pose" | "nav",
+    value: cmd
+}
+
+interface StopMessage {
+    type: "stop"
+}
+
+interface AffirmMessage {
+    type: "affirm"
+}
+
 export interface CameraInfo {
     [key: string]: string
 }
@@ -137,11 +157,4 @@ export interface Pose2D {
     x: number,
     y: number,
     theta?: number
-}
-
-export type GoalTypes = "pose" | "velocity" | "nav";
-
-export interface GoalMessage {
-    type: GoalTypes,
-    goal: any
 }

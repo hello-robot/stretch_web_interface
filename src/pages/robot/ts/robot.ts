@@ -1,4 +1,5 @@
 import * as ROSLIB from "roslib";
+import { NavGoalCommand, PoseGoalCommand } from "shared/commands";
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage, NamedPose } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
@@ -515,18 +516,31 @@ export class Robot {
         }
     }
 
-    executeNavGoal(goal: Pose2D) {
-        makeNavGoal({
-            x: goal.x,
-            y: goal.y,
-            theta: goal.theta ? goal.theta : 0
-        }, this.moveBaseClient!, this.goalCallback).send()
+    executeNavGoal(goal: NavGoalCommand) {
+        makeNavGoal(goal, this.moveBaseClient!, this.goalCallback).send()
     }
 
-    executePoseGoal(pose: NamedPose) {
+    executePoseGoal(pose: PoseGoalCommand) {
         this.moveBaseClient?.cancel()
-        makePoseGoal(pose.jointState, this.trajectoryClient!).send();
+        makeNamedPoseGoal(pose, this.trajectoryClient!, this.goalCallback).send();
     }
+}
+
+function makeNamedPoseGoal(pose: PoseGoalCommand, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
+    const goal = makePoseGoal(pose.goal.jointState, trajectoryClient);
+
+    goal.on('result', (result) => {
+
+        if (goalCallback) {
+            goalCallback({
+                type: "goal",
+                name: "pose",
+                value: pose
+            })
+        }
+    });
+
+    return goal
 }
 
 function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
@@ -645,7 +659,7 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
 
 }
 
-function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
+function makeNavGoal(goal: NavGoalCommand, moveBaseClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
     let newGoal = new ROSLIB.Goal({
         actionClient: moveBaseClient,
         goalMessage: {
@@ -659,11 +673,11 @@ function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient:
                 },
                 pose: {
                     position: {
-                        x: pos.x,
-                        y: pos.y,
+                        x: goal.goal.x
+                        y: goal.goal.y
                         z: 0
                     },
-                    orientation: eulerToQuaternion(pos.theta, 0, 0)
+                    orientation: eulerToQuaternion(goal.goal.theta ? goal.goal.theta : 0, 0, 0)
                 }
             }
         }
@@ -679,8 +693,9 @@ function makeNavGoal(pos: {x: number, y: number, theta: number}, moveBaseClient:
 
         if (goalCallback) {
             goalCallback({
-                type: "nav",
-                goal: pos
+                type: "goal",
+                name: "nav",
+                value: goal
             })
         }
     });

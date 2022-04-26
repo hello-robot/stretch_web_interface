@@ -122,7 +122,7 @@ export class OperatorComponent extends PageComponent {
     controlsContainer: HTMLElement
     mapInteractive?: MapInteractive
 
-    commandRecorder: CommandRecorder
+    commandRecorder?: CommandRecorder
 
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS: { [key in ValidJoints]?: number } = {
@@ -452,8 +452,14 @@ export class OperatorComponent extends PageComponent {
                 this.robot!.sensors.set(message.subtype, message.name, message.value)
                 break;
             case "goal":
-                if (message.name == "nav") {
-                    this.mapInteractive?.clearGoal();
+                switch (message.name) {
+                    case "nav":
+                        this.mapInteractive?.clearGoal();
+                        this.commandRecorder?.completeGoal(message.value);
+                        break;
+                    case "pose":
+                        this.commandRecorder?.completeGoal(message.value);
+                        break;
                 }
                 break;
             default:

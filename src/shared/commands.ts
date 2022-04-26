@@ -1,57 +1,61 @@
-import { ValidJoints, Pose2D, NamedPose } from "./util";
+import { ValidJoints, Pose2D, NamedPose, uuid } from "./util";
+import { Crop } from "./video_dimensions";
 
-export interface cmd {
-    type: string
-    timestamp?: number
-}
+export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand;
 
-export interface generalCommand extends cmd {
+interface GeneralCommand {
     type: "command",
+    timestamp?: number,
     subtype: string,
     name: string,
-    modifier: number
+    modifier?: any
 }
-
-export interface incrementalMove extends cmd {
+interface IncrementalMoveCommand {
     type: "incrementalMove",
+    timestamp?: number,
     jointName: ValidJoints,
     increment: number
 }
 
-export interface velocityMove extends cmd {
+interface VelocityMoveCommand {
     type: "velocityMove",
+    timestamp?: number,
     jointName: ValidJoints,
     velocity: number
 }
 
-export interface navGoal extends cmd {
+export interface NavGoalCommand {
     type: "navGoal",
-    goal: Pose2D
+    timestamp?: number,
+    goal: Pose2D,
+    id: uuid,
 }
 
-export interface poseGoal extends cmd {
+export interface PoseGoalCommand {
     type: "poseGoal",
-    goal: NamedPose
+    timestamp?: number,
+    goal: NamedPose,
+    id: uuid
 }
 
-export interface clickMove extends cmd {
+export interface ClickMoveCommand {
     type: "clickMove",
+    timestamp?: number,
     lin_vel: number,
     ang_vel: number
 }
 
-export interface setRobotNavMode extends cmd {
-    type: "setRobotNavMode"
-}
-
-export interface setRobotPosMode extends cmd {
-    type: "setRobotPosMode"
-}
-
-export interface rotateCameraView extends cmd {
-    type: "rotateCameraView"
-}
-
-export interface resetCameraView extends cmd {
-    type: "resetCameraView"
+type ConfigureCommand = {
+    type: "configure",
+    timestamp?: number,
+    subtype: "drive",
+    name: "configure_mode",
+    modifier: "position" | "navigation"
+} | {
+    type: "configure",
+    timestamp?: number,
+    subtype: "gripper" | "head",
+    name: "camera" | "overhead_camera" | "pantilt_camera",
+    crop: Crop,
+    rotate: boolean
 }

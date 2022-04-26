@@ -4,7 +4,7 @@ import { TransformedVideoStream } from "./videostream.cmp";
 import {MapROS} from "./mapros.cmp";
 import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "shared/video_dimensions";
 import {Transform} from "roslib";
-import { ROSJointState, ValidJoints, GoalMessage } from "shared/util";
+import { ROSJointState, ValidJoints, GoalMessage, WebRTCMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 
 let audioInId;
@@ -185,11 +185,7 @@ function forwardJointStates(jointState: ROSJointState) {
 function forwardGoalState(goal: GoalMessage) {
     if (!connection) return;
 
-    connection.sendData({
-        type: 'goal',
-        name: goal.type,
-        value: goal.goal
-    });
+    connection.sendData(goal);
 }
 
 function handleError(error) {
@@ -220,7 +216,7 @@ function handleSessionStart() {
     }
 }
 
-function handleMessage(message) {
+function handleMessage(message: WebRTCMessage) {
     if (!("type" in message)) {
         console.error("Malformed message:", message)
         return
@@ -242,7 +238,7 @@ function handleMessage(message) {
                     return;
                 }
             } else if (message.subtype === "gripper") {
-                gripperStream.crop = message.constructor;
+                gripperStream.crop = message.crop;
                 gripperStream.rotate = message.rotate;
                 return;
             }
@@ -260,10 +256,10 @@ function handleMessage(message) {
             robot.stopExecution()
             break
         case "navGoal":
-            robot.executeNavGoal(message.goal);
+            robot.executeNavGoal(message);
             break;
         case "poseGoal":
-            robot.executePoseGoal(message.goal);
+            robot.executePoseGoal(message);
             break;
         default:
             console.error("Unknown message type received", message.type)
