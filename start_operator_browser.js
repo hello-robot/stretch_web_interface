@@ -6,7 +6,7 @@
 // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md
 
 const puppeteer = require('puppeteer');
-const logId = 'start_robot_browser.js';
+const logId = 'start_operator_browser.js';
 
 let robotHostname = "localhost";
 if (process.argv.length > 2) {

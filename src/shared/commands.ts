@@ -1,4 +1,4 @@
-import { ValidJoints, Pose2D } from "./util";
+import { ValidJoints, Pose2D, NamedPose } from "./util";
 
 export interface cmd {
     type: string
@@ -27,6 +27,11 @@ export interface velocityMove extends cmd {
 export interface navGoal extends cmd {
     type: "navGoal",
     goal: Pose2D
+}
+
+export interface poseGoal extends cmd {
+    type: "poseGoal",
+    goal: NamedPose
 }
 
 export interface clickMove extends cmd {

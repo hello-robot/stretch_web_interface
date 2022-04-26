@@ -262,6 +262,9 @@ function handleMessage(message) {
         case "navGoal":
             robot.executeNavGoal(message.goal);
             break;
+        case "poseGoal":
+            robot.executePoseGoal(message.goal);
+            break;
         default:
             console.error("Unknown message type received", message.type)
     }

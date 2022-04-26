@@ -1,15 +1,11 @@
-import { Pose2D, ValidJoints } from "shared/util";
+import { NamedPose, Pose2D, ValidJoints } from "shared/util";
 import {
     cmd,
     generalCommand,
     incrementalMove,
     velocityMove,
     navGoal,
-    clickMove,
-    setRobotNavMode,
-    setRobotPosMode,
-    rotateCameraView,
-    resetCameraView
+    poseGoal
 } from "shared/commands";
 import { Crop } from "shared/video_dimensions";
 import ROSLIB from "roslib";
@@ -50,9 +46,6 @@ export class RemoteRobot {
             "down": "lookDown",
             "left": "lookLeft",
             "right": "lookRight",
-        },
-        "full": {
-            "pose": "goToPose"
         }
     }
 
@@ -113,12 +106,17 @@ export class RemoteRobot {
     }
 
     setNavGoal(goal: Pose2D) {
-        let cmd: navGoal = {type: "navGoal", goal: goal}
-        this.robotChannel(cmd)
-        this.emitCommandEvent(cmd)
+        let cmd: navGoal = {type: "navGoal", goal: goal};
+    }
+
+    setPoseGoal(goal: NamedPose) {
+        let cmd: poseGoal = {type: "poseGoal", goal: goal};
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
     }
 
     emitCommandEvent(cmd: cmd) {
+        console.log(cmd);
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 

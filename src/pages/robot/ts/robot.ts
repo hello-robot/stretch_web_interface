@@ -1,5 +1,5 @@
 import * as ROSLIB from "roslib";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage } from "shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage, NamedPose } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
@@ -159,11 +159,6 @@ export class Robot {
             },
             "configure_overhead_camera": (configuration: any) => {
                 // TODO (kavidey): Implement or remove this
-            }
-        },
-        "full": {
-            "pose": (pose: Pose) => {
-                this.goToPose(pose);
             }
         }
     }
@@ -436,17 +431,6 @@ export class Robot {
         }
     }
 
-    goToPose(pose: Pose) {
-        this.moveBaseClient?.cancel()
-        for (let key in pose) {
-            if (ALL_JOINTS.indexOf(key) === -1) {
-                console.error(`No such joint '${key}' from pose goal`)
-                return
-            }
-        }
-        makePoseGoal(pose, this.trajectoryClient!).send();
-    }
-
     executeCommand(type: string, name: string, modifier: any[]) {
         console.info(type, name, modifier)
         this.commands[type][name](modifier)
@@ -537,6 +521,11 @@ export class Robot {
             y: goal.y,
             theta: goal.theta ? goal.theta : 0
         }, this.moveBaseClient!, this.goalCallback).send()
+    }
+
+    executePoseGoal(pose: NamedPose) {
+        this.moveBaseClient?.cancel()
+        makePoseGoal(pose.jointState, this.trajectoryClient!).send();
     }
 }
 

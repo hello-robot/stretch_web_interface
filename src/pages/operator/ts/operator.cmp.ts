@@ -25,6 +25,7 @@ import { navModes, ValidJoints, WebRTCMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 import { AvailableRobots } from "shared/socketio";
 import { CommandRecorder } from "./commandrecorder.cmp";
+import { PoseLibrary } from "./poselibrary.cmp";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -186,7 +187,7 @@ export class OperatorComponent extends PageComponent {
         })
         this.addEventListener("poseclicked", event => {
             let pose = event.detail
-            this.robot!.goToPose(pose)
+            this.robot!.setPoseGoal(pose);
         })
         this.connection = new WebRTCConnection("OPERATOR", true, {
             onConnectionEnd: this.disconnectFromRobot.bind(this),
@@ -311,7 +312,8 @@ export class OperatorComponent extends PageComponent {
         // make sure that each of these functions reacts okay to that
         this.settingsPane.configureInputs(model.getSettings())
 
-        let poseLibrary = this.refs.get("pose-library")!
+        let poseLibrary = this.refs.get("pose-library")! as PoseLibrary;
+        poseLibrary.clearPoses();
         model.getPoses().forEach(pose => poseLibrary.addPose(pose))
 
         this.configureVelocityControls()

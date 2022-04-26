@@ -1,4 +1,5 @@
 import {BaseComponent, Component} from "shared/base.cmp"
+import { NamedPose } from "shared/util"
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -46,12 +47,16 @@ export class PoseLibrary extends BaseComponent {
         }
 
         this.refs.get("custom-poses")?.addEventListener("click", event => {
-            let target = event.target
+            let target = event.target!;
             if (target?.type !== "button") return;
             this.dispatchEvent(new CustomEvent("poseclicked", {
                 bubbles: true,
                 composed: true,
-                detail: JSON.parse(target.dataset.pose)
+                detail: {
+                    name: target.dataset.poseName,
+                    description: target.dataset.description,
+                    jointState: JSON.parse(target.dataset.pose)
+                }
             }))
         })
 
@@ -61,8 +66,8 @@ export class PoseLibrary extends BaseComponent {
         }
     }
 
-    addPose(pose) {
-        let newButton = this.refs.get("pose-button-template").content.querySelector("*").cloneNode(true)
+    addPose(pose: NamedPose) {
+        let newButton = this.refs.get("pose-button-template")!.content.querySelector("*").cloneNode(true)
         newButton.innerText = pose.name
         newButton.title = pose.description
         newButton.dataset.poseName = pose.name
@@ -71,14 +76,14 @@ export class PoseLibrary extends BaseComponent {
         if (this.disabled) {
             newButton.disabled = "true"
         }
-        this.refs.get("custom-poses").appendChild(newButton)
+        this.refs.get("custom-poses")!.appendChild(newButton)
 
         let newOption = document.createElement("option")
         newOption.value = pose.name
         newOption.innerText = pose.name
         this.deleteSelect?.appendChild(newOption)
         if (!this.disabled) {
-            this.deleteSelect.disabled = null
+            this.deleteSelect!.disabled = false
         }
     }
 
@@ -89,7 +94,12 @@ export class PoseLibrary extends BaseComponent {
             this.deleteSelect.disabled = true
         }
         this.dispatchEvent(new CustomEvent("posedeleted", { bubbles: true, composed: true, detail: name }))
+    }
 
+    clearPoses() {
+        this.refs.get("custom-poses")!.textContent = '';
+        this.deleteSelect!.replaceChildren(this.deleteSelect!.children[0]);
+        this.deleteSelect!.disabled = false;
     }
 
     get disabled() {
