@@ -84,10 +84,10 @@ if (process.argv.length > 2) {
 	console.log(page);
 
 	console.log(logId + ': type username');
-	await page.type('#inputUsername', 'r1');
+	await page.$eval('#inputUsername', el => el.value = 'r1');
 
 	console.log(logId + ': type password');
-	await page.type('#inputPassword', 'NQUeUb98');
+	await page.$eval('#inputPassword', el => el.value = 'NQUeUb98');
 
 	console.log(logId + ': click submit');
 	await page.click('#submitButton');
