@@ -121,6 +121,8 @@ export class OperatorComponent extends PageComponent {
     controlsContainer: HTMLElement
     mapInteractive?: MapInteractive
 
+    commandRecorder: CommandRecorder
+
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS: { [key in ValidJoints]?: number } = {
         "joint_head_tilt": 0.1,
@@ -314,8 +316,8 @@ export class OperatorComponent extends PageComponent {
 
         this.configureVelocityControls()
 
-        let commandRecorder = this.refs.get("recorder") as CommandRecorder;
-        commandRecorder.initializeLogging(model);
+        this.commandRecorder = this.refs.get("recorder") as CommandRecorder;
+        this.commandRecorder.initializeLogging(model);
     }
 
     updateNavDisplay() {
@@ -812,8 +814,12 @@ export class OperatorComponent extends PageComponent {
                 }
             }
         })
+
         // Decide what to keep on screen based on what's saved in the settings
         this.updateNavDisplay()
+
+        // Pass a reference of robot to the command recorder so it can playback actions
+        this.commandRecorder.setupPlayback(this.robot);
     }
 
     requestChannelReadyCallback() {
