@@ -110,6 +110,7 @@ export class FirebaseModel extends Model {
 			this.getUserDataFirebase().then(async (userData) => {
 				this.localSettings = userData.settings;
 				this.sessions = userData.sessions ? userData.sessions : [];
+				console.error(userData.sessions, this.sessions)
 				this.readyCallback(this);
 			}).catch((error) => {
 				console.warn("Detected that FirebaseModel isn't initialized. Reinitializing.");
@@ -281,13 +282,10 @@ export class FirebaseModel extends Model {
 			return
 		}
 
-		let command = { ...cmd };
-		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
-
 		const commandKey = push(child(ref(this.database), `/sessions/${this.sid}`)).key;
 
 		const updates: any = {};
-		updates[`/sessions/${this.sid}/${commandKey}`] = command;
+		updates[`/sessions/${this.sid}/${commandKey}`] = cmd;
 
 		return update(ref(this.database), updates);
 	}

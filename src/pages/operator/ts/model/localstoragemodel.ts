@@ -5,7 +5,6 @@ import { Model, DEFAULTS, Settings, parseFromString, generateSessionID } from ".
 
 export class LocalStorageModel extends Model {
     sid: string;
-    sessions: string[] = []
 
     constructor() {
         super();
@@ -121,7 +120,9 @@ export class LocalStorageModel extends Model {
     startSession(sessionId?: string): void {
         this.sid = sessionId ? sessionId : generateSessionID();
 
-        this.sessions.push(this.sid);
+        let sessions = this.getSessions();
+        sessions.push(this.sid);
+        localStorage.setItem("sessions", JSON.stringify(sessions))
 
         this.logComand({
 			type: "startSession",
@@ -148,7 +149,8 @@ export class LocalStorageModel extends Model {
     }
 
     getSessions(): string[] {
-        return this.sessions;
+        const parsed = JSON.parse(localStorage.getItem("sessions")!)
+        return parsed ? parsed : [];
     }
 
     async getCommands(sessionId: string): Promise<cmd[]> {
