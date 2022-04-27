@@ -15,12 +15,16 @@ export const DEFAULTS: Settings = {
             "displayMode": "action-overlay",
             "actionMode": "incremental",
             "startStopMode": "press-release",
-            "velocity": 2
+            "velocity": 2,
+            "joint_head_pan": 0.05,
+            "joint_head_tilt": -1.4,
         },
         "manip": {
             "actionMode": "incremental",
             "startStopMode": "press-release",
-            "velocity": 2
+            "velocity": 2,
+            "joint_head_pan": -1.5,
+            "joint_head_tilt": -1.4,
         },
     },
     "settingsProfiles": {},

@@ -415,20 +415,22 @@ export class OperatorComponent extends PageComponent {
         let velocity = this.model.getSetting("velocity", modeId)
         this.refs.get("velocity-toggle").querySelector(`input[value='${velocity}']`).checked = true
 
+        let pan = this.model.getSetting("joint_head_pan", modeId)
+        let tilt = this.model.getSetting("joint_head_tilt", modeId)
+        this.robot?.setPanTilt({"pan": pan, "tilt": tilt})
+
         if (modeId === 'nav') {
             this.robot?.configureOverheadCamera(true, overheadNavCrop)
             if (this.controlsContainer.contains(this.controls["gripper"])) {
                 this.controlsContainer.removeChild(this.controls["gripper"])
                 this.controls["gripper"].removeRemoteStream()
             }
-            this.robot?.lookAtBase()
         } else if (modeId === 'manip') {
             this.robot?.configureOverheadCamera(false, overheadManipCrop)
             if (!this.controlsContainer.contains(this.controls["gripper"])) {
                 this.controlsContainer.appendChild(this.controls["gripper"])
                 this.controls["gripper"].addRemoteStream(this.allRemoteStreams.get("gripper").stream)
             }
-            this.robot?.lookAtArm()
         } else {
             console.error('Invalid mode: ' + modeId);
             console.trace();
@@ -565,31 +567,31 @@ export class OperatorComponent extends PageComponent {
         this.shadowRoot!.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
         const overhead = new VideoControl();
-        const pantilt = new VideoControl(new Map([["left", {
-            title: "look left",
-            label: "&#8592",
-            action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
+        const pantilt = new VideoControl(new Map([
+            ["left", {
+                title: "look left",
+                label: "&#8592",
+                action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
         }], ["right", {
-            title: "look right",
-            label: "&#8594",
-            action: () => this.robot.incrementalMove("joint_head_pan", -1, this.getIncrementForJoint("joint_head_pan"))
-        }],
-        ["top", {
-            title: "look up",
-            label: "&#8593",
+                title: "look right",
+                label: "&#8594",
+                action: () => this.robot.incrementalMove("joint_head_pan", -1, this.getIncrementForJoint("joint_head_pan"))
+        }], ["top", {
+                title: "look up",
+                label: "&#8593",
                 action: () => this.robot.incrementalMove("joint_head_tilt", 1, this.getIncrementForJoint("joint_head_tilt"))
-            }],
-            ["bottom", {
+        }], ["bottom", {
                 title: "look down",
                 label: "&#8595",
-            action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
+                action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
         }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
         extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
             this.robot!.setPanTiltFollowGripper(event.target.checked)
         }
         extraPanTiltButtons.querySelector("button").onclick = () => {
-            this.robot!.goToPose({ joint_head_tilt: 0, joint_head_pan: 0 })
+            let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
+            currMode === "nav" ? this.robot!.lookAtBase() : this.robot!.lookAtArm() 
         }
         pantilt.setExtraContents(extraPanTiltButtons)
         const gripper = new VideoControl();
@@ -846,7 +848,7 @@ export class OperatorComponent extends PageComponent {
 
         // Safety: Set velocity to 0 when mouse leaves clicked region
         this.addEventListener("mousemove", event => {
-            if (this.activeVelocityAction) {
+            if (this.activeVelocityAction && this.activeVelocityRegion) {
                 let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                 let navDisplayMode = this.model.getSetting("displayMode", "nav")
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {

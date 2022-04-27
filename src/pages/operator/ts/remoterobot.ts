@@ -57,6 +57,17 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
     }
 
+    setPanTilt(values: Map) {
+        let cmd: cmd = {
+            type: "command",
+            subtype: "head",
+            name: "set_pan_tilt",
+            modifier: values
+        };
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
+    }
+
     lookAtBase() {
         let cmd: cmd = {
             type: "command",
