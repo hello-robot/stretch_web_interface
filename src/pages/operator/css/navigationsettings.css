@@ -1,0 +1,15 @@
+.btn-group.vscale-toggle label {
+    color: black
+}
+
+fieldset, legend, .tab-legend {
+    padding-top: 20px;
+}
+
+#control-display-mode-toggle {
+    padding-top: 20px;
+}
+
+.mode-toggle .btn-check:checked + .btn-secondary {
+    background-color: var(--bs-cyan) !important;
+}

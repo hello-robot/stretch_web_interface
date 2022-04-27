@@ -1,0 +1,13 @@
+#container-div {
+    position: relative;
+}
+
+#map-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: crosshair;
+}
+
+#map-img {
+}
