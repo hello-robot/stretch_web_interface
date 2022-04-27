@@ -66,7 +66,7 @@ const template = `
                     </div>
                 </div>
                 
-                <fieldset class="row mb-3" data-ref="settings-vmode">
+                <fieldset hidden class="row mb-3" data-ref="settings-vmode">
                    <legend class="col-form-label col-sm-2">Velocity Control Mode</legend>
                     <div class="col-sm-10">
                         <div class="btn-group mode-toggle" role="group" id="vmode-toggle" data-ref="vmode-toggle">
@@ -339,6 +339,7 @@ export class SettingsModal extends BaseComponent {
 export function configureNamedInputs(values: object, container: HTMLElement) {
     for (let [key, value] of Object.entries(values)) {
         let inputForSetting = container.querySelector<HTMLInputElement>(`input[name='${key}']`)
+        if (!inputForSetting) continue;
         if (inputForSetting?.type === "checkbox") {
             inputForSetting.checked = value
         } else if (inputForSetting?.type === "radio") {

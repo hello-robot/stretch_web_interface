@@ -14,11 +14,13 @@ export const DEFAULTS: Settings = {
         "nav": {
             "displayMode": "action-overlay",
             "actionMode": "incremental",
-            "startStopMode": "click-click",
+            "startStopMode": "press-release",
+            "velocity": 2
         },
         "manip": {
             "actionMode": "incremental",
-            "startStopMode": "click-click",
+            "startStopMode": "press-release",
+            "velocity": 2
         },
     },
     "settingsProfiles": {},
@@ -28,6 +30,7 @@ export const DEFAULTS: Settings = {
         "initialized": true
     }
 }
+
 export type SettingEntry = boolean | number | string;
 export interface Settings {
     "pose": { [key: string]: NamedPose};

@@ -1,6 +1,6 @@
 import { FirebaseOptions, FirebaseError } from "firebase/app";
 import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getDatabase, ref, Database, set, child, get, onValue, update, push } from 'firebase/database';
+import { getDatabase, ref, Database, child, get, update, push } from 'firebase/database';
 import { getAuth, onAuthStateChanged, signInWithPopup, signInAnonymously, GoogleAuthProvider, User, signOut } from "firebase/auth";
 
 const GAuthProvider = new GoogleAuthProvider();
@@ -133,7 +133,7 @@ export class FirebaseModel extends Model {
 		}
 		if (!("pose" in this.localSettings!))
 			this.localSettings!.pose = {}
-		
+
 		this.localSettings!.pose[id] = pose;
 
 		return this.writeSettings(this.localSettings!)
@@ -223,13 +223,13 @@ export class FirebaseModel extends Model {
 			if (key in settings.setting) {
 				return settings.setting[key] as SettingEntry;
 			} else {
-				throw "Invalid key";
+				throw `Invalid key: ${key}`;
 			}
 		} else {
 			if (key in (settings.setting[namespace] as { [key: string]: SettingEntry })) {
 				return (settings.setting[namespace] as { [key: string]: SettingEntry })[key];
 			} else {
-				throw "Invalid key or namespace";
+				throw `Invalid key or namespace: {key: ${key}, namespace: ${namespace}}`;
 			}
 		}
 	}
@@ -252,9 +252,9 @@ export class FirebaseModel extends Model {
 		if (!this.enabled) {
 			return
 		}
-        this.sid = sessionId ? sessionId : generateSessionID();
+		this.sid = sessionId ? sessionId : generateSessionID();
 
-        this.sessions.push(this.sid);
+		this.sessions.push(this.sid);
 
 		const updates: any = {};
 		updates[`/users/${this.uid}/sessions`] = this.sessions;
@@ -272,7 +272,7 @@ export class FirebaseModel extends Model {
 		this.logComand({
 			type: "stopSession",
 		})
-		
+
 		this.sid = "";
 	}
 

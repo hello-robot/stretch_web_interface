@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
+
+<svg
+   version="1.1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 1000 1000"
+   enable-background="new 0 0 1000 1000"
+   xml:space="preserve"
+   id="svg10"
+   sodipodi:docname="rotate_right.svg"
+   inkscape:version="1.1.2 (1:1.1+202202050950+0a00cf5339)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs14" /><sodipodi:namedview
+   id="namedview12"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1.0"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   showgrid="false"
+   inkscape:zoom="0.844"
+   inkscape:cx="499.40758"
+   inkscape:cy="410.54502"
+   inkscape:window-width="1848"
+   inkscape:window-height="1016"
+   inkscape:window-x="72"
+   inkscape:window-y="27"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g8" />
+<metadata
+   id="metadata2"> Svg Vector Icons : http://www.onlinewebfonts.com/icon </metadata>
+<g
+   id="g8"><path
+     d="m 469.4,40.6 c 0,16.9 13.7,30.6 30.6,30.6 114.5,0 222.2,44.6 303.2,125.6 81,81 125.6,188.6 125.6,303.2 0,113 -43.5,219.3 -122.5,299.9 v -85.6 c 0,-16.9 -13.7,-30.6 -30.6,-30.6 -16.9,0 -30.7,13.8 -30.7,30.7 v 183.8 h 183.8 c 16.9,0 30.6,-13.7 30.6,-30.6 0,-16.9 -13.7,-30.6 -30.6,-30.6 H 855.7 C 942.3,745.5 990,626.4 990,500 990,369.1 939,246.1 846.5,153.5 753.9,61 630.9,10 500,10 483.1,10 469.4,23.7 469.4,40.6 Z"
+     id="path4"
+     style="fill:#4169e1;fill-opacity:1;stroke:#4169e1;stroke-opacity:1" /><path
+     d="M 153.5,846.5 C 246.1,939 369.1,990 500,990 c 16.9,0 30.6,-13.7 30.6,-30.6 0,-16.9 -13.7,-30.6 -30.6,-30.6 C 385.5,928.8 277.8,884.2 196.8,803.2 115.8,722.2 71.2,614.6 71.2,500 71.2,387 114.7,280.7 193.7,200.1 v 85.6 c 0,16.9 13.7,30.6 30.6,30.6 16.9,0 30.6,-13.7 30.6,-30.6 V 101.9 H 71.3 c -16.9,0 -30.6,13.7 -30.6,30.6 0,16.9 13.7,30.6 30.6,30.6 h 73.1 C 57.7,254.5 10,373.6 10,500 10,630.9 61,753.9 153.5,846.5 Z"
+     id="path6"
+     style="fill:#4169e1;fill-opacity:1;stroke:#4169e1;stroke-opacity:1" /></g>
+</svg>

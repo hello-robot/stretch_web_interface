@@ -24,6 +24,8 @@
     display: inline-block;
     text-align: center;
     vertical-align: middle;
+    font-size: x-large;
+    padding: 0;
 }
 
 #top {
@@ -101,10 +103,10 @@ video {
     display: none;
 }
 
-.overlay-region {
+/*.overlay-region {
     fill: white;
     fill-opacity: 0.0;
-}
+}*/
 
 .overlay-region:hover {
     fill-opacity: 0.1;

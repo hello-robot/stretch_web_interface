@@ -8,23 +8,23 @@ import {
     THREEObject,
     TrajectoryOverlay
 } from "./overlay";
-import {Vector3, Camera, RingGeometry, MeshBasicMaterial, Quaternion, Euler} from "three";
+import * as THREE from "three";
 import { OutlineEffect, EffectPass } from "postprocessing"
-import { Pose, Vector3 as ROSVector3 } from "roslib";
+import * as ROSLIB from "roslib";
 
-const global_rotation_point = new Vector3(
+const global_rotation_point = new THREE.Vector3(
     -0.001328,
     0,
     -0.053331
 );
 
-const global_reference_point = new Vector3(
+const global_reference_point = new THREE.Vector3(
     -0.001328,
     0.027765,
     -0.053331
 );
 
-const global_target_point = new Vector3(
+const global_target_point = new THREE.Vector3(
     0.037582,
     -0.002706,
     0.019540000000000113
@@ -37,12 +37,12 @@ export class ReachOverlay extends OverlayTHREE {
     outer_reach = 0.31 + 0.52 // The arm has a 52 centimeter reach (source: https://hello-robot.com/product#:~:text=range%20of%20motion%3A%2052cm) + the 31 cm width of the base
     inner_reach = 0.28 - 0.21 // The length of the arm when fully contracted +/- the length of the gripper
 
-    constructor(camera: Camera) {
+    constructor(camera: THREE.Camera) {
         super(camera);
         let reachCircle = new THREEObject(
             'reach_visualization_circle',
-            new RingGeometry(this.inner_reach, this.outer_reach, 32), 
-            new MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
+            new THREE.RingGeometry(this.inner_reach, this.outer_reach, 32), 
+            new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
         )
         this.addItem(reachCircle);
         let outlineEffect = new OutlineEffect(
@@ -54,28 +54,28 @@ export class ReachOverlay extends OverlayTHREE {
             outlineEffect
         );
         outlineEffectPass.renderToScreen = true;
-        outlineEffect.selectObject(reachCircle.mesh);
+        outlineEffect.selection.add(reachCircle.mesh);
         this.composer.addPass(outlineEffectPass);
     }
 
-    updateTransform(transform: {translation: Vector3, rotation: Quaternion, scale: Vector3}) {
+    updateTransform(transform: ROSLIB.Transform) {
         // Update the rotation and translation of the THREE.js camera to match the physical one
-        let q_ros_space = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+        let q_ros_space = new THREE.Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
 
         let order = 'XYZ'
-        let e = new Euler(0, 0, 0, order);
+        let e = new THREE.Euler(0, 0, 0, order);
         e.setFromQuaternion(q_ros_space, order);
 
         let q_inverse = q_ros_space.clone().invert();
 
-        let reference_point = new Vector3(transform.translation.x, transform.translation.y, transform.translation.z);
+        let reference_point = new THREE.Vector3(transform.translation.x, transform.translation.y, transform.translation.z);
         // z in global space is y in ros space
-        let rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new Euler(0, -e.z, e.y, 'XZY'));
+        let rotated_reference_to_rotation_offset = reference_to_rotation_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
 
         // TODO: Shouldn't this always be static, meaning that the previous math is unnecessary?
         let rotation_point = reference_point.clone().add(rotated_reference_to_rotation_offset);
 
-        let rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new Euler(0, -e.z, e.y, 'XZY'));
+        let rotated_rotation_offset_to_target_offset = rotation_to_target_offset.clone().applyEuler(new THREE.Euler(0, -e.z, e.y, 'XZY'));
 
         let target_point = rotation_point.clone().add(rotated_rotation_offset_to_target_offset);
 
@@ -266,20 +266,19 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
 
     constructor(aspectRatio: number) {
         super(aspectRatio);
-        let w = 100 * aspectRatio
-        let h = 100
+        const w = 100 * aspectRatio
 
-        let baseRect = makeSquare(0, 0, w, h);
+        const baseRect = makeSquare(0, 0, w);
         this.w = w;
-        this.h = h;
+        this.h = w;
         this.createRegion("clickNavigate", {label: 'clickNavigate', poly: rectToPoly(baseRect)});
     }
 
-    normalizeAngle(angle) {
+    normalizeAngle(angle: number) {
         return Math.atan2(Math.sin(angle), Math.cos(angle))
     }
 
-    svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2) {
+    svgArcString(x1: number, y1: number, r: number, largeArcFlag: "0" | "1", sweepFlag: "0" | "1", x2: number, y2: number) {
         return [
             "M", x1, y1,
             "A", r, r, 0, largeArcFlag, sweepFlag, x2, y2
@@ -290,10 +289,10 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         this.createTraj({iconImage: icon('rotate')});
     }
 
-    drawArc(x, y, startHeading, goalHeading, circle=true) {
-        let largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
-        let sweepFlag = goalHeading < Math.PI/2 ? "0" : "1";
-        let sign = goalHeading < Math.PI/2 ? 1 : -1;
+    drawArc(x: number, y: number, startHeading: number, goalHeading: number, circle=true) {
+        const largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
+        const sweepFlag = goalHeading < Math.PI/2 ? "0" : "1";
+        const sign = goalHeading < Math.PI/2 ? 1 : -1;
         let diffHeading = Math.abs(goalHeading - startHeading)
         // If user clicked behind the robot, offset trajectory
         let y_offset = y > 80 ? 10 : 0
@@ -458,8 +457,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         // adjust for the effort needed to hold the arm in place
         // against gravity
         let adjusted_value = value - 53.88;
-        let armUpRegion1 = this.regions.get("joint_lift_pos").path
-        let armDownRegion1 = this.regions.get("joint_lift_neg").path
+        let armUpRegion1 = this.regions.get("joint_lift_pos")!.path
+        let armDownRegion1 = this.regions.get("joint_lift_neg")!.path
         let redRegion1;
         let nothingRegion1;
 
@@ -487,8 +486,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let redRegion1;
         let nothingRegion1;
 
-        let armExtendRegion1 = this.regions.get("wrist_extension_pos").path
-        let armRetractRegion1 = this.regions.get("wrist_extension_neg").path
+        let armExtendRegion1 = this.regions.get("wrist_extension_pos")!.path
+        let armRetractRegion1 = this.regions.get("wrist_extension_neg")!.path
 
         if (value > 0.0) {
             redRegion1 = armExtendRegion1;
@@ -513,8 +512,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("gripperClose").path
-        let handOpenRegion = this.regions.get("gripperOpen").path
+        let handCloseRegion = this.regions.get("gripperClose")!.path
+        let handOpenRegion = this.regions.get("gripperOpen")!.path
         if (handCloseRegion && handOpenRegion) {
             let redRegion;
             let nothingRegion;
@@ -540,8 +539,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateWristEffort(value: number) {
-        let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
-        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")!.path
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")!.path
         if (yawInRegion && yawOutRegion) {
             let redRegion;
             let nothingRegion;
@@ -567,12 +566,12 @@ function icon(name: string) {
     return `/operator/images/${name}.svg`
 }
 
-function rosPostoTHREE(p: ROSVector3) {
-    return new Vector3(p.x, -p.y, p.z);
+function rosPostoTHREE(p: ROSLIB.Vector3) {
+    return new THREE.Vector3(p.x, -p.y, p.z);
 }
 
-function rosEulerToTHREE(e: ROSVector3, order: string) {
-    return new Euler(
+function rosEulerToTHREE(e: THREE.Euler, order: string) {
+    return new THREE.Euler(
         e.z + (Math.PI / 2),
         0,
         e.y + (Math.PI / 2),

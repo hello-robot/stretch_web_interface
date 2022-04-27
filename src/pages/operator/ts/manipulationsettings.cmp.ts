@@ -21,10 +21,10 @@ const template = `
         <legend class="col-form-label col-sm-2">Start-Stop Modes</legend>
         <div class="col-sm-10">
             <div class="btn-group mode-toggle" role="group" id="continuous-mode-toggle" data-ref="continuous-mode-toggle">
-                <input type="radio" id="control-click-click" class="btn-check" name="startStopMode" autocomplete="off" value="click-click" checked />
-                <label class="btn btn-secondary btn-sm" for="control-click-click">Click-Click</label>
-                <input type="radio" id="control-press-release" class="btn-check" name="startStopMode" autocomplete="off" value="press-release"/>
+                <input type="radio" id="control-press-release" class="btn-check" name="startStopMode" autocomplete="off" value="press-release" checked/>
                 <label class="btn btn-secondary btn-sm" for="control-press-release">Press-Release</label>
+                <input type="radio" id="control-click-click" class="btn-check" name="startStopMode" autocomplete="off" value="click-click"/>
+                <label class="btn btn-secondary btn-sm" for="control-click-click">Click-Click</label>
             </div>
         </div>
     </fieldset>

@@ -11,18 +11,25 @@ interface CustomEventMap {
     "loadprofile": CustomEvent<{name: string}>;
     "deleteprofile": CustomEvent<{name: string}>;
     "downloadsettings": CustomEvent<{}>;
-    "settingchanged": CustomEvent<{key: string, value: SettingEntry, namespace: string}
+    "settingchanged": CustomEvent<{key: string, value: SettingEntry, namespace: string}>;
 }
 
 declare global {
-    interface Window { //adds definition to Document, but you can do the same with HTMLElement
+    interface Window {
         addEventListener<K extends keyof CustomEventMap>(type: K,
             listener: (this: Document, ev: CustomEventMap[K]) => void): void;
 
         removeEventListener<K extends keyof CustomEventMap>(type: K,
             listener: (this: Document, ev: CustomEventMap[K]) => void): void;
     }
-    interface HTMLElement { //adds definition to Document, but you can do the same with HTMLElement
+    interface HTMLElement {
+        addEventListener<K extends keyof CustomEventMap>(type: K,
+            listener: (this: Document, ev: CustomEventMap[K]) => void): void;
+
+        removeEventListener<K extends keyof CustomEventMap>(type: K,
+            listener: (this: Document, ev: CustomEventMap[K]) => void): void;
+    }
+    interface Document {
         addEventListener<K extends keyof CustomEventMap>(type: K,
             listener: (this: Document, ev: CustomEventMap[K]) => void): void;
 

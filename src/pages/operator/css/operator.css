@@ -1,14 +1,24 @@
 #video-control-container {
     max-height: 90vh;
+    padding-top: 10px;
 }
 
-/*#video-control-container video-control {
-    flex: 2 2;
+#video-control-container video-control {
+    flex: 0 1 700px;
 }
 
 #video-control-container video-control:nth-of-type(2) {
-    flex: 1 1;
-}*/
+    flex: 0 1 400px;
+}
+
+.card {
+    text-align: center;
+    width: 98.5%;
+}
+
+.btn-group.velocity-toggle {
+    padding-bottom: 10px;
+}
 
 .btn-group.velocity-toggle label {
     color: black
@@ -17,10 +27,14 @@
 #mode-toggle .btn-check:checked + .btn-secondary {
     background-color: var(--bs-cyan);
 }
+#mode-toggle .btn-secondary {
+    background-color: var(--bs-white);
+    color: black;
+}
 
 #mode-toggle.btn-group {
     max-height: 50px;    
-    overflow-y: hidden;
+    overflow-y: visible;
 }
 
 /* Velocity modifer control */
