@@ -227,14 +227,13 @@ export class OperatorComponent extends PageComponent {
                 this.dispatchCommand({ type: "velocity-toggle", mode: option.value })
 
                 let currMode = this.refs.get("mode-toggle").querySelector("input[type=radio]:checked").value
-                let namespace = currMode === "nav" ? "navsetting" : "manipsetting";
                 this.dispatchEvent(new CustomEvent("settingchanged", {
                     bubbles: true,
                     composed: true,
                     detail: {
                         key: "velocity",
                         value: option.value,
-                        namespace: namespace
+                        namespace: currMode
                     }
                 }))
             })
@@ -412,6 +411,9 @@ export class OperatorComponent extends PageComponent {
                 this.controls[control].setMode(modeId)
             }
         }
+
+        let velocity = this.model.getSetting("velocity", modeId)
+        this.refs.get("velocity-toggle").querySelector(`input[value='${velocity}']`).checked = true
 
         if (modeId === 'nav') {
             this.robot?.configureOverheadCamera(true, overheadNavCrop)
