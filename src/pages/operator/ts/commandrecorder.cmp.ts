@@ -3,17 +3,46 @@ import { Model } from "./model/model"
 import { CancelledGoalCommand, cmd, NavGoalCommand, PoseGoalCommand } from "shared/commands"
 import { RemoteRobot } from "./remoterobot"
 import { uuid } from "shared/util"
+import {Modal} from "bootstrap";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
 <div class="input-group input-group-sm">
-    <button class="btn btn-primary btn-sm" type="button" data-ref="start-stop-recording">Record</button>    
+    <button class="btn btn-primary btn-sm" type="button" data-ref="setup-stop-recording">Record</button>    
     <select data-ref="play-session" class="form-select form-select-sm" aria-label="Play session" disabled>
         <option value="" selected hidden>Play Session</option>
         <option value="">b</option>
         <option value="">c</option>
     </select>
     <button class="btn btn-secondary btn-sm" type="button" data-ref="download">Download</button>
+</div>
+
+
+<!-- Record Settings Modal -->
+<div class="modal fade" id="recordSettingsModal" tabindex="-1" aria-labelledby="recordSettingsModalLabel" aria-hidden="true" data-ref="modal-container">
+    <div class="modal-dialog">
+    <form class="row g-3 needs-validation modal-content" noValidate>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recordSettingsModalLabel">Recording Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <!-- <label for="poseName">Username</label> -->
+                        <input type="text" class="form-control" id="poseName" placeholder="Username" required data-ref="record-setting-username">
+                            <div class="invalid-feedback">
+                                Please enter a username
+                            </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Start Recording</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 `
 
@@ -27,11 +56,21 @@ export class CommandRecorder extends BaseComponent {
 
     replayer?: Replay
 
+    modalContainer: HTMLElement
+    modal: Modal
+
     constructor() {
         super(template);
 
-        this.refs.get("start-stop-recording")!.onclick = () => {
-            this.recording = !this.recording
+        this.modalContainer = this.refs.get("modal-container")!
+        this.modal = new Modal(this.modalContainer, {})
+
+        this.refs.get("setup-stop-recording")!.onclick = () => {
+            if (this.recording) {
+                this.recording = false;
+            } else {
+                this.modal.show();
+            }
         }
 
         this.playSessionSelector = this.refs.get("play-session")! as HTMLSelectElement
@@ -65,9 +104,22 @@ export class CommandRecorder extends BaseComponent {
 
         }
 
-
         if (this.disabled) {
             this.shadowRoot?.querySelectorAll(".btn").forEach(button => button.disabled = "true")
+        }
+
+        const form = this.shadowRoot.querySelector("form")
+        form.onsubmit = (event) => {
+            event.preventDefault();
+            form.classList.add('was-validated');
+            // FIXME: Check that pose name doesn't already exist
+            // FIXME: Add reasonable limits on pose name character set and length
+            if (form.checkValidity() === false) {
+                event.stopPropagation();
+            } else {
+                this.modal.hide();
+                this.recording = true;
+            }
         }
     }
 
@@ -90,12 +142,12 @@ export class CommandRecorder extends BaseComponent {
         if (value === this._recording) return;
         this._recording = value
         if (value) {
-            this.refs.get("start-stop-recording")!.innerText = "Stop";
-            this.model!.startSession()
+            this.refs.get("setup-stop-recording")!.innerText = "Stop";
+            this.model!.startSession(this.refs.get("record-setting-username")!.value)
             window.addEventListener("commandsent", this.logCommand.bind(this));
         } else {
             window.removeEventListener('commandsent', this.logCommand.bind(this));
-            this.refs.get("start-stop-recording")!.innerText = "Record";
+            this.refs.get("setup-stop-recording")!.innerText = "Record";
             this.model!.stopSession();
             this.setSessions(this.model!.getSessions());
         }
@@ -108,12 +160,12 @@ export class CommandRecorder extends BaseComponent {
     set disabled(value) {
         if (value) {
             this.setAttribute("disabled", "")
-            this.refs.get("start-stop-recording")!.disabled = "true"
+            this.refs.get("setup-stop-recording")!.disabled = "true"
         } else {
             if (this.hasAttribute("disabled")) {
                 this.removeAttribute("disabled")
             }
-            this.refs.get("start-stop-recording")!.disabled = null
+            this.refs.get("setup-stop-recording")!.disabled = null
             // Are we holding a recording
             if (this.recordingBuffer) {
                 this.refs.get("play")!.disabled = null

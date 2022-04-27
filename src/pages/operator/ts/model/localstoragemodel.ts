@@ -117,7 +117,7 @@ export class LocalStorageModel extends Model {
         }
     }
 
-    startSession(sessionId?: string): void {
+    startSession(username: string, sessionId?: string): void {
         this.sid = sessionId ? sessionId : generateSessionID();
 
         let sessions = this.getSessions();
@@ -126,6 +126,8 @@ export class LocalStorageModel extends Model {
 
         this.logComand({
 			type: "startSession",
+            username: username,
+            settings: this.getSettings();
 		});
     }
 
