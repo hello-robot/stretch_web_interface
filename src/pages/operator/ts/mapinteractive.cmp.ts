@@ -95,8 +95,6 @@ export class MapInteractive extends BaseComponent {
                 theta: theta
             };
 
-            console.log(goal);
-
             this.navGoalCallback(goal);
         }
     }

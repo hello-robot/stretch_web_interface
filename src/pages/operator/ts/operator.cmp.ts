@@ -25,6 +25,7 @@ import { navModes, ValidJoints, WebRTCMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 import { AvailableRobots } from "shared/socketio";
 import { CommandRecorder } from "./commandrecorder.cmp";
+import { PoseLibrary } from "./poselibrary.cmp";
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -121,6 +122,8 @@ export class OperatorComponent extends PageComponent {
     controlsContainer: HTMLElement
     mapInteractive?: MapInteractive
 
+    commandRecorder?: CommandRecorder
+
     VELOCITIES = [0.25, 0.5, 1.0, 1.5, 2.0];
     JOINT_INCREMENTS: { [key in ValidJoints]?: number } = {
         "joint_head_tilt": 0.1,
@@ -159,26 +162,18 @@ export class OperatorComponent extends PageComponent {
             return await this.connection.makeRequest("jointState")
         }
 
-        let commandRecorder = this.refs.get("recorder") as CommandRecorder;
 
         // Firebase Code
         this.model = new FirebaseModel(undefined, (model) => {
-            // TODO (kavidey): this function can get called twice if the user authenticates with google
-            // make sure that each of these functions reacts okay to that
-            this.settingsPane.configureInputs(model.getSettings())
-            this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
-            this.configureVelocityControls()
-            commandRecorder.initializeLogging(this.model);
-        })
-        this.settingsPane.configureAuthCallback(() => {
-            this.model.authenticate();
+            this.modelReadyCallback(model)
+            this.settingsPane.configureAuthCallback(() => {
+                this.model.authenticate();
+            })
         })
 
         // Local Storage Code
         // this.model = new LocalStorageModel();
-        // this.settingsPane.configureInputs(this.model.getSettings())
-        // this.model.getPoses().forEach(pose => poseLibrary.addPose(pose))
-        // this.configureVelocityControls()
+        // this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -192,7 +187,7 @@ export class OperatorComponent extends PageComponent {
         })
         this.addEventListener("poseclicked", event => {
             let pose = event.detail
-            this.robot!.goToPose(pose)
+            this.robot!.setPoseGoal(pose);
         })
         this.connection = new WebRTCConnection("OPERATOR", true, {
             onConnectionEnd: this.disconnectFromRobot.bind(this),
@@ -290,11 +285,11 @@ export class OperatorComponent extends PageComponent {
         this.addEventListener("settingchanged", event => {
             // Emitted when user has interactively changed a setting
             const change = event.detail
-            console.log(change)
+
             this.model.setSetting(change.key, change.value, change.namespace)
 
             // User changed this setting in the modal pane, so we may need to reflect changes here
-            if (change.key === "velocityControlMode" || change.key === "displayMode") {
+            if (change.key === "displayMode") {
                 this.configureVelocityControls(change.namespace)
             }
             if (change.key.startsWith("showPermanentIcons")) {
@@ -310,6 +305,7 @@ export class OperatorComponent extends PageComponent {
 
         })
 
+
         // this.refs.get("slider-step-up").addEventListener("click", () => {
         //     this.shadowRoot.getElementById("slider").value =
         //         parseFloat(this.shadowRoot.getElementById("slider").value) +
@@ -321,6 +317,21 @@ export class OperatorComponent extends PageComponent {
         //         parseFloat(this.shadowRoot.getElementById("slider").value) -
         //         parseFloat(this.shadowRoot.getElementById("slider").step);
         // })
+    }
+
+    private modelReadyCallback(model: Model) {
+        // TODO (kavidey): this function can get called twice if the user authenticates with google
+        // make sure that each of these functions reacts okay to that
+        this.settingsPane.configureInputs(model.getSettings())
+
+        let poseLibrary = this.refs.get("pose-library")! as PoseLibrary;
+        poseLibrary.clearPoses();
+        model.getPoses().forEach(pose => poseLibrary.addPose(pose))
+
+        this.configureVelocityControls()
+
+        this.commandRecorder = this.refs.get("recorder") as CommandRecorder;
+        this.commandRecorder.initializeLogging(model);
     }
 
     updateNavDisplay() {
@@ -350,7 +361,7 @@ export class OperatorComponent extends PageComponent {
             return
         }
 
-        const controlType = this.model.getSetting("velocityControlMode", namespace)
+        const controlType = this.model.getSetting("velocityControlMode")
         if (controlType === "continuous") {
             this.refs.get("velocity-toggle")!.style.display = "none";
             this.refs.get("velocity-slider")!.style.display = null;
@@ -453,8 +464,14 @@ export class OperatorComponent extends PageComponent {
                 this.robot!.sensors.set(message.subtype, message.name, message.value)
                 break;
             case "goal":
-                if (message.name == "nav") {
-                    this.mapInteractive?.clearGoal();
+                switch (message.name) {
+                    case "nav":
+                        this.mapInteractive?.clearGoal();
+                        this.commandRecorder?.completeGoal(message.value.id);
+                        break;
+                    case "pose":
+                        this.commandRecorder?.completeGoal(message.value.id);
+                        break;
                 }
                 break;
             default:
@@ -596,7 +613,7 @@ export class OperatorComponent extends PageComponent {
         var ptNavOverlay = new PanTiltNavigationOverlay(1);
         var reachOverlayTHREE = new ReachOverlay(threeCamera);
         this.robot.sensors.listenToKeyChange("head", "transform", (transform) => {
-            reachOverlayTHREE.updateTransform(transform)
+            reachOverlayTHREE.updateTransform(transform as ROSLIB.Transform)
         })
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
@@ -737,7 +754,7 @@ export class OperatorComponent extends PageComponent {
 
             // Remove old event handlers
             document.body.removeEventListener('click', onOverlayMouseUp);
-            
+
             if (regionName in this.robot) {
                 // This region is named after a command we can call directly on the robot
                 this.robot![regionName](2)
@@ -843,8 +860,12 @@ export class OperatorComponent extends PageComponent {
                 }
             }
         })
+
         // Decide what to keep on screen based on what's saved in the settings
         this.updateNavDisplay()
+
+        // Pass a reference of robot to the command recorder so it can playback actions
+        this.commandRecorder.setupPlayback(this.robot);
     }
 
     requestChannelReadyCallback() {

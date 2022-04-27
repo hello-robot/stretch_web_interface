@@ -32,7 +32,7 @@ if (process.argv.length > 2) {
 	}
 	///////////////////////////////////////////////
 	const browser = await puppeteer.launch({
-            headless: false, // default is true
+            headless: true, // default is true
 	    ignoreHTTPSErrors: true, // avoid ERR_CERT_COMMON_NAME_INVALID
 		defaultViewport: null,
             args: ['--use-fake-ui-for-media-stream', //gives permission to access the robot's cameras and microphones (cleaner and simpler than changing the user directory)
@@ -84,10 +84,10 @@ if (process.argv.length > 2) {
 	console.log(page);
 
 	console.log(logId + ': type username');
-	await page.type('#inputUsername', 'r1');
+	await page.$eval('#inputUsername', el => el.value = 'r1');
 
 	console.log(logId + ': type password');
-	await page.type('#inputPassword', 'NQUeUb98');
+	await page.$eval('#inputPassword', el => el.value = 'NQUeUb98');
 
 	console.log(logId + ': click submit');
 	await page.click('#submitButton');

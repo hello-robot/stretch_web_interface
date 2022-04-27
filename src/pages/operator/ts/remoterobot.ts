@@ -1,16 +1,5 @@
-import { Pose2D, ValidJoints } from "shared/util";
-import {
-    cmd,
-    generalCommand,
-    incrementalMove,
-    velocityMove,
-    navGoal,
-    clickMove,
-    setRobotNavMode,
-    setRobotPosMode,
-    rotateCameraView,
-    resetCameraView
-} from "shared/commands";
+import { generateUUID, NamedPose, Pose2D, ValidJoints } from "shared/util";
+import { cmd } from "shared/commands";
 import { Crop } from "shared/video_dimensions";
 import ROSLIB from "roslib";
 
@@ -50,9 +39,6 @@ export class RemoteRobot {
             "down": "lookDown",
             "left": "lookLeft",
             "right": "lookRight",
-        },
-        "full": {
-            "pose": "goToPose"
         }
     }
 
@@ -61,18 +47,18 @@ export class RemoteRobot {
     }
 
     setPanTiltFollowGripper(value: number) {
-        let cmd: generalCommand = {
+        let cmd: cmd = {
             type: "command",
             subtype: "head",
             name: "gripper_follow",
-            modifier: value,
+            modifier: value
         };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
 
     lookAtBase() {
-        let cmd = {
+        let cmd: cmd = {
             type: "command",
             subtype: "head",
             name: "look_at_base",
@@ -82,7 +68,7 @@ export class RemoteRobot {
     }
 
     lookAtArm() {
-        let cmd = {
+        let cmd: cmd = {
             type: "command",
             subtype: "head",
             name: "look_at_arm",
@@ -92,13 +78,13 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
-        let cmd: incrementalMove = {type: "incrementalMove", jointName: jointName, increment: direction! * increment!}
+        let cmd: cmd = {type: "incrementalMove", jointName: jointName, increment: direction! * increment!}
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
 
     velocityMove(jointName: ValidJoints, velocity: number): VelocityCommand {
-        let cmd: velocityMove = { type: "velocityMove", jointName: jointName, velocity: velocity }
+        let cmd: cmd = { type: "velocityMove", jointName: jointName, velocity: velocity }
         this.robotChannel(cmd)
         this.emitCommandEvent(cmd)
         return {
@@ -113,17 +99,24 @@ export class RemoteRobot {
     }
 
     setNavGoal(goal: Pose2D) {
-        let cmd: navGoal = {type: "navGoal", goal: goal}
-        this.robotChannel(cmd)
-        this.emitCommandEvent(cmd)
+        let cmd: cmd = {type: "navGoal", goal: goal, id: generateUUID()};
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
+    }
+
+    setPoseGoal(goal: NamedPose) {
+        let cmd: cmd = {type: "poseGoal", goal: goal, id: generateUUID()};
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
     }
 
     emitCommandEvent(cmd: cmd) {
+        console.log(cmd);
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 
     driveWithVelocities(linVel: number, angVel: number): VelocityCommand {
-        let cmd = {
+        let cmd: cmd = {
             type: "command",
             subtype: "drive",
             name: "velocities",
@@ -136,7 +129,7 @@ export class RemoteRobot {
         this.emitCommandEvent(cmd);
         return {
             "stop": () => {
-                let stopEvent = {
+                let stopEvent: cmd = {
                     type: "command",
                     subtype: "drive",
                     name: "velocities",
@@ -149,22 +142,22 @@ export class RemoteRobot {
     }
 
     setBaseMode(mode: "position" | "navigation") {
-        let cmd = {type: "command", subtype: "drive", name: "configure_mode", modifier: mode}
+        let cmd: cmd = {type: "command", subtype: "drive", name: "configure_mode", modifier: mode}
         this.robotChannel(cmd);
     }
 
     configureGripperCamera(rotate: boolean, crop: Crop) {
-        let cmd = {type: "configure", subtype: "gripper", name: "camera", crop: crop, rotate: rotate}
+        let cmd: cmd = {type: "configure", subtype: "gripper", name: "camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
     }
 
     configureOverheadCamera(rotate: boolean, crop: Crop) {
-        let cmd = {type: "configure", subtype: "head", name: "overhead_camera", crop: crop, rotate: rotate}
+        let cmd: cmd = {type: "configure", subtype: "head", name: "overhead_camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
     }
 
     configurePanTiltCamera(rotate: boolean, crop: Crop) {
-        let cmd = {type: "configure", subtype: "head", name: "pantilt_camera", crop: crop, rotate: rotate}
+        let cmd: cmd = {type: "configure", subtype: "head", name: "pantilt_camera", crop: crop, rotate: rotate}
         this.robotChannel(cmd);
     }
 
@@ -176,7 +169,7 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
             methodName = groupName + name[0].toUpperCase() + name.substr(1);
         }
         RemoteRobot.prototype[methodName] = function (modifier: string) {
-            let cmd = {
+            let cmd: cmd = {
                 type: "command",
                 subtype: groupName,
                 name: name,

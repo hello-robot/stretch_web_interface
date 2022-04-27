@@ -6,7 +6,7 @@
 // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md
 
 const puppeteer = require('puppeteer');
-const logId = 'start_robot_browser.js';
+const logId = 'start_operator_browser.js';
 
 let robotHostname = "localhost";
 if (process.argv.length > 2) {
@@ -82,10 +82,12 @@ if (process.argv.length > 2) {
 	console.log(page);
 
 	console.log(logId + ': type username');
-	await page.type('#inputUsername', 'o1');
+	await page.$eval('#inputUsername', el => el.value = 'o1');
+
 
 	console.log(logId + ': type password');
-	await page.type('#inputPassword', 'xXTgfdH8');
+	await page.$eval('#inputPassword', el => el.value = 'xXTgfdH8');
+
 
 	console.log(logId + ': click submit');
 	await page.click('#submitButton');
