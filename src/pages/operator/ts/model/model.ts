@@ -61,7 +61,7 @@ export abstract class Model {
     abstract getSetting(key: string, namespace?: string): SettingEntry;
     abstract getSettings(): { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
 
-    abstract startSession(sessionId?: string): void;
+    abstract startSession(username: string, sessionId?: string): void;
     abstract stopSession(): void;
     abstract logComand(cmd: cmd): void;
     abstract getSessions(): string[];

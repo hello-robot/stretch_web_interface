@@ -110,7 +110,6 @@ export class FirebaseModel extends Model {
 			this.getUserDataFirebase().then(async (userData) => {
 				this.localSettings = userData.settings;
 				this.sessions = userData.sessions ? userData.sessions : [];
-				console.error(userData.sessions, this.sessions)
 				this.readyCallback(this);
 			}).catch((error) => {
 				console.warn("Detected that FirebaseModel isn't initialized. Reinitializing.");
@@ -249,7 +248,7 @@ export class FirebaseModel extends Model {
 		}
 	}
 
-	async startSession(sessionId: string) {
+	async startSession(username: string, sessionId: string) {
 		if (!this.enabled) {
 			return
 		}
@@ -263,6 +262,8 @@ export class FirebaseModel extends Model {
 
 		return this.logComand({
 			type: "startSession",
+			username: username,
+			settings: this.getSettings()
 		});
 	}
 
