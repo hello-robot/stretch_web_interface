@@ -152,6 +152,9 @@ export class Robot {
             "gripper_follow": (value: boolean) => {
                 this.setPanTiltFollowGripper(value);
             },
+            "set_pan_tilt": (values: Map) => {
+                this.setPanTilt(values["pan"], values["tilt"])
+            },
             "look_at_base": () => {
                 this.lookAtBase();
             },
@@ -391,18 +394,19 @@ export class Robot {
         headFollowPoseGoal.send()
     }
 
-    lookAtBase() {
+    setPanTilt(pan: number, tilt: number) {
         makePoseGoal({
-            'joint_head_pan': 0.05,
-            'joint_head_tilt': -1.4
+            'joint_head_pan': pan,
+            'joint_head_tilt': tilt
         }, this.trajectoryClient).send()
     }
 
+    lookAtBase() {
+        setPanTilt(0.05, -1.4);
+    }
+
     lookAtArm() {
-        makePoseGoal({
-            'joint_head_pan': -1.5,
-            'joint_head_tilt': -1.4
-        }, this.trajectoryClient).send()
+        setPanTilt(-1.5, -1.4);
     }
 
     gripperDeltaAperture(deltaWidthCm: number) {

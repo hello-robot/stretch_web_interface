@@ -48,7 +48,7 @@ export class VideoControl extends BaseComponent {
             for (const [name, {action, label, title}] of buttonMappings) {
                 const button = this.shadowRoot!.getElementById(name)!.querySelector("button")
                 button!.title = title
-                button!.textContent = label
+                button!.innerHTML = label
                 button!.onclick = action
             }
         } else {
