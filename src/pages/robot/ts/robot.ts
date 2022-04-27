@@ -448,7 +448,8 @@ export class Robot {
     }
 
     executeIncrementalMove(jointName: ValidJoints, increment: number) {
-        this.moveBaseClient?.cancel()
+        this.moveBaseClient?.cancel();
+        this.trajectoryClient?.cancel();
         this.makeIncrementalMoveGoal(jointName, increment).send()
     }
 
@@ -529,7 +530,6 @@ export class Robot {
     executeNavGoal(goal: NavGoalCommand) {
         this.moveBaseClient?.cancel();
         this.trajectoryClient?.cancel();
-
         makeNavGoal(goal, this.moveBaseClient!, this, this.goalCallback).send()
     }
 

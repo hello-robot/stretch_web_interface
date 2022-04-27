@@ -1,6 +1,6 @@
 import { BaseComponent, Component } from "shared/base.cmp"
 import { Model } from "./model/model"
-import { cmd } from "shared/commands"
+import { CancelledGoalCommand, cmd, NavGoalCommand, PoseGoalCommand } from "shared/commands"
 import { RemoteRobot } from "./remoterobot"
 import { uuid } from "shared/util"
 
@@ -81,7 +81,9 @@ export class CommandRecorder extends BaseComponent {
     }
 
     logCommand(event: CustomEvent<cmd>) {
-        this.model?.logComand(event.detail);
+        let command = { ...event.detail };
+		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
+        this.model?.logComand(command);
     };
 
     set recording(value: boolean) {
@@ -242,15 +244,26 @@ class Replay {
     }
 
     step() {
-        const action = this.session[this.curr_action];
+        let action = this.session[this.curr_action];
         if (action.type == "navGoal" || action.type == "poseGoal") {
+
+            if ((this.curr_action + 1 < this.session.length) && (this.session[this.curr_action + 1].type == "cancelledGoal")) {
+                this.curr_action += 1;
+                const cancelledGoal: CancelledGoalCommand = this.session[this.curr_action + 1] as CancelledGoalCommand;
+                action = {
+                    type: cancelledGoal.name == "nav" ? "navGoal" : "poseGoal",
+                    timestamp: cancelledGoal.timestamp,
+                    goal: cancelledGoal.goal,
+                    id: cancelledGoal.id
+                } as NavGoalCommand | PoseGoalCommand;
+            }
+
             this.cmdCallback(action);
             const waitForGoal = new Promise<void>((resolve, reject) => {
                 this.pendingGoals.set(action.id, resolve);
             })
-            console.log("waiting for goal")
+
             waitForGoal.then(() => {
-                console.log("reached goal, moving onto next step")
                 this.curr_action += 1;
                 this.step;
             })
