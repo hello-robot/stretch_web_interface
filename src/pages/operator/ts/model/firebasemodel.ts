@@ -248,7 +248,7 @@ export class FirebaseModel extends Model {
 		}
 	}
 
-	async startSession(sessionId: string) {
+	async startSession(username: string, sessionId: string) {
 		if (!this.enabled) {
 			return
 		}
@@ -262,6 +262,8 @@ export class FirebaseModel extends Model {
 
 		return this.logComand({
 			type: "startSession",
+			username: username,
+			settings: this.getSettings()
 		});
 	}
 
@@ -281,13 +283,10 @@ export class FirebaseModel extends Model {
 			return
 		}
 
-		let command = { ...cmd };
-		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
-
 		const commandKey = push(child(ref(this.database), `/sessions/${this.sid}`)).key;
 
 		const updates: any = {};
-		updates[`/sessions/${this.sid}/${commandKey}`] = command;
+		updates[`/sessions/${this.sid}/${commandKey}`] = cmd;
 
 		return update(ref(this.database), updates);
 	}

@@ -30,7 +30,7 @@ export function safelyParseJSON<T = any>(json: string): T {
 }
 
 // Modified from https://schteppe.github.io/cannon.js/docs/files/src_math_Quaternion.js.html
-function quaternionToEuler(q: Quaternion, order: string) {
+export function quaternionToEuler(q: Quaternion, order: string) {
     order = order || "YZX";
 
     let heading: number, attitude: number, bank: number;
@@ -78,10 +78,20 @@ export interface SensorMessage {
     value: number | ROSLIB.Transform
 }
 
-export type GoalMessage =  {
+export type GoalMessage =  NavGoalMessage | PoseGoalMessage;
+
+export interface NavGoalMessage {
     type: "goal",
-    name: "pose" | "nav",
-    value: PoseGoalCommand | NavGoalCommand
+    name: "nav",
+    status: "success" | "failure",
+    value: NavGoalCommand
+}
+
+export interface PoseGoalMessage {
+    type: "goal",
+    name: "pose",
+    status: "success" | "failure",
+    value: PoseGoalCommand
 }
 
 interface StopMessage {
@@ -107,9 +117,7 @@ export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_
 
 export type navModes = 'nav' | 'manip' | 'clickNav';
 
-export interface Pose {
-    ValidJoints?: number
-}
+export type Pose = { [key in ValidJoints]?: number }
 
 export interface NamedPose {
     name: string,
@@ -131,7 +139,7 @@ export interface ROSCompressedImage extends Message {
 }
 
 export interface ROSJointState extends Message {
-    name: string,
+    name: [ValidJoints?],
     position: [number],
     effort: [number],
     velocity: [number],

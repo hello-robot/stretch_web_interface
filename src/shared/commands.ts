@@ -1,7 +1,8 @@
+import { Settings } from "../pages/operator/ts/model/model";
 import { ValidJoints, Pose2D, NamedPose, uuid } from "./util";
 import { Crop } from "./video_dimensions";
 
-export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand;
+export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand | CancelledGoalCommand | StartSessionCommand | StopSessionCommand;
 
 interface GeneralCommand {
     type: "command",
@@ -38,6 +39,20 @@ export interface PoseGoalCommand {
     id: uuid
 }
 
+export type CancelledGoalCommand = {
+    type: "cancelledGoal",
+    timestamp?: number,
+    name: "nav",
+    goal: Pose2D,
+    id: uuid,
+} | {
+    type: "cancelledGoal",
+    timestamp?: number,
+    name: "pose",
+    goal: NamedPose,
+    id: uuid,
+}
+
 export interface ClickMoveCommand {
     type: "clickMove",
     timestamp?: number,
@@ -58,4 +73,16 @@ type ConfigureCommand = {
     name: "camera" | "overhead_camera" | "pantilt_camera",
     crop: Crop,
     rotate: boolean
+}
+
+interface StartSessionCommand {
+    type: "startSession",
+    timestamp?: number
+    username: string,
+    settings: Settings
+}
+
+interface StopSessionCommand {
+    type: "stopSession",
+    timestamp?: number
 }
