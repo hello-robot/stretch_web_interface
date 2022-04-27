@@ -285,8 +285,8 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         ].join(" ");
     }
 
-    drawRotateIcon() {
-        this.createTraj({iconImage: icon('rotate')});
+    drawRotateIcon(name) {
+        this.createTraj({iconImage: icon(name)});
     }
 
     drawArc(x: number, y: number, startHeading: number, goalHeading: number, circle=true) {

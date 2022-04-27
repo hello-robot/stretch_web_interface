@@ -127,7 +127,7 @@ export class LocalStorageModel extends Model {
         this.logComand({
 			type: "startSession",
             username: username,
-            settings: this.getSettings();
+            settings: this.getSettings()
 		});
     }
 

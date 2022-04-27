@@ -559,7 +559,7 @@ export class OperatorComponent extends PageComponent {
             if (execute) {
                 this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.3) : this.robot!.driveWithVelocities(0, scale * -0.3);
             }
-            overlay.drawRotateIcon()
+            heading <= Math.PI / 2 ? overlay.drawRotateIcon('rotate_left') : overlay.drawRotateIcon('rotate_right')
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
