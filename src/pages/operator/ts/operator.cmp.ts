@@ -571,19 +571,39 @@ export class OperatorComponent extends PageComponent {
             ["left", {
                 title: "look left",
                 label: "&#8592",
-                action: () => this.robot.incrementalMove("joint_head_pan", 1, this.getIncrementForJoint("joint_head_pan"))
+                action: () => {
+                    let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
+                    let inc = this.getIncrementForJoint("joint_head_pan")
+                    this.robot.incrementalMove("joint_head_pan", 1, inc)
+                    this.model.setSetting("joint_head_pan", this.model.getSetting("joint_head_pan", currMode) + inc, currMode) 
+                }
         }], ["right", {
                 title: "look right",
                 label: "&#8594",
-                action: () => this.robot.incrementalMove("joint_head_pan", -1, this.getIncrementForJoint("joint_head_pan"))
+                action: () => {
+                    let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
+                    let inc = this.getIncrementForJoint("joint_head_pan")
+                    this.robot.incrementalMove("joint_head_pan", -1, inc)
+                    this.model.setSetting("joint_head_pan", this.model.getSetting("joint_head_pan", currMode) - inc, currMode) 
+                }
         }], ["top", {
                 title: "look up",
                 label: "&#8593",
-                action: () => this.robot.incrementalMove("joint_head_tilt", 1, this.getIncrementForJoint("joint_head_tilt"))
+                action: () => {
+                    let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
+                    let inc = this.getIncrementForJoint("joint_head_tilt")
+                    this.robot.incrementalMove("joint_head_tilt", 1, inc)
+                    this.model.setSetting("joint_head_tilt", this.model.getSetting("joint_head_tilt", currMode) + inc, currMode) 
+                }
         }], ["bottom", {
                 title: "look down",
                 label: "&#8595",
-                action: () => this.robot.incrementalMove("joint_head_tilt", -1, this.getIncrementForJoint("joint_head_tilt"))
+                action: () => {
+                    let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
+                    let inc = this.getIncrementForJoint("joint_head_tilt")
+                    this.robot.incrementalMove("joint_head_tilt", -1, inc)
+                    this.model.setSetting("joint_head_tilt", this.model.getSetting("joint_head_tilt", currMode) - inc, currMode) 
+                }
         }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
         extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
@@ -592,6 +612,8 @@ export class OperatorComponent extends PageComponent {
         extraPanTiltButtons.querySelector("button").onclick = () => {
             let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
             currMode === "nav" ? this.robot!.lookAtBase() : this.robot!.lookAtArm() 
+            this.model.resetSetting("joint_head_pan", currMode);
+            this.model.resetSetting("joint_head_tilt", currMode);            
         }
         pantilt.setExtraContents(extraPanTiltButtons)
         const gripper = new VideoControl();

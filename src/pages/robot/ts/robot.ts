@@ -402,11 +402,11 @@ export class Robot {
     }
 
     lookAtBase() {
-        setPanTilt(0.05, -1.4);
+        this.setPanTilt(0.05, -1.4);
     }
 
     lookAtArm() {
-        setPanTilt(-1.5, -1.4);
+        this.setPanTilt(-1.5, -1.4);
     }
 
     gripperDeltaAperture(deltaWidthCm: number) {

@@ -69,6 +69,10 @@ export abstract class Model {
     
     abstract reset(): void
 
+    resetSetting(key: string, namespace?: string) {
+        this.setSetting(key, DEFAULTS["setting"][namespace][key], namespace)
+    }
+
     get disabled(): boolean {
         return !this.enabled;
     }
