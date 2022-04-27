@@ -118,6 +118,7 @@ export class OperatorComponent extends PageComponent {
     activeVelocityRegion?: ValidJoints
     activeVelocityAction?: VelocityCommand
     velocityExecutionHeartbeat?: number // ReturnType<typeof setInterval>
+    activeVelocityActionTimeout?: number // ReturnType<typeof setTimeout>
 
     controlsContainer: HTMLElement
     mapInteractive?: MapInteractive
@@ -580,7 +581,31 @@ export class OperatorComponent extends PageComponent {
             this.activeVelocityAction = undefined
             clearInterval(this.velocityExecutionHeartbeat)
             this.velocityExecutionHeartbeat = undefined
+            clearTimeout(this.activeVelocityActionTimeout)
+            this.activeVelocityActionTimeout = undefined
         }
+    }
+
+    setIncrementalVelocities(regionName, lin_vel, ang_vel) {
+        // If new action; stop current action and start new action
+        if (this.activeVelocityRegion != regionName) {
+            this.stopCurrentAction()
+            this.velocityExecutionHeartbeat = window.setInterval(() => {
+                this.activeVelocityAction = this.robot!.driveWithVelocities(lin_vel, ang_vel);
+            }, 100);
+        } 
+        // If same action, set new timeout (handles repetitive clicking)
+        else if (this.activeVelocityActionTimeout) {
+            clearTimeout(this.activeVelocityActionTimeout)
+            this.activeVelocityActionTimeout = undefined
+        } 
+        // If no current action being executed
+        else {
+            this.velocityExecutionHeartbeat = window.setInterval(() => {
+                this.activeVelocityAction = this.robot!.driveWithVelocities(lin_vel, ang_vel);
+            }, 100);
+        }
+        this.activeVelocityActionTimeout = setTimeout(() => {this.stopCurrentAction()}, 1000)
     }
 
     configureRobot() {
@@ -818,20 +843,13 @@ export class OperatorComponent extends PageComponent {
                 if (this.model.getSetting("actionMode", namespace) === "incremental") {
                     let vel = sign * this.getVelocityForJoint(jointName)
                     if (jointName == "translate_mobile_base") {
-                        this.stopCurrentAction()
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            this.activeVelocityAction = this.robot!.driveWithVelocities(vel, 0);
-                        }, 100);
-                        setTimeout(() => {this.stopCurrentAction()}, 1000)
+                        this.setIncrementalVelocities(regionName, vel, 0);
                     } else if (jointName == "rotate_mobile_base") {
-                        this.stopCurrentAction()
-                        this.velocityExecutionHeartbeat = window.setInterval(() => {
-                            this.activeVelocityAction = this.robot!.driveWithVelocities(0, vel);
-                        }, 100);
-                        setTimeout(() => {this.stopCurrentAction()}, 1000)
+                        this.setIncrementalVelocities(regionName, 0, vel);
                     } else {
                         this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                     }
+                    this.activeVelocityRegion = regionName
                 } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                         this.activeVelocityRegion = regionName
