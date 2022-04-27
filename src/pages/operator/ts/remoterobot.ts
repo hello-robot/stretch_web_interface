@@ -111,7 +111,6 @@ export class RemoteRobot {
     }
 
     emitCommandEvent(cmd: cmd) {
-        console.log(cmd);
         window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
     }
 

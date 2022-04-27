@@ -1,7 +1,7 @@
 import { ValidJoints, Pose2D, NamedPose, uuid } from "./util";
 import { Crop } from "./video_dimensions";
 
-export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand;
+export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand | CancelledGoalCommand;
 
 interface GeneralCommand {
     type: "command",
@@ -36,6 +36,20 @@ export interface PoseGoalCommand {
     timestamp?: number,
     goal: NamedPose,
     id: uuid
+}
+
+export type CancelledGoalCommand = {
+    type: "cancelledGoal",
+    timestamp?: number,
+    name: "nav",
+    goal: Pose2D,
+    id: uuid,
+} | {
+    type: "cancelledGoal",
+    timestamp?: number,
+    name: "pose",
+    goal: NamedPose,
+    id: uuid,
 }
 
 export interface ClickMoveCommand {

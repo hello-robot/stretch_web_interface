@@ -467,10 +467,34 @@ export class OperatorComponent extends PageComponent {
                 switch (message.name) {
                     case "nav":
                         this.mapInteractive?.clearGoal();
-                        this.commandRecorder?.completeGoal(message.value.id);
+                        if (message.status == "success") {
+                            this.commandRecorder?.completeGoal(message.value.id);
+                        } else if (message.status == "failure" && this.commandRecorder?.recording) {
+                            this.commandRecorder?.logCommand({
+                                detail: {
+                                    type: "cancelledGoal",
+                                    timestamp: message.value.timestamp,
+                                    name: "nav",
+                                    goal: message.value.goal,
+                                    id: message.value.id
+                                }
+                            } as CustomEvent<cmd>)
+                        }
                         break;
                     case "pose":
-                        this.commandRecorder?.completeGoal(message.value.id);
+                        if (message.status == "success") {
+                            this.commandRecorder?.completeGoal(message.value.id);
+                        } else if (message.status == "failure" && this.commandRecorder?.recording) {
+                            this.commandRecorder?.logCommand({
+                                detail: {
+                                    type: "cancelledGoal",
+                                    timestamp: message.value.timestamp,
+                                    name: "pose",
+                                    goal: message.value.goal,
+                                    id: message.value.id
+                                }
+                            } as CustomEvent<cmd>)
+                        }
                         break;
                 }
                 break;

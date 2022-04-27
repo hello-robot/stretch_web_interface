@@ -1,9 +1,9 @@
 import * as ROSLIB from "roslib";
 import { NavGoalCommand, PoseGoalCommand } from "shared/commands";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, Pose2D, GoalMessage, NamedPose } from "shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, GoalMessage, PoseGoalMessage, NavGoalMessage, quaternionToEuler } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
-export const JOINT_LIMITS: {[key in ValidJoints]?: [number, number]} = {
+export const JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
     "wrist_extension": [0, .51],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0.15, 1.1],
@@ -38,7 +38,7 @@ export class Robot {
     private linkGripperFingerLeftTF?: ROSLIB.Transform
     private linkHeadTiltTF?: ROSLIB.Transform
     private cameraColorFrameTF?: ROSLIB.Transform
-    private baseTF?: ROSLIB.Transform
+    baseTF?: ROSLIB.Transform
     jointState?: ROSJointState
 
     private videoTopics: [ROSLIB.Topic<ROSCompressedImage>?] = []
@@ -47,7 +47,7 @@ export class Robot {
     // TODO (kavidey): this should be `typeof setTimeout`, but TS wants it to be number
     private lookAtGripperInterval?: number
 
-    private commands: {[key: string]: {[key: string]: (...args: any[]) => void}} = {
+    private commands: { [key: string]: { [key: string]: (...args: any[]) => void } } = {
         "drive": {
             "forward": (size: number) => {
                 this.executeIncrementalMove("translate_mobile_base", size)
@@ -67,7 +67,7 @@ export class Robot {
             "turn_cw": (_: any) => {
                 this.baseTurn(-Math.PI / 2);
             },
-            "velocities": ({linVel, angVel}) => {
+            "velocities": ({ linVel, angVel }) => {
                 this.executeBaseVelocity(linVel, angVel)
             },
             "configure_mode": (mode: "position" | "navigation") => {
@@ -215,20 +215,20 @@ export class Robot {
         });
 
         this.setNavMode = new ROSLIB.Service({
-                ros: ros,
-                name: '/switch_to_navigation_mode',
-                serviceType: '/switch_to_navigation_mode'
-            });
+            ros: ros,
+            name: '/switch_to_navigation_mode',
+            serviceType: '/switch_to_navigation_mode'
+        });
         this.setPositionMode = new ROSLIB.Service({
             ros: ros,
             name: '/switch_to_position_mode',
             serviceType: '/switch_to_position_mode'
         });
         this.cmdVel = new ROSLIB.Topic({
-            ros : ros,
-            name : '/stretch/cmd_vel',
-            messageType : 'geometry_msgs/Twist'
-          });
+            ros: ros,
+            name: '/stretch/cmd_vel',
+            messageType: 'geometry_msgs/Twist'
+        });
 
         this.robotFrameTfClient = new ROSLIB.TFClient({
             ros: this.ros,
@@ -303,14 +303,14 @@ export class Robot {
 
     baseTranslate(dist: number) {
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
-        makePoseGoal({'translate_mobile_base': dist}, this.trajectoryClient).send();
+        makePoseGoal({ 'translate_mobile_base': dist }, this.trajectoryClient).send();
     }
 
     baseTurn(ang_deg: number) {
         // angle in degrees
         // velocity in centimeter / second (linear wheel velocity - same as BaseTranslate)
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
-        makePoseGoal({'rotate_mobile_base': ang_deg}, this.trajectoryClient).send();
+        makePoseGoal({ 'rotate_mobile_base': ang_deg }, this.trajectoryClient).send();
     }
 
     makeIncrementalMoveGoal(jointName: ValidJoints, jointValueInc: number): ROSLIB.Goal {
@@ -324,7 +324,7 @@ export class Robot {
             newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
         }
         newJointValue = newJointValue + jointValueInc
-        let pose = {[jointName]: newJointValue}
+        let pose = { [jointName]: newJointValue }
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
         return makePoseGoal(pose, this.trajectoryClient)
 
@@ -516,45 +516,81 @@ export class Robot {
             // this.currentTrajectoryKillInterval = null
         }
         this.moveBaseClient?.cancel()
-	    if (this.velocityGoal) {
+        if (this.velocityGoal) {
             this.velocityGoal.cancel()
             this.velocityGoal = undefined
         }
     }
 
     executeNavGoal(goal: NavGoalCommand) {
-        makeNavGoal(goal, this.moveBaseClient!, this.goalCallback).send()
+        this.moveBaseClient?.cancel();
+        this.trajectoryClient?.cancel();
+
+        makeNavGoal(goal, this.moveBaseClient!, this, this.goalCallback).send()
     }
 
     executePoseGoal(pose: PoseGoalCommand) {
-        this.moveBaseClient?.cancel()
-        makeNamedPoseGoal(pose, this.trajectoryClient!, this.goalCallback).send();
+        this.moveBaseClient?.cancel();
+        this.trajectoryClient?.cancel();
+        makeNamedPoseGoal(pose, this.trajectoryClient!, this, this.goalCallback).send();
     }
 }
 
-function makeNamedPoseGoal(pose: PoseGoalCommand, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
+function makeNamedPoseGoal(pose: PoseGoalCommand, trajectoryClient: ROSLIB.ActionClient, robot: Robot, goalCallback?: (goal: GoalMessage) => void) {
     const goal = makePoseGoal(pose.goal.jointState, trajectoryClient);
 
     goal.on('result', (result) => {
+        console.log(result);
 
         if (goalCallback) {
             goalCallback({
                 type: "goal",
                 name: "pose",
+                status: "success",
                 value: pose
             })
         }
     });
 
+    let cancelCallbackFired = false;
+
+    goal.on("status", (status) => {
+        // Status Message Docs: http://docs.ros.org/en/fuerte/api/actionlib_msgs/html/msg/GoalStatus.html
+        // If status.status > 3, it was cancelled or failed
+        if (status.status > 3 && !cancelCallbackFired) {
+            cancelCallbackFired = true;
+            if (goalCallback) {
+
+                let callbackGoal: PoseGoalMessage = {
+                    type: "goal",
+                    name: "pose",
+                    status: "failure",
+                    value: { ...pose }
+                }
+
+                // Get the current positions of each of the joints that were part of this goal
+                const newJointStates: Pose = {};
+                Object.keys(pose.goal.jointState).forEach((jointName) => {
+                    newJointStates[jointName as ValidJoints] = getJointValue(robot.jointState!, jointName as ValidJoints)
+                })
+
+                // Insert the current joint states into the goal while keeping everything else the same (id, name, etc.)
+                callbackGoal.value.goal.jointState = newJointStates;
+
+                goalCallback(callbackGoal)
+            }
+        }
+    })
+
     return goal
 }
 
 function makePoseGoal(pose: Pose, trajectoryClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
-    let jointNames = []
-    let jointPositions = []
+    let jointNames: ValidJoints[] = []
+    let jointPositions: number[] = []
     for (let key in pose) {
-        jointNames.push(key)
-        jointPositions.push(pose[key])
+        jointNames.push(key as ValidJoints)
+        jointPositions.push(pose[key as ValidJoints]!)
     }
 
     let newGoal = new ROSLIB.Goal({
@@ -665,7 +701,7 @@ function makeVelocityGoal(positions: VelocityGoalArray, velocities: VelocityGoal
 
 }
 
-function makeNavGoal(goal: NavGoalCommand, moveBaseClient: ROSLIB.ActionClient, goalCallback?: (goal: GoalMessage) => void) {
+function makeNavGoal(goal: NavGoalCommand, moveBaseClient: ROSLIB.ActionClient, robot: Robot, goalCallback?: (goal: GoalMessage) => void) {
     let newGoal = new ROSLIB.Goal({
         actionClient: moveBaseClient,
         goalMessage: {
@@ -701,10 +737,39 @@ function makeNavGoal(goal: NavGoalCommand, moveBaseClient: ROSLIB.ActionClient, 
             goalCallback({
                 type: "goal",
                 name: "nav",
+                status: "success",
                 value: goal
             })
         }
     });
+
+    let cancelCallbackFired = false;
+
+    newGoal.on("status", (status) => {
+        // Status Message Docs: http://docs.ros.org/en/fuerte/api/actionlib_msgs/html/msg/GoalStatus.html
+        // If status.status > 3, it was cancelled or failed
+        if (status.status > 3 && !cancelCallbackFired) {
+            console.log(goal.id, status.status);
+            cancelCallbackFired = true;
+            if (goalCallback) {
+
+                let callbackGoal: NavGoalMessage = {
+                    type: "goal",
+                    name: "nav",
+                    status: "failure",
+                    value: { ...goal }
+                }
+
+                callbackGoal.value.goal = {
+                    x: robot.baseTF?.translation.x!,
+                    y: robot.baseTF?.translation.y!,
+                    theta: quaternionToEuler(robot.baseTF?.rotation!, "YZX").z
+                }
+
+                goalCallback(callbackGoal)
+            }
+        }
+    })
 
     return newGoal
 
@@ -732,10 +797,10 @@ export function getJointValue(jointStateMessage: ROSJointState, jointName: Valid
 
 // Modified from: https://math.stackexchange.com/a/2975462
 function eulerToQuaternion(yaw: number, pitch: number, roll: number) {
-    const qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
-    const qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
-    const qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)
-    const qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+    const qx = Math.sin(roll / 2) * Math.cos(pitch / 2) * Math.cos(yaw / 2) - Math.cos(roll / 2) * Math.sin(pitch / 2) * Math.sin(yaw / 2)
+    const qy = Math.cos(roll / 2) * Math.sin(pitch / 2) * Math.cos(yaw / 2) + Math.sin(roll / 2) * Math.cos(pitch / 2) * Math.sin(yaw / 2)
+    const qz = Math.cos(roll / 2) * Math.cos(pitch / 2) * Math.sin(yaw / 2) - Math.sin(roll / 2) * Math.sin(pitch / 2) * Math.cos(yaw / 2)
+    const qw = Math.cos(roll / 2) * Math.cos(pitch / 2) * Math.cos(yaw / 2) + Math.sin(roll / 2) * Math.sin(pitch / 2) * Math.sin(yaw / 2)
     return {
         x: qx,
         y: qy,
