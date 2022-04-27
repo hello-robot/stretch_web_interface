@@ -164,16 +164,16 @@ export class OperatorComponent extends PageComponent {
 
 
         // Firebase Code
-        this.model = new FirebaseModel(undefined, (model) => {
-            this.modelReadyCallback(model)
-            this.settingsPane.configureAuthCallback(() => {
-                this.model.authenticate();
-            })
-        })
+        // this.model = new FirebaseModel(undefined, (model) => {
+        //     this.modelReadyCallback(model)
+        //     this.settingsPane.configureAuthCallback(() => {
+        //         this.model.authenticate();
+        //     })
+        // })
 
         // Local Storage Code
-        // this.model = new LocalStorageModel();
-        // this.modelReadyCallback(this.model)
+        this.model = new LocalStorageModel();
+        this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -562,7 +562,7 @@ export class OperatorComponent extends PageComponent {
         this.refs.get("recorder")!.disabled = null
         this.shadowRoot!.querySelectorAll("input[name=mode]").forEach(input => input.disabled = null)
 
-        const overhead = new VideoControl([]);
+        const overhead = new VideoControl();
         const pantilt = new VideoControl(new Map([["left", {
             title: "look left",
             label: "&#8592",
@@ -590,7 +590,7 @@ export class OperatorComponent extends PageComponent {
             this.robot!.goToPose({ joint_head_tilt: 0, joint_head_pan: 0 })
         }
         pantilt.setExtraContents(extraPanTiltButtons)
-        const gripper = new VideoControl([]);
+        const gripper = new VideoControl();
 
         this.controls = { "overhead": overhead, "pantilt": pantilt, "gripper": gripper }
         for (let [name, control] of Object.entries(this.controls)) {
