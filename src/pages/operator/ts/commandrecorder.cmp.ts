@@ -2,6 +2,7 @@ import { BaseComponent, Component } from "shared/base.cmp"
 import { Model } from "./model/model"
 import { cmd } from "shared/commands"
 import { RemoteRobot } from "./remoterobot"
+import { uuid } from "shared/util"
 
 const template = `
 <link href="/bootstrap.css" rel="stylesheet">
@@ -150,8 +151,8 @@ export class CommandRecorder extends BaseComponent {
         }
     }
 
-    completeGoal(goal: cmd) {
-        console.log("goal complete")
+    completeGoal(id: string) {
+        this.replayer?.completeGoal(id);
     }
 }
 
@@ -219,6 +220,8 @@ class Replay {
     timeOut?: PausableTimer
     cmdCallback: (cmd: cmd) => void
 
+    private pendingGoals: Map<uuid, () => void> = new Map()
+
     constructor(session: cmd[], cmdCallback: (cmd: cmd) => void) {
         this.session = session;
         this.curr_action = 0;
@@ -239,13 +242,25 @@ class Replay {
     }
 
     step() {
-        // Step forward in the action list
-        this.cmdCallback(this.session[this.curr_action]);
-        console.log(this.session[this.curr_action]);
-
-        if (this.curr_action + 1 < this.session.length) {
-            this.timeOut = new PausableTimer(this.step.bind(this), this.session[this.curr_action+1].timestamp! - this.session[this.curr_action].timestamp!);
-            this.curr_action += 1;
+        const action = this.session[this.curr_action];
+        if (action.type == "navGoal" || action.type == "poseGoal") {
+            this.cmdCallback(action);
+            const waitForGoal = new Promise<void>((resolve, reject) => {
+                this.pendingGoals.set(action.id, resolve);
+            })
+            console.log("waiting for goal")
+            waitForGoal.then(() => {
+                console.log("reached goal, moving onto next step")
+                this.curr_action += 1;
+                this.step;
+            })
+        } else {
+            this.cmdCallback(action);
+    
+            if (this.curr_action + 1 < this.session.length) {
+                this.timeOut = new PausableTimer(this.step.bind(this), this.session[this.curr_action+1].timestamp! - this.session[this.curr_action].timestamp!);
+                this.curr_action += 1;
+            }
         }
     }
 
@@ -260,5 +275,11 @@ class Replay {
         this.timeOut?.clearTimeout();
         this.timeOut = undefined;
         this.resume();
+    }
+
+    completeGoal(id: string) {
+        if (this.pendingGoals.has(id)) {
+            this.pendingGoals.get(id)!();
+        }
     }
 }

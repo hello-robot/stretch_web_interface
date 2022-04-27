@@ -1,5 +1,5 @@
 import ROSLIB, { Message, Quaternion } from "roslib";
-import { cmd } from "./commands";
+import { cmd, NavGoalCommand, PoseGoalCommand } from "./commands";
 
 export type uuid = string;
 // From: https://stackoverflow.com/a/2117523/6454085
@@ -71,16 +71,17 @@ function quaternionToEuler(q: Quaternion, order: string) {
 
 export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage;
 
-interface SensorMessage {
+export interface SensorMessage {
     type: "sensor",
     subtype: string,
+    name: string
     value: number | ROSLIB.Transform
 }
 
 export type GoalMessage =  {
     type: "goal",
     name: "pose" | "nav",
-    value: cmd
+    value: PoseGoalCommand | NavGoalCommand
 }
 
 interface StopMessage {

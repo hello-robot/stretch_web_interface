@@ -455,10 +455,10 @@ export class OperatorComponent extends PageComponent {
                 switch (message.name) {
                     case "nav":
                         this.mapInteractive?.clearGoal();
-                        this.commandRecorder?.completeGoal(message.value);
+                        this.commandRecorder?.completeGoal(message.value.id);
                         break;
                     case "pose":
-                        this.commandRecorder?.completeGoal(message.value);
+                        this.commandRecorder?.completeGoal(message.value.id);
                         break;
                 }
                 break;

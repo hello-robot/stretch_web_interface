@@ -1,10 +1,10 @@
 import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
 import { WebRTCConnection } from "shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";
-import {MapROS} from "./mapros.cmp";
-import {gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions} from "shared/video_dimensions";
-import {Transform} from "roslib";
-import { ROSJointState, ValidJoints, GoalMessage, WebRTCMessage } from "shared/util";
+import { MapROS } from "./mapros.cmp";
+import { gripperCrop, overheadNavCrop, realsenseDimensions, wideVideoDimensions } from "shared/video_dimensions";
+import { Transform } from "roslib";
+import { ROSJointState, ValidJoints, GoalMessage, WebRTCMessage, SensorMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 
 let audioInId;
@@ -146,27 +146,29 @@ function changeAudioDestination(element) {
 
 function forwardTF(frame: string, transform: Transform) {
     if (!connection) return;
-    let toSend = {
-        type: 'sensor',
-        name: 'transform',
-        value: transform
-    };
+
+    let subtype: string;
     if (frame === "link_gripper_finger_left") {
-        toSend.subtype = "gripper";
+        subtype = "gripper";
     } else if (frame === "camera_color_frame") {
-        toSend.subtype = "head";
+        subtype = "head";
     } else if (frame === "base_frame") {
-        toSend.subtype = "base";
+        subtype = "base";
     } else {
         return;
     }
-    // console.log(frame, transform);
+    let toSend: SensorMessage = {
+        type: 'sensor',
+        name: 'transform',
+        subtype: subtype,
+        value: transform
+    };
     connection.sendData(toSend);
 }
 
 function forwardJointStates(jointState: ROSJointState) {
     if (!connection) return;
-    let messages = []
+    let messages: SensorMessage[] = []
     // send wrist joint effort
     let effort = getJointEffort(jointState, 'joint_wrist_yaw');
     messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort })

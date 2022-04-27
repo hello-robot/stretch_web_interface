@@ -100,6 +100,8 @@ export class RemoteRobot {
 
     setNavGoal(goal: Pose2D) {
         let cmd: cmd = {type: "navGoal", goal: goal, id: generateUUID()};
+        this.robotChannel(cmd);
+        this.emitCommandEvent(cmd);
     }
 
     setPoseGoal(goal: NamedPose) {

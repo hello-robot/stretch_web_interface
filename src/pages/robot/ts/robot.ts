@@ -673,8 +673,8 @@ function makeNavGoal(goal: NavGoalCommand, moveBaseClient: ROSLIB.ActionClient, 
                 },
                 pose: {
                     position: {
-                        x: goal.goal.x
-                        y: goal.goal.y
+                        x: goal.goal.x,
+                        y: goal.goal.y,
                         z: 0
                     },
                     orientation: eulerToQuaternion(goal.goal.theta ? goal.goal.theta : 0, 0, 0)
