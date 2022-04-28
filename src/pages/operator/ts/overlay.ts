@@ -20,6 +20,8 @@ export interface Overlay {
 * Class for an SVG video overlay
 */
 export class OverlaySVG implements Overlay {
+    public Ready!: Promise<any>;
+
     regions: Map<string, Region>
     svg: SVGSVGElement
     stretchContainer: SVGSVGElement

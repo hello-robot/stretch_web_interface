@@ -41,14 +41,14 @@ export class ReachOverlay extends OverlayTHREE {
         super(camera);
         let reachCircle = new THREEObject(
             'reach_visualization_circle',
-            new THREE.RingGeometry(this.inner_reach, this.outer_reach, 32), 
-            new THREE.MeshBasicMaterial({color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25}),
+            new THREE.RingGeometry(this.inner_reach, this.outer_reach, 32),
+            new THREE.MeshBasicMaterial({ color: 'rgb(246, 179, 107)', transparent: true, opacity: 0.25 }),
         )
         this.addItem(reachCircle);
         let outlineEffect = new OutlineEffect(
             this.scene,
             this.camera,
-            {visibleEdgeColor: 0xff9900});
+            { visibleEdgeColor: 0xff9900 });
         let outlineEffectPass = new EffectPass(
             this.camera,
             outlineEffect
@@ -112,39 +112,43 @@ export class GripperOverlay extends OverlaySVG {
         let wristOutRect = makeRectangle(w - wrist_region_width, lift_region_height,
             wrist_region_width, h - (2.0 * lift_region_height));
 
-        this.createRegion("gripperClose", {
-            label: 'close hand',
-            poly: rectToPoly(fingertipRect),
-            iconImage: icon('gripper_close')
-        });
-        let regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
+        this.Ready = new Promise(async (resolve, reject) => {
+            this.createRegion("gripperClose", {
+                label: 'close hand',
+                poly: rectToPoly(fingertipRect),
+                iconImage: await icon('gripper_close')
+            });
+            let regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
             fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
             wristOutRect.ll, wristInRect.lr];
-        this.createRegion("gripperOpen", {
-            label: 'open hand',
-            poly: regionPoly,
-            iconImage: icon('gripper_open'),
-            iconPosition: {x: 70, y: 50}
-        });
-        this.createRegion("joint_wrist_yaw_pos", {
-            label: 'turn wrist in',
-            poly: rectToPoly(wristInRect),
-            iconImage: icon('turn_left')
-        });
-        this.createRegion("joint_wrist_yaw_neg", {
-            label: 'turn wrist out',
-            poly: rectToPoly(wristOutRect),
-            iconImage: icon('turn_right')
-        });
-        this.createRegion("joint_lift_pos", {
-            label: 'lift arm up',
-            poly: rectToPoly(liftUpRect),
-            iconImage: icon('arrow_up'),
-        });
-        this.createRegion("joint_lift_neg", {
-            label: 'lower arm down',
-            poly: rectToPoly(liftDownRect),
-            iconImage: icon('arrow_down'),
+            this.createRegion("gripperOpen", {
+                label: 'open hand',
+                poly: regionPoly,
+                iconImage: await icon('gripper_open'),
+                iconPosition: { x: 70, y: 50 }
+            });
+            this.createRegion("joint_wrist_yaw_pos", {
+                label: 'turn wrist in',
+                poly: rectToPoly(wristInRect),
+                iconImage: await icon('turn_left')
+            });
+            this.createRegion("joint_wrist_yaw_neg", {
+                label: 'turn wrist out',
+                poly: rectToPoly(wristOutRect),
+                iconImage: await icon('turn_right')
+            });
+            this.createRegion("joint_lift_pos", {
+                label: 'lift arm up',
+                poly: rectToPoly(liftUpRect),
+                iconImage: await icon('arrow_up'),
+            });
+            this.createRegion("joint_lift_neg", {
+                label: 'lower arm down',
+                poly: rectToPoly(liftDownRect),
+                iconImage: await icon('arrow_down'),
+            });
+
+            resolve(undefined);
         });
     }
 }
@@ -167,39 +171,42 @@ export class OverheadNavigationOverlay extends OverlaySVG {
             (2.0 * h / 3.0) - (mobile_base_height * 1.25),
             mobile_base_width * 1.5);
 
-        this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(baseRect)});
-        this.createRegion("translate_mobile_base_pos", {
-            label: 'drive forward',
-            poly: [bgRect.ul, bgRect.ur, baseRect.ur, baseRect.ul],
-            iconImage: icon("arrow_up")
+        this.Ready = new Promise(async (resolve, reject) => {
+            this.createRegion("doNothing", { label: 'do nothing', poly: rectToPoly(baseRect) });
+            this.createRegion("translate_mobile_base_pos", {
+                label: 'drive forward',
+                poly: [bgRect.ul, bgRect.ur, baseRect.ur, baseRect.ul],
+                iconImage: await icon("arrow_up")
+            });
+            this.createRegion("translate_mobile_base_neg", {
+                label: 'drive back',
+                poly: [bgRect.ll, bgRect.lr, baseRect.lr, baseRect.ll],
+                iconImage: await icon("arrow_down")
+            });
+            this.createRegion("rotate_mobile_base_pos", {
+                label: 'turn left',
+                poly: [bgRect.ul, baseRect.ul, baseRect.ll, bgRect.ll],
+                iconImage: await icon("turn_left")
+            });
+            this.createRegion("rotate_mobile_base_neg", {
+                label: 'turn right',
+                poly: [bgRect.ur, baseRect.ur, baseRect.lr, bgRect.lr],
+                iconImage: await icon("turn_right")
+            });
+            /*
+            this.createRegion("wrist_extension_neg", {
+                label: 'retract arm',
+                poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
+                iconImage: await icon("arrow_left")
+            });
+            this.createRegion("wrist_extension_pos", {
+                label: 'extend arm',
+                poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
+                iconImage: await icon("arrow_right")
+            });
+            */
+            resolve(undefined);
         });
-        this.createRegion("translate_mobile_base_neg", {
-            label: 'drive back',
-            poly: [bgRect.ll, bgRect.lr, baseRect.lr, baseRect.ll],
-            iconImage: icon("arrow_down")
-        });
-        this.createRegion("rotate_mobile_base_pos", {
-            label: 'turn left',
-            poly: [bgRect.ul, baseRect.ul, baseRect.ll, bgRect.ll],
-            iconImage: icon("turn_left")
-        });
-        this.createRegion("rotate_mobile_base_neg", {
-            label: 'turn right',
-            poly: [bgRect.ur, baseRect.ur, baseRect.lr, bgRect.lr],
-            iconImage: icon("turn_right")
-        });
-        /*
-        this.createRegion("wrist_extension_neg", {
-            label: 'retract arm',
-            poly: [bgRect.ul, navRect.ul, navRect.ll, bgRect.ll],
-            iconImage: icon("arrow_left")
-        });
-        this.createRegion("wrist_extension_pos", {
-            label: 'extend arm',
-            poly: [navRect.ur, bgRect.ur, bgRect.lr, navRect.lr],
-            iconImage: icon("arrow_right")
-        });
-        */
     }
 }
 
@@ -227,35 +234,39 @@ export class OverheadManipulationOverlay extends OverlaySVG {
         let baseBackwardRect = makeRectangle(turn_region_width + base_region_width, arm_region_height,
             base_region_width, h - (2.0 * arm_region_height));
 
-        this.createRegion("joint_wrist_yaw_pos", {
-            label: 'turn wrist in',
-            poly: rectToPoly(turnLeftRect),
-            iconImage: icon('turn_left')
-        });
-        this.createRegion("joint_wrist_yaw_neg", {
-            label: 'turn wrist out',
-            poly: rectToPoly(turnRightRect),
-            iconImage: icon('turn_right')
-        });
-        this.createRegion("translate_mobile_base_pos", {
-            label: 'drive base forward',
-            poly: rectToPoly(baseForwardRect),
-            iconImage: icon('arrow_left')
-        });
-        this.createRegion("translate_mobile_base_neg", {
-            label: 'drive base backward',
-            poly: rectToPoly(baseBackwardRect),
-            iconImage: icon('arrow_right')
-        });
-        this.createRegion("wrist_extension_neg", {
-            label: 'retract arm',
-            poly: rectToPoly(armRetractRect),
-            iconImage: icon('arrow_down_left')
-        });
-        this.createRegion("wrist_extension_pos", {
-            label: 'extend arm',
-            poly: rectToPoly(armExtendRect),
-            iconImage: icon('arrow_up_right')
+        this.Ready = new Promise(async (resolve, reject) => {
+            this.createRegion("joint_wrist_yaw_pos", {
+                label: 'turn wrist in',
+                poly: rectToPoly(turnLeftRect),
+                iconImage: await icon('turn_left')
+            });
+            this.createRegion("joint_wrist_yaw_neg", {
+                label: 'turn wrist out',
+                poly: rectToPoly(turnRightRect),
+                iconImage: await icon('turn_right')
+            });
+            this.createRegion("translate_mobile_base_pos", {
+                label: 'drive base forward',
+                poly: rectToPoly(baseForwardRect),
+                iconImage: await icon('arrow_left')
+            });
+            this.createRegion("translate_mobile_base_neg", {
+                label: 'drive base backward',
+                poly: rectToPoly(baseBackwardRect),
+                iconImage: await icon('arrow_right')
+            });
+            this.createRegion("wrist_extension_neg", {
+                label: 'retract arm',
+                poly: rectToPoly(armRetractRect),
+                iconImage: await icon('arrow_down_left')
+            });
+            this.createRegion("wrist_extension_pos", {
+                label: 'extend arm',
+                poly: rectToPoly(armExtendRect),
+                iconImage: await icon('arrow_up_right')
+            });
+
+            resolve(undefined);
         });
     }
 }
@@ -271,7 +282,7 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         const baseRect = makeSquare(0, 0, w);
         this.w = w;
         this.h = w;
-        this.createRegion("clickNavigate", {label: 'clickNavigate', poly: rectToPoly(baseRect)});
+        this.createRegion("clickNavigate", { label: 'clickNavigate', poly: rectToPoly(baseRect) });
     }
 
     normalizeAngle(angle: number) {
@@ -286,51 +297,53 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
     }
 
     drawRotateIcon(name) {
-        this.createTraj({iconImage: icon(name)});
+        icon(name).then(i => {
+            this.createTraj({ iconImage: i })
+        })
     }
 
-    drawArc(x: number, y: number, startHeading: number, goalHeading: number, circle=true) {
+    drawArc(x: number, y: number, startHeading: number, goalHeading: number, circle = true) {
         const largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
-        const sweepFlag = goalHeading < Math.PI/2 ? "0" : "1";
-        const sign = goalHeading < Math.PI/2 ? 1 : -1;
+        const sweepFlag = goalHeading < Math.PI / 2 ? "0" : "1";
+        const sign = goalHeading < Math.PI / 2 ? 1 : -1;
         let diffHeading = Math.abs(goalHeading - startHeading)
         // If user clicked behind the robot, offset trajectory
         let y_offset = y > 80 ? 10 : 0
 
         // Left wheel traj
-        let end_angle = this.normalizeAngle(goalHeading + (Math.PI/2 - sign*diffHeading))
+        let end_angle = this.normalizeAngle(goalHeading + (Math.PI / 2 - sign * diffHeading))
         let x1 = 39
         let y1 = 70 + y_offset
-        let x2 = y > 80 ? x1 : x+6.5*Math.cos(end_angle);
-        let y2 = y > 80 ? 95 : y+6.5*Math.sin(end_angle);
-        let q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
-        let r = (q/2)/(1 - Math.cos(diffHeading))
+        let x2 = y > 80 ? x1 : x + 6.5 * Math.cos(end_angle);
+        let y2 = y > 80 ? 95 : y + 6.5 * Math.sin(end_angle);
+        let q = Math.sqrt(Math.pow(Math.abs(x1 - x2), 2) + Math.pow(Math.abs(y1 - y2), 2))
+        let r = (q / 2) / (1 - Math.cos(diffHeading))
         let leftTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
 
         // Center traj
-        end_angle = this.normalizeAngle(startHeading + diffHeading/2);
+        end_angle = this.normalizeAngle(startHeading + diffHeading / 2);
         x1 = 45
         y1 = 70 + y_offset
-        x2 = y > 80 ? x1 : x+Math.cos(end_angle);
-        y2 = y > 80 ? 95 : y+Math.sin(end_angle);
-        q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
-        r = (q/2)/(1 - Math.cos(diffHeading))
+        x2 = y > 80 ? x1 : x + Math.cos(end_angle);
+        y2 = y > 80 ? 95 : y + Math.sin(end_angle);
+        q = Math.sqrt(Math.pow(Math.abs(x1 - x2), 2) + Math.pow(Math.abs(y1 - y2), 2))
+        r = (q / 2) / (1 - Math.cos(diffHeading))
         let centerTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
 
         // Right wheel traj
-        end_angle = this.normalizeAngle(goalHeading - (Math.PI/2 + sign*diffHeading))
+        end_angle = this.normalizeAngle(goalHeading - (Math.PI / 2 + sign * diffHeading))
         x1 = 51
         y1 = 70 + y_offset
-        x2 = y > 80 ? x1 : x+6.5*Math.cos(end_angle);
-        y2 = y > 80 ? 95 : y+6.5*Math.sin(end_angle);
-        q = Math.sqrt(Math.pow(Math.abs(x1-x2), 2) + Math.pow(Math.abs(y1-y2), 2))
-        r = (q/2)/(1 - Math.cos(diffHeading))
+        x2 = y > 80 ? x1 : x + 6.5 * Math.cos(end_angle);
+        y2 = y > 80 ? 95 : y + 6.5 * Math.sin(end_angle);
+        q = Math.sqrt(Math.pow(Math.abs(x1 - x2), 2) + Math.pow(Math.abs(y1 - y2), 2))
+        r = (q / 2) / (1 - Math.cos(diffHeading))
         let rightTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
 
         // Circle center
-        let center = circle ? {x: x, y: y} : null;
+        let center = circle ? { x: x, y: y } : null;
         let icon = null;
-        this.createTraj({icon, leftTraj, centerTraj, rightTraj, center});
+        this.createTraj({ icon, leftTraj, centerTraj, rightTraj, center });
     }
 }
 
@@ -347,39 +360,42 @@ export class PanTiltNavigationOverlay extends OverlaySVG {
         let leftRect = makeSquare(0, h - cornerRectSize, cornerRectSize);
         let rightRect = makeSquare(w - cornerRectSize, h - cornerRectSize, cornerRectSize);
 
-        this.createRegion("doNothing", {label: 'do nothing', poly: rectToPoly(smRect)});
-        this.createRegion("translate_mobile_base_pos", {
-            label: 'drive forward',
-            poly: [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul],
-            iconImage: icon("arrow_up")
-        });
-        this.createRegion("translate_mobile_base_neg", {
-            label: 'drive backward',
-            // poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
-            poly: [leftRect.ul, leftRect.ll, rightRect.lr, rightRect.ur, smRect.lr, smRect.ll],
-            iconImage: icon("arrow_down")
-        });
-        this.createRegion("rotate_mobile_base_pos", {
-            label: 'turn left',
-            poly: [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul],
-            iconImage: icon("turn_left")
-        });
-        this.createRegion("rotate_mobile_base_neg", {
-            label: 'turn right',
-            poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
-            iconImage: icon("turn_right")
-        });
-        // this.createRegion("turnCCW", {
-        //     label: 'turn 90 degrees CCW',
-        //     poly: rectToPoly(leftRect),
-        //     iconImage: icon("rotate_ccw")
-        // });
-        // this.createRegion("turnCW", {
-        //     label: 'turn 90 degrees CW',
-        //     poly: rectToPoly(rightRect),
-        //     iconImage: icon("rotate_cw")
-        // });
+        this.Ready = new Promise(async (resolve, reject) => {
+            this.createRegion("doNothing", { label: 'do nothing', poly: rectToPoly(smRect) });
+            this.createRegion("translate_mobile_base_pos", {
+                label: 'drive forward',
+                poly: [bgRect.ul, bgRect.ur, smRect.ur, smRect.ul],
+                iconImage: await icon("arrow_up")
+            });
+            this.createRegion("translate_mobile_base_neg", {
+                label: 'drive backward',
+                // poly: [leftRect.ur, leftRect.lr, rightRect.ll, rightRect.ul, smRect.lr, smRect.ll],
+                poly: [leftRect.ul, leftRect.ll, rightRect.lr, rightRect.ur, smRect.lr, smRect.ll],
+                iconImage: await icon("arrow_down")
+            });
+            this.createRegion("rotate_mobile_base_pos", {
+                label: 'turn left',
+                poly: [bgRect.ul, smRect.ul, smRect.ll, leftRect.ur, leftRect.ul],
+                iconImage: await icon("turn_left")
+            });
+            this.createRegion("rotate_mobile_base_neg", {
+                label: 'turn right',
+                poly: [bgRect.ur, smRect.ur, smRect.lr, rightRect.ul, rightRect.ur],
+                iconImage: await icon("turn_right")
+            });
+            // this.createRegion("turnCCW", {
+            //     label: 'turn 90 degrees CCW',
+            //     poly: rectToPoly(leftRect),
+            //     iconImage: await icon("rotate_ccw")
+            // });
+            // this.createRegion("turnCW", {
+            //     label: 'turn 90 degrees CW',
+            //     poly: rectToPoly(rightRect),
+            //     iconImage: await icon("rotate_cw")
+            // });
 
+            resolve(undefined);
+        });
     }
 }
 
@@ -401,55 +417,58 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let leftRect2 = makeRectangle(0, 5.0 * h / 6.0, w / 2.0, h / 6.0);
         let rightRect2 = makeRectangle(w / 2.0, 5.0 * h / 6.0, w / 2.0, h / 6.0);
 
-        this.createRegion("joint_lift_pos", {
-            label: 'lift arm',
-            poly: rectToPoly(tpRect),
-            iconImage: icon('arrow_up')
-        })
-        this.createRegion("joint_lift_neg", {
-            label: 'lower arm',
-            poly: rectToPoly(btRect),
-            iconImage: icon('arrow_down')
-        });
-        this.createRegion("wrist_extension_pos", {
-            label: 'extend arm',
-            poly: [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul],
-            iconImage: icon('arrow_up_right')
-        });
-        this.createRegion("wrist_extension_neg", {
-            label: 'retract arm',
-            poly: [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll],
-            iconImage: icon('arrow_down_left')
-        });
-        this.createRegion("translate_mobile_base_pos", {
-            label: 'drive forward',
-            poly: [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll],
-            iconImage: icon('arrow_left')
-        });
-        this.createRegion("translate_mobile_base_neg", {
-            label: 'drive backward',
-            poly: [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr],
-            iconImage: icon('arrow_right')
-        });
-        this.createRegion("joint_wrist_yaw_pos", {
-            label: 'turn hand in',
-            poly: rectToPoly(leftRect),
-            iconImage: icon('turn_left')
-        });
-        this.createRegion("joint_wrist_yaw_neg", {
-            label: 'turn hand out',
-            poly: rectToPoly(rightRect),
-            iconImage: icon('turn_right')
-        });
-        this.createRegion("gripperClose", {
-            label: 'close hand',
-            poly: rectToPoly(leftRect2),
-            iconImage: '/operator/images/gripper_close.svg'
-        });
-        this.createRegion("gripperOpen", {
-            label: 'open hand',
-            poly: rectToPoly(rightRect2),
-            iconImage: icon('gripper_open')
+        this.Ready = new Promise(async (resolve, reject) => {
+            this.createRegion("joint_lift_pos", {
+                label: 'lift arm',
+                poly: rectToPoly(tpRect),
+                iconImage: await icon('arrow_up')
+            })
+            this.createRegion("joint_lift_neg", {
+                label: 'lower arm',
+                poly: rectToPoly(btRect),
+                iconImage: await icon('arrow_down')
+            });
+            this.createRegion("wrist_extension_pos", {
+                label: 'extend arm',
+                poly: [bgRect.ul, bgRect.ur, tpRect.ur, tpRect.ul],
+                iconImage: await icon('arrow_up_right')
+            });
+            this.createRegion("wrist_extension_neg", {
+                label: 'retract arm',
+                poly: [bgRect.ll, bgRect.lr, btRect.lr, btRect.ll],
+                iconImage: await icon('arrow_down_left')
+            });
+            this.createRegion("translate_mobile_base_pos", {
+                label: 'drive forward',
+                poly: [bgRect.ul, tpRect.ul, btRect.ll, bgRect.ll],
+                iconImage: await icon('arrow_left')
+            });
+            this.createRegion("translate_mobile_base_neg", {
+                label: 'drive backward',
+                poly: [bgRect.ur, tpRect.ur, btRect.lr, bgRect.lr],
+                iconImage: await icon('arrow_right')
+            });
+            this.createRegion("joint_wrist_yaw_pos", {
+                label: 'turn hand in',
+                poly: rectToPoly(leftRect),
+                iconImage: await icon('turn_left')
+            });
+            this.createRegion("joint_wrist_yaw_neg", {
+                label: 'turn hand out',
+                poly: rectToPoly(rightRect),
+                iconImage: await icon('turn_right')
+            });
+            this.createRegion("gripperClose", {
+                label: 'close hand',
+                poly: rectToPoly(leftRect2),
+                iconImage: await icon('gripper_close')
+            });
+            this.createRegion("gripperOpen", {
+                label: 'open hand',
+                poly: rectToPoly(rightRect2),
+                iconImage: await icon('gripper_open')
+            });
+            resolve(undefined);
         });
     }
 
@@ -562,8 +581,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 }
 
-function icon(name: string) {
-    return `/operator/images/${name}.svg`
+async function icon(name: string) {
+    return (await import(/* webpackMode: "eager" */ `../images/${name}.svg`)).default
 }
 
 function rosPostoTHREE(p: ROSLIB.Vector3) {
