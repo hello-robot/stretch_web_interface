@@ -327,16 +327,18 @@ export class Robot {
             newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
         }
         newJointValue = newJointValue + jointValueInc
-        
-        // Make sure new joint value is within limits
-        let minJointVal = JOINT_LIMITS[jointName][0]
-        let maxJointVal = JOINT_LIMITS[jointName][1]
-        if (newJointValue > maxJointVal) {
-            newJointValue = maxJointVal;
-        } else if (newJointValue < minJointVal) {
-            newJointValue = minJointVal;
+
+        if (jointName in JOINT_LIMITS) {
+            // Make sure new joint value is within limits
+            let minJointVal = JOINT_LIMITS[jointName][0]
+            let maxJointVal = JOINT_LIMITS[jointName][1]
+            if (newJointValue > maxJointVal) {
+                newJointValue = maxJointVal;
+            } else if (newJointValue < minJointVal) {
+                newJointValue = minJointVal;
+            }
         }
-        
+
         let pose = { [jointName]: newJointValue }
         if (!this.trajectoryClient) throw 'trajectoryClient is undefined';
         return makePoseGoal(pose, this.trajectoryClient)
