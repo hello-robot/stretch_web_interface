@@ -193,8 +193,8 @@ for (let [groupName, groups] of Object.entries(RemoteRobot.COMMANDS)) {
 class RobotSensors {
     sensors: { [group: string]: { [key: string]: number | ROSLIB.Transform | undefined } } = {
         //"drive": {},
-        "lift": { "effort": undefined },
-        "arm": { "effort": undefined },
+        "lift": { "inJointLimits": undefined },
+        "arm": { "inJointLimits": undefined },
         // Yaw effort is primary, bend and roll are for dex wrist only
         "wrist": { "effort": undefined, "bend_torque": undefined, "roll_torque": undefined },
         "gripper": { "effort": undefined, "transform": undefined },

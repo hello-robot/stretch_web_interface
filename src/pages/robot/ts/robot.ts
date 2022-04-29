@@ -4,7 +4,7 @@ import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export const JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
-    "wrist_extension": [0, .51],
+    "wrist_extension": [0, .518],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0.15, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
@@ -810,6 +810,16 @@ export function getJointValue(jointStateMessage: ROSJointState, jointName: Valid
     return jointStateMessage.position[jointIndex]
 }
 
+export function inJointLimits(jointStateMessage, jointName) {
+    let jointValue = getJointValue(jointStateMessage, jointName)
+    let jointLimits = JOINT_LIMITS[jointName]
+    var eps = 0.05
+    let inLimits = []
+
+    jointValue - eps >= jointLimits[0] ? inLimits.push(true) : inLimits.push(false)
+    jointValue + eps <= jointLimits[1] ? inLimits.push(true) : inLimits.push(false)
+    return inLimits
+}
 
 // Modified from: https://math.stackexchange.com/a/2975462
 function eulerToQuaternion(yaw: number, pitch: number, roll: number) {
