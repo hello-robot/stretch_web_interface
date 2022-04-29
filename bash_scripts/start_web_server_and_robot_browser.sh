@@ -14,7 +14,7 @@ sudo systemctl start redis.service
 cd ../
 sudo --preserve-env node ./bin/www &
 
-roscd stretch_web_interface/
+npm run start &
 node ./start_robot_browser.js
 set +x
 echo "finished attempt at bringing up the desktop development environment"
