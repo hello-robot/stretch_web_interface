@@ -262,16 +262,3 @@ input[type="range"] {
 #settings-continuous-speed, #settings-step-size {
     display: none;
 }
-
-#googleSignInButton {
-    width: 0px;
-    height: 0px;
-    padding: 1.2em 5em;
-    background: url("../../shared/assets/web/2x/btn_google_signin_light_normal_web@2x.png");
-    background-size: cover;
-    cursor: pointer;
-}
-
-#googleSignOutButton:focus {
-    background: url("../../shared/assets/web/2x/btn_google_signin_light_focus_web@2x.png");
-}

@@ -1,3 +1,9 @@
+import { insertCSS } from "./util";
+
+import * as bootstrap from "bootstrap/dist/css/bootstrap.min.css"
+
+export const bootstrapCSS = bootstrap.default;
+
 /**
  * Decorator for components
  * - Register the element in the custom element registry
@@ -7,20 +13,18 @@
  */
 export function Component(name: string, cssLink?: string) {
     return function (constructor: Function) {
-        constructor.prototype.cssLink = cssLink;
+        constructor.prototype.name = name;
 
         // Register component
         customElements.define(name, constructor as any);
 
         // Prefetch Style
         if (cssLink) {
-            const link = document.createElement('link');
-            link.setAttribute('rel', 'prefetch');
-            link.setAttribute('href', cssLink);
-            document.head.append(link);
+            constructor.prototype.cssLink = cssLink;
+            insertCSS(cssLink)
+            console.log(name, constructor.prototype.cssLink)
         }
     }
-
 }
 
 /**
@@ -30,7 +34,7 @@ export function Component(name: string, cssLink?: string) {
 export class BaseComponent extends HTMLElement {
 
     cssLink?: string;
-    refs: Map<string, HTMLElement> = new Map();
+    refs: Map<string, Element> = new Map();
 
     constructor(html = '', makeVisible = true, useShadowRoot = true) {
         // Call parent
@@ -41,27 +45,19 @@ export class BaseComponent extends HTMLElement {
             this.attachShadow({ mode: 'open' });
         }
 
-        // Create some CSS to apply to the shadow dom
-        const { cssLink } = this.constructor.prototype;
-        if (cssLink) {
-            const link = document.createElement('link');
-            link.setAttribute('rel', 'stylesheet');
-            link.setAttribute('href', cssLink);
-            link.onload = () => {
-                if (makeVisible) {
-                    this.style.visibility = 'visible';
+        setTimeout(() => {
+            // Create some CSS to apply to the shadow dom
+            const { cssLink } = this.constructor.prototype;
+            console.log(this.constructor.prototype.name, cssLink == undefined)
+            if (cssLink) {
+                // console.log(this.constructor.prototype.name)
+                if (useShadowRoot) {
+                    insertCSS(cssLink, this.shadowRoot);
+                } else {
+                    insertCSS(cssLink, this);
                 }
             }
-            link.onerror = () => {
-                throw new Error(`Fail to load stylesheet for ${this.constructor.name}. 
-        CSS Link : ${cssLink}`);
-            };
-            if (useShadowRoot) {
-                this.shadowRoot?.append(link);
-            } else {
-                this.append(link);
-            }
-        }
+        }, 10)
 
         // Build the node
         const container = document.createElement('div');
@@ -91,7 +87,7 @@ export class BaseComponent extends HTMLElement {
 
         // Either this element is meant to be hidden, or we need
         // to make it visible later after css loads
-        if (!makeVisible || cssLink && makeVisible) {
+        if (!makeVisible) {
             this.style.visibility = 'hidden';
         }
     }

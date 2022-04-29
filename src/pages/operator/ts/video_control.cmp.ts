@@ -1,8 +1,8 @@
-import {BaseComponent, Component} from "shared/base.cmp"
+import {BaseComponent, bootstrapCSS, Component} from "shared/base.cmp"
 import { Overlay } from "./overlay";
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div id="top" class="control-button">
     <button  class="btn btn-secondary"></button>
 </div>
@@ -21,7 +21,8 @@ const template = `
 </div>
 `;
 
-@Component('video-control', '/operator/css/video-control.css')
+import * as styles from '../css/video-control.css';
+@Component('video-control', styles)
 export class VideoControl extends BaseComponent {
     overlays: Map<string, [Overlay]> = new Map();
     overlayResizeNotifier: ResizeObserver;

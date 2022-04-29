@@ -1,15 +1,17 @@
-import {BaseComponent, Component} from "shared/base.cmp"
-import {ManipulationSettings} from "./manipulationsettings.cmp";
-import {NavigationSettings} from "./navigationsettings.cmp";
-import {Modal} from "bootstrap";
+import { BaseComponent, bootstrapCSS, Component } from "shared/base.cmp"
+import { ManipulationSettings } from "./manipulationsettings.cmp";
+import { NavigationSettings } from "./navigationsettings.cmp";
+import { Modal } from "bootstrap";
 
+
+import * as settingsCSS from '../css/settings.css';
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <!-- SETTINGS -->
 <div class="modal fade bd-example-modal-lg" id="settings" tabindex="-1" role="dialog" aria-labelledby="settingsTitle"
      aria-hidden="true" data-ref="modal-container">
-    <link href="/operator/css/settings.css" rel="stylesheet">
+    <style>${settingsCSS.default}</style>
     <div class="alert alert-success alert-dismissible show fade d-none" role="alert" data-ref="settings-save-alert">
       Profile saved
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -169,7 +171,8 @@ const template = `
 </div>
 `;
 
-@Component('settings-modal', '/operator/css/settings.css')
+import * as styles from '../css/settings.css';
+@Component('settings-modal', styles)
 export class SettingsModal extends BaseComponent {
     modalContainer: HTMLElement
     modal: Modal

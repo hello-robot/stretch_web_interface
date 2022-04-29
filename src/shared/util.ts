@@ -167,3 +167,10 @@ export interface Pose2D {
     y: number,
     theta?: number
 }
+
+export async function insertCSS(cssLink: string, location: Element = document.head) {
+    const style = document.createElement('style');
+    style.textContent = (await cssLink).default;
+    location.append(style);
+    return style;
+}

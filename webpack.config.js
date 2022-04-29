@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+
 
 const pages = ['robot', 'operator'];
 
@@ -18,7 +20,9 @@ module.exports = {
             chunks: "all",
         },
     },
-    plugins: [].concat(
+    plugins: [
+        new CleanWebpackPlugin(),
+    ].concat(
         pages.map(
             (page) =>
                 new HtmlWebpackPlugin({
@@ -42,7 +46,10 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|jpeg|gif)$/i,
                 type: 'asset/resource',
-            }
+            },{
+                test: /\.css$/i,
+                type: 'asset/source',
+            },
         ],
     },
     resolve: {

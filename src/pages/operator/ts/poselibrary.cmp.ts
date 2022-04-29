@@ -1,8 +1,8 @@
-import {BaseComponent, Component} from "shared/base.cmp"
+import {BaseComponent, bootstrapCSS, Component} from "shared/base.cmp"
 import { NamedPose } from "shared/util"
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="container-fluid d-flex flex-row px-0 gap-2">
 
 <button

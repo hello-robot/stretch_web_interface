@@ -9,7 +9,7 @@ import {
     TrajectoryOverlay
 } from "./overlay";
 import * as THREE from "three";
-import { OutlineEffect, EffectPass } from "postprocessing"
+import { OutlineEffect, EffectPass } from "postprocessing";
 import * as ROSLIB from "roslib";
 
 const global_rotation_point = new THREE.Vector3(

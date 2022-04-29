@@ -1,3 +1,14 @@
+import { insertCSS } from "shared/util";
+
+import * as style from "../../../style.css";
+import * as bootstrap from "bootstrap/dist/css/bootstrap.min.css"
+import * as robotCss from "../css/robot.css"
+
+insertCSS(style);
+insertCSS(bootstrap)
+insertCSS(robotCss)
+
+
 import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
 import { WebRTCConnection } from "shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";

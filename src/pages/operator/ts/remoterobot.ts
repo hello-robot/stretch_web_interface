@@ -213,7 +213,8 @@ class RobotSensors {
         }
     }
 
-    listenToKeyChange(group: string, key: string, listener: (value?: number | ROSLIB.Transform) => void) {
+    // TODO (kavidey): make this a proper generic type so we know what the input to the callback will be
+    listenToKeyChange<T = "effort" | "transform">(group: string, key: string, listener: (value?: number | ROSLIB.Transform) => void) {
         this.listeners[group][key].push(listener)
     }
 

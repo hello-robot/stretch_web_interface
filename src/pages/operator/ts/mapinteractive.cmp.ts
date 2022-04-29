@@ -11,7 +11,8 @@ const template = `
 </div>
 `
 
-@Component("map-interactive", '/operator/css/map-interactive.css')
+import * as styles from '../css/map-interactive.css';
+@Component("map-interactive", styles)
 export class MapInteractive extends BaseComponent {
     mapImg: HTMLImageElement
     mapCanvas: HTMLCanvasElement

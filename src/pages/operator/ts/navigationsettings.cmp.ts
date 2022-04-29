@@ -1,9 +1,9 @@
-import {BaseComponent, Component} from "shared/base.cmp";
+import {BaseComponent, bootstrapCSS, Component} from "shared/base.cmp";
 import {configureNamedInputs} from "./settings.cmp";
 
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="nav-tab-container" data-ref="nav-tab-container">
     <fieldset class="row mb-3">
         <legend class="col-form-label col-sm-2 tab-legend">Control Display</legend>
@@ -42,8 +42,8 @@ const template = `
     </fieldset>
 </div>
 `;
-
-@Component('navigation-settings', '/operator/css/navigationsettings.css')
+import * as styles from '../css/navigationsettings.css';
+@Component('navigation-settings', styles)
 export class NavigationSettings extends BaseComponent {
     container: HTMLDivElement
     constructor() {

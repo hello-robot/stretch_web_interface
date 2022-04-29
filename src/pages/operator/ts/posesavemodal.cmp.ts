@@ -1,9 +1,9 @@
-import {BaseComponent, Component} from "shared/base.cmp";
+import {BaseComponent, bootstrapCSS, Component} from "shared/base.cmp";
 import {Modal} from "bootstrap";
 import { NamedPose, Pose } from "shared/util";
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="modal fade" tabIndex="-1" role="dialog" aria-labelledby="posesTitle"
                       aria-hidden="true" data-ref="modal-container">
     <div class="modal-dialog modal-dialog-centered" role="document">

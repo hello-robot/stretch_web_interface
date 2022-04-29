@@ -1,12 +1,12 @@
-import { BaseComponent, Component } from "shared/base.cmp"
+import { BaseComponent, Component, bootstrapCSS } from "shared/base.cmp"
 import { Model } from "./model/model"
 import { CancelledGoalCommand, cmd, NavGoalCommand, PoseGoalCommand } from "shared/commands"
 import { RemoteRobot } from "./remoterobot"
 import { uuid } from "shared/util"
-import {Modal} from "bootstrap";
+import { Modal } from "bootstrap";
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="input-group input-group-sm">
     <button class="btn btn-primary btn-sm" type="button" data-ref="setup-stop-recording">Record</button>    
     <select data-ref="play-session" class="form-select form-select-sm" aria-label="Play session" disabled>

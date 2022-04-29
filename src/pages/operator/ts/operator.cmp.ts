@@ -15,7 +15,7 @@ import {
     ReachOverlay
 } from "./stretchoverlays";
 import { MapInteractive } from "./mapinteractive.cmp";
-import { Component } from "shared/base.cmp";
+import { bootstrapCSS, Component } from "shared/base.cmp";
 import { PerspectiveCamera } from "three";
 import { cmd } from "shared/commands"
 import ROSLIB from "roslib";
@@ -28,7 +28,7 @@ import { CommandRecorder } from "./commandrecorder.cmp";
 import { PoseLibrary } from "./poselibrary.cmp";
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="mode-buttons px-3 py-3 d-flex justify-content-left">
     <div class="d-flex flex-fill justify-content-start ">
         <div class="btn-group" role="group" aria-label="Select mode" id="mode-toggle" data-ref="mode-toggle">
@@ -103,7 +103,8 @@ const template = `
 <settings-modal data-ref="settings"></settings-modal>
 `;
 
-@Component('operator-page', '/operator/css/operator.css')
+import * as operatorCSS from '../css/operator.css';
+@Component('operator-page', operatorCSS)
 export class OperatorComponent extends PageComponent {
     title = '';
     controls = {}

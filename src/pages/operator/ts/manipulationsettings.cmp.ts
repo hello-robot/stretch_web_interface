@@ -1,9 +1,9 @@
-import {BaseComponent, Component} from "shared/base.cmp";
+import {BaseComponent, bootstrapCSS, Component} from "shared/base.cmp";
 import {configureNamedInputs} from "./settings.cmp";
 
 
 const template = `
-<link href="/bootstrap.css" rel="stylesheet">
+<style>${bootstrapCSS}</style>
 <div class="manip-tab-container" data-ref="manip-tab-container">
     <fieldset class="row mb-3">
         <legend class="col-form-label col-sm-2 tab-legend"><br/>Action Mode</legend>
@@ -31,7 +31,9 @@ const template = `
 </div>
 `;
 
-@Component('manipulation-settings', '/operator/css/manipulationsettings.css')
+import * as styles from '../css/manipulationsettings.css';
+
+@Component('manipulation-settings', styles)
 export class ManipulationSettings extends BaseComponent {
     container: HTMLDivElement
     constructor() {
