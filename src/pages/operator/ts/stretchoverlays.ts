@@ -472,6 +472,47 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         });
     }
 
+    updateLiftJointLimits(value) {
+        let armUpRegion = this.regions.get("joint_lift_pos").path
+        let armDownRegion = this.regions.get("joint_lift_neg").path
+        this.updateJointLimits(value, armDownRegion, armUpRegion)
+    }
+
+    updateExtensionJointLimits(value) {
+        let armExtendRegion = this.regions.get("wrist_extension_pos").path
+        let armRetractRegion = this.regions.get("wrist_extension_neg").path
+        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
+    }
+
+    updateJointLimits(value, region1, region2) {
+        let redRegion;
+        let nothingRegion;
+        if (!value[0]) {
+            redRegion = region1
+            nothingRegion = region2
+        } else if (!value[1]) {
+            redRegion = region2
+            nothingRegion = region1
+        }
+
+        if (redRegion) {
+            redRegion.setAttribute('fill', 'red');
+            redRegion.setAttribute('fill-opacity', 0.3);
+        } 
+
+        if (nothingRegion) { 
+            nothingRegion.setAttribute('fill', 'white');
+            nothingRegion.setAttribute('fill-opacity', 0.0);
+        }
+
+        if (!redRegion && !nothingRegion) {
+            region1.setAttribute('fill', 'white');
+            region1.setAttribute('fill-opacity', 0.0);
+            region2.setAttribute('fill', 'white');
+            region2.setAttribute('fill-opacity', 0.0);
+        }
+    }
+    
     updateLiftEffort(value: number) {
         // adjust for the effort needed to hold the arm in place
         // against gravity
