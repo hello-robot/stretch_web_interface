@@ -185,7 +185,7 @@ function forwardJointStates(jointState: ROSJointState) {
 
     // effort = getJointEffort(jointState, 'joint_lift');
     // messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort })
-    inLimits = inJointLimits(jointState, 'joint_lift')
+    let inLimits = inJointLimits(jointState, 'joint_lift')
     messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
 
     // effort = getJointEffort(jointState, 'joint_arm_l0');
