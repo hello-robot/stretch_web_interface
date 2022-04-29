@@ -342,13 +342,10 @@ export class OperatorComponent extends PageComponent {
         let displayMode = this.model.getSetting("displayMode", "nav")
         if (currMode === "nav" && displayMode === "predictive-display") {
             this.robot?.setBaseMode("navigation")
-            return
-        }
-
-        if (actionMode === "incremental") {
-            this.robot?.setBaseMode("position")
-        } else {
+        } else if ( currMode === "nav" &&actionMode === "incremental") {
             this.robot?.setBaseMode("navigation")
+        } else {
+            this.robot?.setBaseMode("position")
         }
     }
 
@@ -791,6 +788,7 @@ export class OperatorComponent extends PageComponent {
                                 }, 10)
                                 resolve()
                             }
+                            reject()
                         })
                         promise.then(() => document.body.addEventListener("mouseup", stopAction));
                     } 
