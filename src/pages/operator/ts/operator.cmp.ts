@@ -777,23 +777,25 @@ export class OperatorComponent extends PageComponent {
             let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
-                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
-                        // When mouse is up, delete trajectory
-                        document.body.addEventListener("mouseup", stopAction);
-                    } else if (this.activeVelocityAction) {
-                        stopAction(event);
-                        return
-                    }
-
                     // Update trajectory when mouse moves
                     overheadControl.addEventListener("mousemove", updateAction);
 
-                    // Execute trajectory as long as mouse is held down using last position of cursor
-                    this.velocityExecutionHeartbeat = window.setInterval(() => {
-                        overheadClickNavOverlay.removeTraj();
-                        this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
-                    }, 10);
+                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
 
+                        // Execute trajectory as long as mouse is held down using last position of cursor
+                        const promise = new Promise((resolve, reject) => {
+                            if (!this.activeVelocityAction) {
+                                this.velocityExecutionHeartbeat = window.setInterval(() => {
+                                    overheadClickNavOverlay.removeTraj();
+                                    this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                                }, 10)
+                                resolve()
+                            }
+                        })
+                        promise.then(() => document.body.addEventListener("mouseup", stopAction));
+                    } else if (this.activeVelocityAction) {
+                        stopAction(event);
+                    }
                 } else {
                     // action mode is incremental/step actions
                     // execute trajectory once
