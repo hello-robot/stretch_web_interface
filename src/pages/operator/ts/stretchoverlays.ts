@@ -552,7 +552,7 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     updateWristJointLimits(value) {
         let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
         let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
-        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
+        this.updateJointLimits(value, yawOutRegion, yawInRegion);
     }
 
     updateGripperEffort(value: number) {
