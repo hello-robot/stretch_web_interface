@@ -71,6 +71,34 @@ export class OverlaySVG implements Overlay {
         this.svg.style.display = ""
     }
 
+    updateJointLimits(value, region1, region2) {
+        let redRegion;
+        let nothingRegion;
+        if (!value[0]) {
+            redRegion = region1
+            nothingRegion = region2
+        } else if (!value[1]) {
+            redRegion = region2
+            nothingRegion = region1
+        }
+
+        if (redRegion) {
+            redRegion.setAttribute('fill', 'red');
+            redRegion.setAttribute('fill-opacity', 0.3);
+        } 
+
+        if (nothingRegion) { 
+            nothingRegion.setAttribute('fill', 'white');
+            nothingRegion.setAttribute('fill-opacity', 0.0);
+        }
+
+        if (!redRegion && !nothingRegion) {
+            region1.setAttribute('fill', 'white');
+            region1.setAttribute('fill-opacity', 0.0);
+            region2.setAttribute('fill', 'white');
+            region2.setAttribute('fill-opacity', 0.0);
+        }
+    }
 }
 
 export class TrajectoryOverlay extends OverlaySVG {

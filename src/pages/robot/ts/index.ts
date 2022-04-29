@@ -9,7 +9,7 @@ insertCSS(bootstrap)
 insertCSS(robotCss)
 
 
-import { ALL_JOINTS, getJointEffort, getJointValue, Robot } from "./robot";
+import { ALL_JOINTS, getJointEffort, inJointLimits, getJointValue, Robot } from "./robot";
 import { WebRTCConnection } from "shared/webrtcconnection";
 import { TransformedVideoStream } from "./videostream.cmp";
 import { MapROS } from "./mapros.cmp";
@@ -88,6 +88,13 @@ robot.connect().then(() => {
             }
         });
         return processedJointPositions
+    });
+    connection.registerRequestResponder("inJointLimits", async () => {
+        let processedJointLimits = {};
+        Object.keys(JOINT_LIMITS).forEach((key, i) => {
+            processedJointLimits[key] = inJointLimits(robot.jointState, key)
+        });
+        return processedJointLimits
     });
     connection.registerRequestResponder('mapView', async () => {
         const mapData = await mapROS.getMap();
@@ -188,11 +195,15 @@ function forwardJointStates(jointState: ROSJointState) {
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
     effort_messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
 
-    effort = getJointEffort(jointState, 'joint_lift');
-    effort_messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort })
+    let inLimits = inJointLimits(jointState, 'joint_lift')
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
 
-    effort = getJointEffort(jointState, 'joint_arm_l0');
-    effort_messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort })
+    inLimits = inJointLimits(jointState, 'wrist_extension')
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
+
+    inLimits = inJointLimits(jointState, 'joint_wrist_yaw')
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
+
     connection.sendData(effort_messages);
 
     let values: RobotPose = {}

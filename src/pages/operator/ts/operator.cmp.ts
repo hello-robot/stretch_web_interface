@@ -343,13 +343,10 @@ export class OperatorComponent extends PageComponent {
         let displayMode = this.model.getSetting("displayMode", "nav")
         if (currMode === "nav" && displayMode === "predictive-display") {
             this.robot?.setBaseMode("navigation")
-            return
-        }
-
-        if (actionMode === "incremental") {
-            this.robot?.setBaseMode("position")
-        } else {
+        } else if ( currMode === "nav" && actionMode === "incremental") {
             this.robot?.setBaseMode("navigation")
+        } else {
+            this.robot?.setBaseMode("position")
         }
     }
 
@@ -697,33 +694,56 @@ export class OperatorComponent extends PageComponent {
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
         ptManipOverlay.Ready.then(() => {
-            this.robot!.sensors.listenToKeyChange("lift", "effort", value => {
-                ptManipOverlay.updateLiftEffort(value)
+            this.robot.sensors!.listenToKeyChange("lift", "inJointLimits", value => {
+                ptManipOverlay.updateLiftJointLimits(value)
             })
-            this.robot!.sensors.listenToKeyChange("arm", "effort", value => {
-                ptManipOverlay.updateExtensionEffort(value)
+            this.robot.sensors!.listenToKeyChange("arm", "inJointLimits", value => {
+                ptManipOverlay.updateExtensionJointLimits(value)
             })
-            this.robot!.sensors.listenToKeyChange("gripper", "effort", value => {
+            this.robot.sensors!.listenToKeyChange("wrist", "inJointLimits", value => {
+                ptManipOverlay.updateWristJointLimits(value)
+            })
+            this.robot.sensors!.listenToKeyChange("gripper", "effort", value => {
                 ptManipOverlay.updateGripperEffort(value)
             })
             this.robot!.sensors.listenToKeyChange("wrist", "effort", value => {
                 ptManipOverlay.updateWristEffort(value)
             })
         })
-
         pantilt.addOverlay(reachOverlayTHREE, "all");
         pantilt.addOverlay(ptNavOverlay, 'nav');
         pantilt.addOverlay(ptManipOverlay, 'manip');
 
-        let overheadNavOverlay = new OverheadNavigationOverlay(1);
         let overheadManipOverlay = new OverheadManipulationOverlay(1);
+        overheadManipOverlay.Ready.then(() => {
+            this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
+                overheadManipOverlay.updateExtensionJointLimits(value)
+            })
+        })
+        overhead.addOverlay(overheadManipOverlay, 'manip');
+
+        let overheadNavOverlay = new OverheadNavigationOverlay(1);
         let overheadClickNavOverlay = new OverheadClickNavigationOverlay(1);
         overhead.addOverlay(overheadNavOverlay, 'nav');
-        overhead.addOverlay(overheadManipOverlay, 'manip');
         overhead.addOverlay(overheadClickNavOverlay, 'clickNav');
 
         let gripperOverlay = new GripperOverlay(1);
+        gripperOverlay.Ready.then(() => {
+            this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+                gripperOverlay.updateLiftJointLimits(value)
+            })
+            this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
+                gripperOverlay.updateGripperEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+                gripperOverlay.updateWristEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+                ptManipOverlay.updateWristJointLimits(value)
+            })
+        })
         gripper.addOverlay(gripperOverlay, 'all');
+
         this.setMode('nav')
         this.updateNavDisplay()
 
@@ -774,30 +794,43 @@ export class OperatorComponent extends PageComponent {
             mouseMoveY = y;
 
             // Remove old event handlers
-            overheadControl.removeEventListener('mouseup', stopAction);
             overheadControl.removeEventListener('mousemove', updateAction);
             overheadControl.removeEventListener('mousemove', drawTraj);
             let namespace = 'nav'
             let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", namespace) === "predictive-display" && mode === 'nav') {
                 if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
-                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
-                        // When mouse is up, delete trajectory
-                        document.body.addEventListener("mouseup", stopAction);
-                    } else if (this.activeVelocityAction) {
-                        stopAction(event);
-                        return
-                    }
-
                     // Update trajectory when mouse moves
                     overheadControl.addEventListener("mousemove", updateAction);
 
-                    // Execute trajectory as long as mouse is held down using last position of cursor
-                    this.velocityExecutionHeartbeat = window.setInterval(() => {
-                        overheadClickNavOverlay.removeTraj();
-                        this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
-                    }, 10);
-
+                    if (this.model.getSetting("startStopMode", namespace) === "press-release") {
+                        // Execute trajectory as long as mouse is held down using last position of cursor
+                        // Wait for predictive trajectory calculation to complete before creating mouseup
+                        // event (handles repeated clicking)
+                        const promise = new Promise((resolve, reject) => {
+                            if (!this.activeVelocityAction) {
+                                this.velocityExecutionHeartbeat = window.setInterval(() => {
+                                    overheadClickNavOverlay.removeTraj();
+                                    this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                                }, 10)
+                                resolve()
+                            }
+                            reject()
+                        })
+                        promise.then(() => document.body.addEventListener("mouseup", stopAction));
+                    }
+                    // Click-click mode: if action is being executed stop it
+                    else if (this.activeVelocityAction) {
+                        stopAction(event);
+                    }
+                    // Click-click mode: if no action start new action
+                    else {
+                        document.body.removeEventListener('mouseup', stopAction);
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            overheadClickNavOverlay.removeTraj();
+                            this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                        }, 10)
+                    }
                 } else {
                     // action mode is incremental/step actions
                     // execute trajectory once

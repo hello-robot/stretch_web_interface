@@ -151,6 +151,62 @@ export class GripperOverlay extends OverlaySVG {
             resolve(undefined);
         });
     }
+
+    updateLiftJointLimits(value) {
+        let armUpRegion = this.regions.get("joint_lift_pos").path
+        let armDownRegion = this.regions.get("joint_lift_neg").path
+        this.updateJointLimits(value, armDownRegion, armUpRegion)
+    }
+
+    updateGripperEffort(value: number) {
+        let handCloseRegion = this.regions.get("gripperClose")!.path
+        let handOpenRegion = this.regions.get("gripperOpen")!.path
+        if (handCloseRegion && handOpenRegion) {
+            let redRegion;
+            let nothingRegion;
+            if (value > 0.0) {
+                redRegion = handOpenRegion;
+                nothingRegion = handCloseRegion;
+            } else {
+                redRegion = handCloseRegion;
+                nothingRegion = handOpenRegion;
+            }
+
+            // make the torque positive and multiply it by a factor to
+            // make sure the video will     always be visible even with
+            let redOpacity = Math.abs(value) * 0.015;
+            if (redRegion) {
+                redRegion.setAttribute('fill', 'red');
+                redRegion.setAttribute('fill-opacity', String(redOpacity));
+            }
+            if (nothingRegion) {
+                nothingRegion.setAttribute('fill', 'white');
+                nothingRegion.setAttribute('fill-opacity', "0.0");
+            }    
+        }
+    }
+
+    updateWristEffort(value: number) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")!.path
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")!.path
+        if (yawInRegion && yawOutRegion) {
+            let redRegion;
+            let nothingRegion;
+            if (value > 0.0) {
+                redRegion = yawOutRegion;
+                nothingRegion = yawInRegion;
+            } else {
+                redRegion = yawInRegion;
+                nothingRegion = yawOutRegion;
+            }
+            redRegion.setAttribute('fill', 'red');
+            // make the torque positive and multiply it by a factor to
+            // make sure the video will always be visible even with
+            let redOpacity = Math.abs(value) * 0.015;
+            redRegion.setAttribute('fill-opacity', String(redOpacity));
+            nothingRegion.setAttribute('fill-opacity', "0.0");
+        }
+    }
 }
 
 export class OverheadNavigationOverlay extends OverlaySVG {
@@ -268,6 +324,15 @@ export class OverheadManipulationOverlay extends OverlaySVG {
 
             resolve(undefined);
         });
+    }
+
+    // [TODO: Vinitha] Duplicated code with PanTiltManipulationOverlay; 
+    // figure how to share code
+
+    updateExtensionJointLimits(value) {
+        let armExtendRegion = this.regions.get("wrist_extension_pos").path
+        let armRetractRegion = this.regions.get("wrist_extension_neg").path
+        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
     }
 }
 
@@ -472,62 +537,22 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         });
     }
 
-    updateLiftEffort(value: number) {
-        // adjust for the effort needed to hold the arm in place
-        // against gravity
-        let adjusted_value = value - 53.88;
-        let armUpRegion1 = this.regions.get("joint_lift_pos")!.path
-        let armDownRegion1 = this.regions.get("joint_lift_neg")!.path
-        let redRegion1;
-        let nothingRegion1;
-
-        if (adjusted_value > 0.0) {
-            redRegion1 = armUpRegion1;
-            nothingRegion1 = armDownRegion1;
-        } else {
-            redRegion1 = armDownRegion1;
-            nothingRegion1 = armUpRegion1;
-        }
-        // make the torque positive and multiply it by a factor to
-        // make sure the video will always be visible even with
-        let redOpacity = Math.abs(adjusted_value) * 0.005;
-
-        if (redRegion1) {
-            redRegion1.setAttribute('fill', 'red');
-            redRegion1.setAttribute('fill-opacity', String(redOpacity));
-        }
-
-        if (nothingRegion1)
-            nothingRegion1.setAttribute('fill-opacity', "0.0");
+    updateLiftJointLimits(value) {
+        let armUpRegion = this.regions.get("joint_lift_pos").path
+        let armDownRegion = this.regions.get("joint_lift_neg").path
+        this.updateJointLimits(value, armDownRegion, armUpRegion)
     }
 
-    updateExtensionEffort(value: number) {
-        let redRegion1;
-        let nothingRegion1;
+    updateExtensionJointLimits(value) {
+        let armExtendRegion = this.regions.get("wrist_extension_pos").path
+        let armRetractRegion = this.regions.get("wrist_extension_neg").path
+        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
+    }
 
-        let armExtendRegion1 = this.regions.get("wrist_extension_pos")!.path
-        let armRetractRegion1 = this.regions.get("wrist_extension_neg")!.path
-
-        if (value > 0.0) {
-            redRegion1 = armExtendRegion1;
-            nothingRegion1 = armRetractRegion1;
-        } else {
-            redRegion1 = armRetractRegion1;
-            nothingRegion1 = armExtendRegion1;
-        }
-
-        // make the torque positive and multiply it by a factor to
-        // make sure the video will always be visible even with
-
-        let redOpacity = Math.abs(value) * 0.005;
-
-        if (redRegion1) {
-            redRegion1.setAttribute('fill', 'red');
-            redRegion1.setAttribute('fill-opacity', String(redOpacity));
-        }
-
-        if (nothingRegion1)
-            nothingRegion1.setAttribute('fill-opacity', "0.0");
+    updateWristJointLimits(value) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
+        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
     }
 
     updateGripperEffort(value: number) {
@@ -563,10 +588,11 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         if (yawInRegion && yawOutRegion) {
             let redRegion;
             let nothingRegion;
+            value = value - 1.0
             if (value > 0.0) {
                 redRegion = yawOutRegion;
                 nothingRegion = yawInRegion;
-            } else {
+            } else if (value < 0) {
                 redRegion = yawInRegion;
                 nothingRegion = yawOutRegion;
             }
@@ -575,9 +601,9 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
             // make sure the video will always be visible even with
             let redOpacity = Math.abs(value) * 0.015;
             redRegion.setAttribute('fill-opacity', String(redOpacity));
+            nothingRegion.setAttribute('white', 'red');
             nothingRegion.setAttribute('fill-opacity', "0.0");
         }
-
     }
 }
 
