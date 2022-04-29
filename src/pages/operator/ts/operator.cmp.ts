@@ -781,8 +781,9 @@ export class OperatorComponent extends PageComponent {
                     overheadControl.addEventListener("mousemove", updateAction);
 
                     if (this.model.getSetting("startStopMode", namespace) === "press-release") {
-
                         // Execute trajectory as long as mouse is held down using last position of cursor
+                        // Wait for predictive trajectory calculation to complete before creating mouseup
+                        // event (handles repeated clicking)
                         const promise = new Promise((resolve, reject) => {
                             if (!this.activeVelocityAction) {
                                 this.velocityExecutionHeartbeat = window.setInterval(() => {
@@ -793,8 +794,17 @@ export class OperatorComponent extends PageComponent {
                             }
                         })
                         promise.then(() => document.body.addEventListener("mouseup", stopAction));
-                    } else if (this.activeVelocityAction) {
+                    } 
+                    // Click-click mode: if action is being executed stop it
+                    else if (this.activeVelocityAction) {
                         stopAction(event);
+                    } 
+                    // Click-click mode: if no action start new action
+                    else {
+                        this.velocityExecutionHeartbeat = window.setInterval(() => {
+                            overheadClickNavOverlay.removeTraj();
+                            this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
+                        }, 10)
                     }
                 } else {
                     // action mode is incremental/step actions
