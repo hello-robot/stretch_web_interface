@@ -770,7 +770,6 @@ export class OperatorComponent extends PageComponent {
             mouseMoveY = y;
 
             // Remove old event handlers
-            overheadControl.removeEventListener('mouseup', stopAction);
             overheadControl.removeEventListener('mousemove', updateAction);
             overheadControl.removeEventListener('mousemove', drawTraj);
             let namespace = 'nav'
@@ -801,6 +800,7 @@ export class OperatorComponent extends PageComponent {
                     } 
                     // Click-click mode: if no action start new action
                     else {
+                        document.body.removeEventListener.removeEventListener('mouseup', stopAction);
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             overheadClickNavOverlay.removeTraj();
                             this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
