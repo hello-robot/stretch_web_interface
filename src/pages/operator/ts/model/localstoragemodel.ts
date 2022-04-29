@@ -127,7 +127,8 @@ export class LocalStorageModel extends Model {
         this.logComand({
 			type: "startSession",
             username: username,
-            settings: this.getSettings()
+            settings: this.getSettings(),
+            timestamp: new Date().getTime()
 		});
     }
 
@@ -136,6 +137,7 @@ export class LocalStorageModel extends Model {
 
         this.logComand({
 			type: "stopSession",
+            timestamp: new Date().getTime()
 		});
     }
 

@@ -1,4 +1,4 @@
-import { insertCSS } from "shared/util";
+import { insertCSS, JointStateMessage, RobotPose } from "shared/util";
 
 import * as style from "../../../style.css";
 import * as bootstrap from "bootstrap/dist/css/bootstrap.min.css"
@@ -81,7 +81,7 @@ robot.connect().then(() => {
         onMessage: handleMessage
     })
     connection.registerRequestResponder("jointState", async () => {
-        let processedJointPositions = {};
+        let processedJointPositions: {[key in ValidJoints]?: number} = {};
         ALL_JOINTS.forEach((key, _) => {
             if (robot.jointState) {
                 processedJointPositions[key] = getJointValue(robot.jointState, key)
@@ -186,24 +186,35 @@ function forwardTF(frame: string, transform: Transform) {
 
 function forwardJointStates(jointState: ROSJointState) {
     if (!connection) return;
-    let messages: SensorMessage[] = []
+
+    let effort_messages: SensorMessage[] = []
     // send wrist joint effort
     let effort = getJointEffort(jointState, 'joint_wrist_yaw');
-    messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort })
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'effort', 'value': effort })
 
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
-    messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
 
     let inLimits = inJointLimits(jointState, 'joint_lift')
-    messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
 
     inLimits = inJointLimits(jointState, 'wrist_extension')
-    messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
 
     inLimits = inJointLimits(jointState, 'joint_wrist_yaw')
-    messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
 
-    connection.sendData(messages);
+    connection.sendData(effort_messages);
+
+    let values: RobotPose = {}
+    jointState.name.forEach(name => {
+        values[name!] = getJointValue(jointState, name!);
+    })
+
+    connection.sendData({
+        type: 'jointState',
+        jointState: values
+    });
 }
 
 function forwardGoalState(goal: GoalMessage) {

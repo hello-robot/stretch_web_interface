@@ -30,7 +30,7 @@ export class WebRTCConnection {
     private isSettingRemoteAnswerPending = false
 
     private onConnectionEnd: () => void
-    private onMessage: (obj: WebRTCMessage) => void
+    private onMessage: (obj: WebRTCMessage | WebRTCMessage[]) => void
     private onMessageChannelOpen: () => void
     private onTrackAdded: (ev: RTCTrackEvent) => void
     private onRequestChannelOpen: () => void
@@ -42,7 +42,7 @@ export class WebRTCConnection {
         // TODO: make these placeholder functions match the definitions above
         onConnectionStart = () => { },
         onConnectionEnd = () => { },
-        onMessage = (message: WebRTCMessage) => { },
+        onMessage = (message: WebRTCMessage | WebRTCMessage[]) => { },
         onMessageChannelOpen = () => { },
         onTrackAdded = (ev: RTCTrackEvent) => { },
         onAvailableRobotsChanged = (available_robots: AvailableRobots) => { },
@@ -287,7 +287,7 @@ export class WebRTCConnection {
     // initial code licensed with Apache License 2.0
     ////////////////////////////////////////////////////////////
 
-    sendData(obj: WebRTCMessage) {
+    sendData(obj: WebRTCMessage | WebRTCMessage[]) {
         if (!this.messageChannel || (this.messageChannel.readyState !== 'open')) {
             //console.warn("Trying to send data, but data channel isn't ready")
             return;
@@ -297,7 +297,7 @@ export class WebRTCConnection {
     }
 
     onReceiveMessageCallback(event: { data: string }) {
-        const obj: WebRTCMessage = safelyParseJSON(event.data);
+        const obj: WebRTCMessage | WebRTCMessage[] = safelyParseJSON(event.data);
         if (this.onMessage) this.onMessage(obj)
     }
 

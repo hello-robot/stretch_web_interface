@@ -263,7 +263,8 @@ export class FirebaseModel extends Model {
 		return this.logComand({
 			type: "startSession",
 			username: username,
-			settings: this.getSettings()
+			settings: this.getSettings(),
+            timestamp: new Date().getTime()
 		});
 	}
 
@@ -273,6 +274,7 @@ export class FirebaseModel extends Model {
 		}
 		this.logComand({
 			type: "stopSession",
+            timestamp: new Date().getTime()
 		})
 
 		this.sid = "";

@@ -69,13 +69,17 @@ export function quaternionToEuler(q: Quaternion, order: string) {
     }
 }
 
-export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage;
+export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage | JointStateMessage;
 
 export interface SensorMessage {
     type: "sensor",
     subtype: string,
-    name: string
+    name: "effort" | "transform" | "value",
     value: number | ROSLIB.Transform
+}
+export interface JointStateMessage {
+    type: "jointState",
+    jointState: RobotPose
 }
 
 export type GoalMessage =  NavGoalMessage | PoseGoalMessage;
@@ -117,19 +121,12 @@ export type ValidJoints = 'joint_head_tilt' | 'joint_head_pan' | 'joint_gripper_
 
 export type navModes = 'nav' | 'manip' | 'clickNav';
 
-export type Pose = { [key in ValidJoints]?: number }
+export type RobotPose = { [key in ValidJoints]?: number }
 
 export interface NamedPose {
     name: string,
     description: string,
-    jointState: Pose
-}
-
-export interface JointState {
-    'type': 'sensor',
-    'subtype': 'wrist' | 'gripper' | 'lift' | 'arm',
-    'name': 'effort',
-    'value': number
+    jointState: RobotPose
 }
 
 export interface ROSCompressedImage extends Message {
