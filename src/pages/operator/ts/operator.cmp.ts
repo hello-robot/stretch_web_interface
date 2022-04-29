@@ -166,16 +166,16 @@ export class OperatorComponent extends PageComponent {
 
 
         // Firebase Code
-        // this.model = new FirebaseModel(undefined, (model) => {
-        //     this.modelReadyCallback(model)
-        //     this.settingsPane.configureAuthCallback(() => {
-        //         this.model.authenticate();
-        //     })
-        // })
+        this.model = new FirebaseModel(undefined, (model) => {
+            this.modelReadyCallback(model)
+            this.settingsPane.configureAuthCallback(() => {
+                this.model.authenticate();
+            })
+        })
 
         // Local Storage Code
-        this.model = new LocalStorageModel();
-        this.modelReadyCallback(this.model)
+        // this.model = new LocalStorageModel();
+        // this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -458,7 +458,7 @@ export class OperatorComponent extends PageComponent {
         }
     }
 
-    handleMessage(message: WebRTCMessage) {
+    handleMessage(message: WebRTCMessage | WebRTCMessage[]) {
         if (message instanceof Array) {
             for (const subMessage of message) {
                 this.handleMessage(subMessage)
@@ -503,6 +503,9 @@ export class OperatorComponent extends PageComponent {
                         }
                         break;
                 }
+                break;
+            case 'jointState':
+                this.robot!.sensors.setJointState(message.jointState);
                 break;
             default:
                 console.error("Unknown message type", message.type)
@@ -689,21 +692,21 @@ export class OperatorComponent extends PageComponent {
         var ptNavOverlay = new PanTiltNavigationOverlay(1);
         var reachOverlayTHREE = new ReachOverlay(threeCamera);
         this.robot.sensors.listenToKeyChange("head", "transform", (transform) => {
-            reachOverlayTHREE.updateTransform(transform as ROSLIB.Transform)
+            reachOverlayTHREE.updateTransform(transform)
         })
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
         ptManipOverlay.Ready.then(() => {
-            this.robot.sensors.listenToKeyChange("lift", "effort", value => {
+            this.robot!.sensors.listenToKeyChange("lift", "effort", value => {
                 ptManipOverlay.updateLiftEffort(value)
             })
-            this.robot.sensors.listenToKeyChange("arm", "effort", value => {
+            this.robot!.sensors.listenToKeyChange("arm", "effort", value => {
                 ptManipOverlay.updateExtensionEffort(value)
             })
-            this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
+            this.robot!.sensors.listenToKeyChange("gripper", "effort", value => {
                 ptManipOverlay.updateGripperEffort(value)
             })
-            this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+            this.robot!.sensors.listenToKeyChange("wrist", "effort", value => {
                 ptManipOverlay.updateWristEffort(value)
             })
         })
@@ -934,7 +937,7 @@ export class OperatorComponent extends PageComponent {
         this.updateNavDisplay()
 
         // Pass a reference of robot to the command recorder so it can playback actions
-        this.commandRecorder.setupPlayback(this.robot);
+        this.commandRecorder!.setupPlayback(this.robot);
     }
 
     requestChannelReadyCallback() {
@@ -950,8 +953,7 @@ export class OperatorComponent extends PageComponent {
         });
 
         this.robot?.sensors.listenToKeyChange("base", "transform", (value) => {
-            // TODO (kavidey): find a way to do runtime type checking and verify that value is the correct type
-            this.mapInteractive!.updateMapDisplay(value as ROSLIB.Transform);
+            this.mapInteractive!.updateMapDisplay(value);
         })
     }
 }
