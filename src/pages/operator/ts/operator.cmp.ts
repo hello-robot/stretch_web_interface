@@ -800,7 +800,7 @@ export class OperatorComponent extends PageComponent {
                     } 
                     // Click-click mode: if no action start new action
                     else {
-                        document.body.removeEventListener.removeEventListener('mouseup', stopAction);
+                        document.body.removeEventListener('mouseup', stopAction);
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             overheadClickNavOverlay.removeTraj();
                             this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
