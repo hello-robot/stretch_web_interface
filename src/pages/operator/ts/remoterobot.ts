@@ -196,7 +196,7 @@ class RobotSensors {
         "lift": { "inJointLimits": undefined },
         "arm": { "inJointLimits": undefined },
         // Yaw effort is primary, bend and roll are for dex wrist only
-        "wrist": { "effort": undefined, "bend_torque": undefined, "roll_torque": undefined },
+        "wrist": { "effort": undefined, "inJointLimits": undefined, "bend_torque": undefined, "roll_torque": undefined },
         "gripper": { "effort": undefined, "transform": undefined },
         "head": { "transform": undefined },
         "base": { "transform": undefined }

@@ -200,6 +200,9 @@ function forwardJointStates(jointState: ROSJointState) {
     inLimits = inJointLimits(jointState, 'wrist_extension')
     messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
 
+    inLimits = inJointLimits(jointState, 'joint_wrist_yaw')
+    messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
+
     connection.sendData(messages);
 }
 

@@ -697,6 +697,9 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
                 ptManipOverlay.updateExtensionJointLimits(value)
             })
+            this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+                ptManipOverlay.updateWristJointLimits(value)
+            })
             this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
                 ptManipOverlay.updateGripperEffort(value)
             })
@@ -731,6 +734,9 @@ export class OperatorComponent extends PageComponent {
             })
             this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
                 gripperOverlay.updateWristEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+                ptManipOverlay.updateWristJointLimits(value)
             })
         })
         gripper.addOverlay(gripperOverlay, 'all');
