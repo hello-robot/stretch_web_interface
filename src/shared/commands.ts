@@ -84,9 +84,11 @@ interface ConfigureGripperCommand extends Command {
 interface StartSessionCommand extends Command {
     type: "startSession",
     username: string,
-    settings: Settings
+    settings: Settings,
+    timestamp: number
 }
 
 interface StopSessionCommand extends Command {
     type: "stopSession",
+    timestamp: number
 }
