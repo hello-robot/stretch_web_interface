@@ -342,7 +342,7 @@ export class OperatorComponent extends PageComponent {
         let displayMode = this.model.getSetting("displayMode", "nav")
         if (currMode === "nav" && displayMode === "predictive-display") {
             this.robot?.setBaseMode("navigation")
-        } else if ( currMode === "nav" &&actionMode === "incremental") {
+        } else if ( currMode === "nav" && actionMode === "incremental") {
             this.robot?.setBaseMode("navigation")
         } else {
             this.robot?.setBaseMode("position")
@@ -689,14 +689,19 @@ export class OperatorComponent extends PageComponent {
         })
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
-        this.robot.sensors.listenToKeyChange("lift", "effort", value => {
-            ptManipOverlay.updateLiftEffort(value)
-        })
+        // this.robot.sensors.listenToKeyChange("lift", "effort", value => {
+        //     ptManipOverlay.updateLiftEffort(value)
+        // })
 
-        this.robot.sensors.listenToKeyChange("arm", "effort", value => {
-            ptManipOverlay.updateExtensionEffort(value)
+        // this.robot.sensors.listenToKeyChange("arm", "effort", value => {
+        //     ptManipOverlay.updateExtensionEffort(value)
+        // })
+        this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+            ptManipOverlay.updateLiftJointLimits(value)
         })
-
+        this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
+            ptManipOverlay.updateExtensionJointLimits(value)
+        })
         this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
             ptManipOverlay.updateGripperEffort(value)
         })
