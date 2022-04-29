@@ -691,13 +691,6 @@ export class OperatorComponent extends PageComponent {
 
         let ptManipOverlay = new PanTiltManipulationOverlay(1);
         ptManipOverlay.Ready.then(() => {
-            // this.robot.sensors.listenToKeyChange("lift", "effort", value => {
-            //     ptManipOverlay.updateLiftEffort(value)
-            // })
-
-            // this.robot.sensors.listenToKeyChange("arm", "effort", value => {
-            //     ptManipOverlay.updateExtensionEffort(value)
-            // })
             this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
                 ptManipOverlay.updateLiftJointLimits(value)
             })
@@ -707,7 +700,6 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
                 ptManipOverlay.updateGripperEffort(value)
             })
-
             this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
                 ptManipOverlay.updateWristEffort(value)
             })
@@ -716,15 +708,33 @@ export class OperatorComponent extends PageComponent {
         pantilt.addOverlay(ptNavOverlay, 'nav');
         pantilt.addOverlay(ptManipOverlay, 'manip');
 
-        let overheadNavOverlay = new OverheadNavigationOverlay(1);
         let overheadManipOverlay = new OverheadManipulationOverlay(1);
+        overheadManipOverlay.Ready.then(() => {
+            this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
+                overheadManipOverlay.updateExtensionJointLimits(value)
+            })
+        })
+        overhead.addOverlay(overheadManipOverlay, 'manip');
+
+        let overheadNavOverlay = new OverheadNavigationOverlay(1);
         let overheadClickNavOverlay = new OverheadClickNavigationOverlay(1);
         overhead.addOverlay(overheadNavOverlay, 'nav');
-        overhead.addOverlay(overheadManipOverlay, 'manip');
         overhead.addOverlay(overheadClickNavOverlay, 'clickNav');
 
         let gripperOverlay = new GripperOverlay(1);
+        gripperOverlay.Ready.then(() => {
+            this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+                gripperOverlay.updateLiftJointLimits(value)
+            })
+            this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
+                gripperOverlay.updateGripperEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+                gripperOverlay.updateWristEffort(value)
+            })
+        })
         gripper.addOverlay(gripperOverlay, 'all');
+
         this.setMode('nav')
         this.updateNavDisplay()
 

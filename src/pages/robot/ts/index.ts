@@ -194,13 +194,9 @@ function forwardJointStates(jointState: ROSJointState) {
     effort = getJointEffort(jointState, 'joint_gripper_finger_left');
     messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'effort', 'value': effort })
 
-    // effort = getJointEffort(jointState, 'joint_lift');
-    // messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'effort', 'value': effort })
     let inLimits = inJointLimits(jointState, 'joint_lift')
     messages.push({ 'type': 'sensor', 'subtype': 'lift', 'name': 'inJointLimits', 'value': inLimits })
 
-    // effort = getJointEffort(jointState, 'joint_arm_l0');
-    // messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'effort', 'value': effort })
     inLimits = inJointLimits(jointState, 'wrist_extension')
     messages.push({ 'type': 'sensor', 'subtype': 'arm', 'name': 'inJointLimits', 'value': inLimits })
 
