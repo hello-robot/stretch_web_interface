@@ -736,7 +736,7 @@ export class OperatorComponent extends PageComponent {
                 gripperOverlay.updateWristEffort(value)
             })
             this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
-                ptManipOverlay.updateWristJointLimits(value)
+                gripperOverlay.updateWristJointLimits(value)
             })
         })
         gripper.addOverlay(gripperOverlay, 'all');
