@@ -153,9 +153,19 @@ export class GripperOverlay extends OverlaySVG {
     }
 
     updateLiftJointLimits(value) {
-        let armUpRegion = this.regions.get("joint_lift_pos").path
-        let armDownRegion = this.regions.get("joint_lift_neg").path
-        this.updateJointLimits(value, armDownRegion, armUpRegion)
+        let armUpRegion = this.regions.get("joint_lift_pos")
+        let armDownRegion = this.regions.get("joint_lift_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, armDownRegion, armUpRegion, img)
+        })
+    }
+
+    updateWristJointLimits(value) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, yawOutRegion, yawInRegion, img);
+        })
     }
 
     updateGripperEffort(value: number) {
@@ -330,9 +340,19 @@ export class OverheadManipulationOverlay extends OverlaySVG {
     // figure how to share code
 
     updateExtensionJointLimits(value) {
-        let armExtendRegion = this.regions.get("wrist_extension_pos").path
-        let armRetractRegion = this.regions.get("wrist_extension_neg").path
-        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
+        let armExtendRegion = this.regions.get("wrist_extension_pos")
+        let armRetractRegion = this.regions.get("wrist_extension_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, armRetractRegion, armExtendRegion, img)
+        })
+    }
+
+    updateWristJointLimits(value) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, yawOutRegion, yawInRegion, img);
+        })
     }
 }
 
@@ -538,21 +558,27 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateLiftJointLimits(value) {
-        let armUpRegion = this.regions.get("joint_lift_pos").path
-        let armDownRegion = this.regions.get("joint_lift_neg").path
-        this.updateJointLimits(value, armDownRegion, armUpRegion)
+        let armUpRegion = this.regions.get("joint_lift_pos")
+        let armDownRegion = this.regions.get("joint_lift_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, armDownRegion, armUpRegion, img)
+        })
     }
 
     updateExtensionJointLimits(value) {
-        let armExtendRegion = this.regions.get("wrist_extension_pos").path
-        let armRetractRegion = this.regions.get("wrist_extension_neg").path
-        this.updateJointLimits(value, armRetractRegion, armExtendRegion)
+        let armExtendRegion = this.regions.get("wrist_extension_pos")
+        let armRetractRegion = this.regions.get("wrist_extension_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, armRetractRegion, armExtendRegion, img)
+        })
     }
 
     updateWristJointLimits(value) {
-        let yawInRegion = this.regions.get("joint_wrist_yaw_pos").path
-        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg").path
-        this.updateJointLimits(value, yawOutRegion, yawInRegion);
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
+        icon('stop').then(img => {
+            this.updateJointLimits(value, yawOutRegion, yawInRegion, img);
+        })
     }
 
     updateGripperEffort(value: number) {

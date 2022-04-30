@@ -166,16 +166,16 @@ export class OperatorComponent extends PageComponent {
 
 
         // Firebase Code
-        this.model = new FirebaseModel(undefined, (model) => {
-            this.modelReadyCallback(model)
-            this.settingsPane.configureAuthCallback(() => {
-                this.model.authenticate();
-            })
-        })
+        // this.model = new FirebaseModel(undefined, (model) => {
+        //     this.modelReadyCallback(model)
+        //     this.settingsPane.configureAuthCallback(() => {
+        //         this.model.authenticate();
+        //     })
+        // })
 
         // Local Storage Code
-        // this.model = new LocalStorageModel();
-        // this.modelReadyCallback(this.model)
+        this.model = new LocalStorageModel();
+        this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -719,6 +719,9 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors.listenToKeyChange("arm", "inJointLimits", value => {
                 overheadManipOverlay.updateExtensionJointLimits(value)
             })
+            this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
+                overheadManipOverlay.updateWristJointLimits(value)
+            })
         })
         overhead.addOverlay(overheadManipOverlay, 'manip');
 
@@ -778,9 +781,10 @@ export class OperatorComponent extends PageComponent {
         }
 
         overheadControl.addEventListener("mousemove", drawTraj)
-        overheadControl.addEventListener("mouseout", (event: MouseEvent) => {
+        overheadControl.addEventListener("mouseleave", (event: MouseEvent) => {
             let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", 'nav') === "predictive-display" && mode === 'nav') {
+                console.log("stop")
                 stopAction(event);
                 overheadClickNavOverlay.removeTraj()
             }
@@ -812,7 +816,7 @@ export class OperatorComponent extends PageComponent {
                                 this.velocityExecutionHeartbeat = window.setInterval(() => {
                                     overheadClickNavOverlay.removeTraj();
                                     this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
-                                }, 10)
+                                }, 100)
                                 resolve()
                             }
                             reject()

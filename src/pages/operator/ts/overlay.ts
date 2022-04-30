@@ -71,32 +71,45 @@ export class OverlaySVG implements Overlay {
         this.svg.style.display = ""
     }
 
-    updateJointLimits(value, region1, region2) {
-        let redRegion;
+    removeStopIcon(region) {
+        if (region.stopIcon) {
+            this.svg.removeChild(region.stopIcon)
+            region.stopIcon.innerHTML = ""
+            region.stopIcon = undefined
+        }
+    }
+
+    updateJointLimits(value, region1, region2, stopIconImage) {
+        let stopRegion;
         let nothingRegion;
         if (!value[0]) {
-            redRegion = region1
+            stopRegion = region1
             nothingRegion = region2
         } else if (!value[1]) {
-            redRegion = region2
+            stopRegion = region2
             nothingRegion = region1
         }
 
-        if (redRegion) {
-            redRegion.setAttribute('fill', 'red');
-            redRegion.setAttribute('fill-opacity', 0.3);
+        if (stopRegion && !stopRegion.stopIcon) {
+            let stopIcon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            let width = stopRegion.icon.width.baseVal.valueAsString
+            stopIcon.setAttribute('href', stopIconImage);
+            stopIcon.setAttribute('opacity', 0.5);
+            stopIcon.setAttribute('x', stopRegion.icon.x.baseVal.valueAsString);
+            stopIcon.setAttribute('y', stopRegion.icon.y.baseVal.valueAsString);
+            stopIcon.setAttribute('transform', `translate(${-width / 2},${-width / 2})`)
+            stopIcon.setAttribute('width', String(width))
+            stopRegion.stopIcon = stopIcon
+            this.svg.appendChild(stopRegion.stopIcon)
         } 
 
         if (nothingRegion) { 
-            nothingRegion.setAttribute('fill', 'white');
-            nothingRegion.setAttribute('fill-opacity', 0.0);
+            this.removeStopIcon(nothingRegion)
         }
 
-        if (!redRegion && !nothingRegion) {
-            region1.setAttribute('fill', 'white');
-            region1.setAttribute('fill-opacity', 0.0);
-            region2.setAttribute('fill', 'white');
-            region2.setAttribute('fill-opacity', 0.0);
+        if (!stopRegion && !nothingRegion) {
+            this.removeStopIcon(region1)
+            this.removeStopIcon(region2)
         }
     }
 }
@@ -203,6 +216,7 @@ export class Region {
     path: SVGPathElement
     icon?: SVGImageElement
     label: string
+    stopIcon?: SVGImageElement
 
     constructor({label, poly, iconImage, iconPosition, clickHandler, mouseDownHandler }: RegionArgs) {
         this.label = label;
