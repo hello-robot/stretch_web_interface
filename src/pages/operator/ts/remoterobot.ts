@@ -1,4 +1,4 @@
-import { generateUUID, NamedPose, Pose2D, ValidJoints } from "shared/util";
+import { generateUUID, NamedPose, Pose2D, RobotPose, ValidJoints } from "shared/util";
 import { cmd } from "shared/commands";
 import { Crop } from "shared/video_dimensions";
 import ROSLIB from "roslib";
@@ -89,7 +89,7 @@ export class RemoteRobot {
     }
 
     incrementalMove(jointName: ValidJoints, direction: number, increment: number) {
-        let cmd: cmd = {type: "incrementalMove", jointName: jointName, increment: direction! * increment!}
+        let cmd: cmd = { type: "incrementalMove", jointName: jointName, increment: direction! * increment! }
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
@@ -110,19 +110,19 @@ export class RemoteRobot {
     }
 
     setNavGoal(goal: Pose2D) {
-        let cmd: cmd = {type: "navGoal", goal: goal, id: generateUUID()};
+        let cmd: cmd = { type: "navGoal", goal: goal, id: generateUUID() };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
 
     setPoseGoal(goal: NamedPose) {
-        let cmd: cmd = {type: "poseGoal", goal: goal, id: generateUUID()};
+        let cmd: cmd = { type: "poseGoal", goal: goal, id: generateUUID() };
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
     }
 
     emitCommandEvent(cmd: cmd) {
-        window.dispatchEvent(new CustomEvent("commandsent", {bubbles: false, detail: cmd}))
+        window.dispatchEvent(new CustomEvent("commandsent", { bubbles: false, detail: cmd }))
     }
 
     driveWithVelocities(linVel: number, angVel: number): VelocityCommand {
@@ -143,7 +143,7 @@ export class RemoteRobot {
                     type: "command",
                     subtype: "drive",
                     name: "velocities",
-                    modifier: {linVel: 0, angVel: 0}
+                    modifier: { linVel: 0, angVel: 0 }
                 }
                 this.robotChannel(stopEvent)
                 this.emitCommandEvent(stopEvent)
@@ -152,22 +152,22 @@ export class RemoteRobot {
     }
 
     setBaseMode(mode: "position" | "navigation") {
-        let cmd: cmd = {type: "command", subtype: "drive", name: "configure_mode", modifier: mode}
+        let cmd: cmd = { type: "command", subtype: "drive", name: "configure_mode", modifier: mode }
         this.robotChannel(cmd);
     }
 
     configureGripperCamera(rotate: boolean, crop: Crop) {
-        let cmd: cmd = {type: "configure", subtype: "gripper", name: "camera", crop: crop, rotate: rotate}
+        let cmd: cmd = { type: "configure", subtype: "gripper", name: "camera", crop: crop, rotate: rotate }
         this.robotChannel(cmd);
     }
 
     configureOverheadCamera(rotate: boolean, crop: Crop) {
-        let cmd: cmd = {type: "configure", subtype: "head", name: "overhead_camera", crop: crop, rotate: rotate}
+        let cmd: cmd = { type: "configure", subtype: "head", name: "overhead_camera", crop: crop, rotate: rotate }
         this.robotChannel(cmd);
     }
 
     configurePanTiltCamera(rotate: boolean, crop: Crop) {
-        let cmd: cmd = {type: "configure", subtype: "head", name: "pantilt_camera", crop: crop, rotate: rotate}
+        let cmd: cmd = { type: "configure", subtype: "head", name: "pantilt_camera", crop: crop, rotate: rotate }
         this.robotChannel(cmd);
     }
 
@@ -201,12 +201,24 @@ class RobotSensors {
         "head": { "transform": undefined },
         "base": { "transform": undefined }
     }
-    listeners: { [group: string]: { [key: string]: Array<(value: number) => void> } } = {}
+
+    listeners: {
+        [group: string]: {
+            effort: Array<(value: number) => void>,
+            transform: Array<(value: ROSLIB.Transform) => void>,
+        }
+    } = {};
+
+    jointStateListers: Array<(value: RobotPose) => void> = [];
+    jointState?: RobotPose;
 
     constructor() {
         this.listeners = {}
         for (const group in this.sensors) {
-            this.listeners[group] = {}
+            this.listeners[group] = {
+                effort: [],
+                transform: []
+            }
             for (const key in this.sensors[group]) {
                 this.listeners[group][key] = []
             }
@@ -214,7 +226,7 @@ class RobotSensors {
     }
 
     // TODO (kavidey): make this a proper generic type so we know what the input to the callback will be
-    listenToKeyChange<T = "effort" | "transform" | "inJointLimits">(group: string, key: string, listener: (value?: number | ROSLIB.Transform) => void) {
+    listenToKeyChange<T extends "effort" | "transform">(group: string, key: string, listener: (value?: number | ROSLIB.Transform) => void) {
         this.listeners[group][key].push(listener)
     }
 
@@ -225,4 +237,14 @@ class RobotSensors {
         }
     }
 
+    listenToJointState(listener: (value: RobotPose) => void) {
+        this.jointStateListers.push(listener);
+    }
+
+    setJointState(state: RobotPose) {
+        this.jointState = state;
+        this.jointStateListers.forEach(listener => {
+            listener(this.jointState!);
+        })
+    }
 }

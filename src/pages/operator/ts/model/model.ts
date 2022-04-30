@@ -1,5 +1,6 @@
-import { NamedPose } from "shared/util"
+import { NamedPose, RobotPose, ROSJointState, ValidJoints } from "shared/util"
 import { cmd } from "shared/commands"
+import ROSLIB from "roslib";
 
 export const DEFAULTS: Settings = {
     "pose": {},
@@ -44,6 +45,7 @@ export interface Settings {
 }
 
 export abstract class Model {
+
     protected enabled: boolean = true;
 
     abstract authenticate(): void;

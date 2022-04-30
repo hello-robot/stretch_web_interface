@@ -22,7 +22,6 @@ export function Component(name: string, cssLink?: string) {
         if (cssLink) {
             constructor.prototype.cssLink = cssLink;
             insertCSS(cssLink)
-            console.log(name, constructor.prototype.cssLink)
         }
     }
 }
@@ -48,9 +47,7 @@ export class BaseComponent extends HTMLElement {
         setTimeout(() => {
             // Create some CSS to apply to the shadow dom
             const { cssLink } = this.constructor.prototype;
-            console.log(this.constructor.prototype.name, cssLink == undefined)
             if (cssLink) {
-                // console.log(this.constructor.prototype.name)
                 if (useShadowRoot) {
                     insertCSS(cssLink, this.shadowRoot);
                 } else {

@@ -1,88 +1,94 @@
 import { Settings } from "../pages/operator/ts/model/model";
-import { ValidJoints, Pose2D, NamedPose, uuid } from "./util";
+import { ValidJoints, Pose2D, NamedPose, uuid, RobotPose } from "./util";
 import { Crop } from "./video_dimensions";
 
 export type cmd = GeneralCommand | IncrementalMoveCommand | VelocityMoveCommand | NavGoalCommand | PoseGoalCommand | ClickMoveCommand | ConfigureCommand | CancelledGoalCommand | StartSessionCommand | StopSessionCommand;
 
-interface GeneralCommand {
+interface Command {
+    robotState?: {
+        basePos: ROSLIB.Transform,
+        jointStates: RobotPose
+    }
+    timestamp?: number
+}
+
+interface GeneralCommand extends Command {
     type: "command",
-    timestamp?: number,
     subtype: string,
     name: string,
     modifier?: any
 }
-interface IncrementalMoveCommand {
+interface IncrementalMoveCommand extends Command {
     type: "incrementalMove",
-    timestamp?: number,
     jointName: ValidJoints,
     increment: number
 }
 
-interface VelocityMoveCommand {
+interface VelocityMoveCommand extends Command {
     type: "velocityMove",
-    timestamp?: number,
     jointName: ValidJoints,
     velocity: number
 }
 
-export interface NavGoalCommand {
+export interface NavGoalCommand extends Command {
     type: "navGoal",
-    timestamp?: number,
     goal: Pose2D,
     id: uuid,
 }
 
-export interface PoseGoalCommand {
+export interface PoseGoalCommand extends Command {
     type: "poseGoal",
-    timestamp?: number,
     goal: NamedPose,
     id: uuid
 }
 
-export type CancelledGoalCommand = {
+export type CancelledGoalCommand = CancelledNavGoalCommand | CancelledPoseGoalCommand;
+
+interface CancelledNavGoalCommand extends Command {
     type: "cancelledGoal",
-    timestamp?: number,
     name: "nav",
     goal: Pose2D,
     id: uuid,
-} | {
+}
+
+interface CancelledPoseGoalCommand extends Command {
     type: "cancelledGoal",
-    timestamp?: number,
     name: "pose",
     goal: NamedPose,
     id: uuid,
 }
 
-export interface ClickMoveCommand {
+export interface ClickMoveCommand extends Command {
     type: "clickMove",
-    timestamp?: number,
     lin_vel: number,
     ang_vel: number
 }
 
-type ConfigureCommand = {
+type ConfigureCommand = ConfigureDriveCommand | ConfigureGripperCommand;
+
+interface ConfigureDriveCommand extends Command {
     type: "configure",
-    timestamp?: number,
     subtype: "drive",
     name: "configure_mode",
     modifier: "position" | "navigation"
-} | {
+}
+
+interface ConfigureGripperCommand extends Command {
     type: "configure",
-    timestamp?: number,
     subtype: "gripper" | "head",
     name: "camera" | "overhead_camera" | "pantilt_camera",
     crop: Crop,
     rotate: boolean
 }
 
-interface StartSessionCommand {
+interface StartSessionCommand extends Command {
     type: "startSession",
-    timestamp?: number
     username: string,
-    settings: Settings
+    settings: Settings,
+    timestamp: number
 }
 
-interface StopSessionCommand {
+interface StopSessionCommand extends Command {
     type: "stopSession",
-    timestamp?: number
+    timestamp: number
 }

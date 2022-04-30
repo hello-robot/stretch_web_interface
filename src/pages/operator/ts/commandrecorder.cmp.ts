@@ -2,8 +2,9 @@ import { BaseComponent, Component, bootstrapCSS } from "shared/base.cmp"
 import { Model } from "./model/model"
 import { CancelledGoalCommand, cmd, NavGoalCommand, PoseGoalCommand } from "shared/commands"
 import { RemoteRobot } from "./remoterobot"
-import { uuid } from "shared/util"
+import { RobotPose, uuid } from "shared/util"
 import { Modal } from "bootstrap";
+import ROSLIB from "roslib"
 
 const template = `
 <style>${bootstrapCSS}</style>
@@ -58,6 +59,14 @@ export class CommandRecorder extends BaseComponent {
 
     modalContainer: HTMLElement
     modal: Modal
+
+    robotState: {
+        basePos: ROSLIB.Transform,
+        jointStates: RobotPose
+    } = {
+        basePos: new ROSLIB.Transform,
+        jointStates: {}
+    }
 
     constructor() {
         super(template);
@@ -135,6 +144,10 @@ export class CommandRecorder extends BaseComponent {
     logCommand(event: CustomEvent<cmd>) {
         let command = { ...event.detail };
 		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
+        command.robotState = {
+            basePos: this.robot?.sensors.sensors.base.transform as ROSLIB.Transform,
+            jointStates: this.robot?.sensors.jointState
+        }
         this.model?.logComand(command);
     };
 
