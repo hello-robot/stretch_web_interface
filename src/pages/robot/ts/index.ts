@@ -210,6 +210,9 @@ function forwardJointStates(jointState: ROSJointState) {
     inLimits = inJointLimits(jointState, 'joint_wrist_yaw')
     effort_messages.push({ 'type': 'sensor', 'subtype': 'wrist', 'name': 'inJointLimits', 'value': inLimits })
 
+    inLimits = getJointEffort(jointState, 'joint_gripper_finger_left');
+    effort_messages.push({ 'type': 'sensor', 'subtype': 'gripper', 'name': 'inJointLimits', 'value': inLimits })
+
     connection.sendData(effort_messages);
 
     let values: RobotPose = {}

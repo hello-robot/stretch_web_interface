@@ -9,6 +9,7 @@ export const JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
     "joint_lift": [0.15, 1.1],
     "translate_mobile_base": [-30.0, 30.0],
     "rotate_mobile_base": [-3.14, 3.14],
+    "joint_gripper_finger_left": [-0.375, 0.166]
 }
 
 export class Robot {

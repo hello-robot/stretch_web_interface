@@ -703,6 +703,9 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors!.listenToKeyChange("wrist", "inJointLimits", value => {
                 ptManipOverlay.updateWristJointLimits(value)
             })
+            this.robot.sensors!.listenToKeyChange("gripper", "inJointLimits", value => {
+                ptManipOverlay.updateGripperJointLimits(value)
+            })
             this.robot.sensors!.listenToKeyChange("lift", "effort", value => {
                 ptManipOverlay.updateLiftEffort(value)
             })
@@ -728,6 +731,12 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
                 overheadManipOverlay.updateWristJointLimits(value)
             })
+            this.robot.sensors.listenToKeyChange("arm", "effort", value => {
+                overheadManipOverlay.updateExtensionEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
+                overheadManipOverlay.updateWristEffort(value)
+            })
         })
         overhead.addOverlay(overheadManipOverlay, 'manip');
 
@@ -738,14 +747,20 @@ export class OperatorComponent extends PageComponent {
 
         let gripperOverlay = new GripperOverlay(1);
         gripperOverlay.Ready.then(() => {
-            this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
-                gripperOverlay.updateLiftJointLimits(value)
+            this.robot.sensors.listenToKeyChange("lift", "effort", value => {
+                gripperOverlay.updateLiftEffort(value)
             })
             this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
                 gripperOverlay.updateGripperEffort(value)
             })
             this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
                 gripperOverlay.updateWristEffort(value)
+            })
+            this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
+                gripperOverlay.updateLiftJointLimits(value)
+            })
+            this.robot.sensors.listenToKeyChange("gripper", "inJointLimits", value => {
+                gripperOverlay.updateGripperJointLimits(value)
             })
             this.robot.sensors.listenToKeyChange("wrist", "inJointLimits", value => {
                 gripperOverlay.updateWristJointLimits(value)
