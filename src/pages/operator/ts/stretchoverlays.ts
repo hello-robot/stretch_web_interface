@@ -631,6 +631,64 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
             nothingRegion.setAttribute('fill-opacity', "0.0");
         }
     }
+
+        updateLiftEffort(value: number) {
+        // adjust for the effort needed to hold the arm in place
+        // against gravity
+        let adjusted_value = value - 53.88;
+        let armUpRegion1 = this.regions.get("joint_lift_pos")!.path
+        let armDownRegion1 = this.regions.get("joint_lift_neg")!.path
+        let redRegion1;
+        let nothingRegion1;
+
+        if (adjusted_value > 0.0) {
+            redRegion1 = armUpRegion1;
+            nothingRegion1 = armDownRegion1;
+        } else {
+            redRegion1 = armDownRegion1;
+            nothingRegion1 = armUpRegion1;
+        }
+        // make the torque positive and multiply it by a factor to
+        // make sure the video will always be visible even with
+        let redOpacity = Math.abs(adjusted_value) * 0.005;
+
+        if (redRegion1) {
+            redRegion1.setAttribute('fill', 'red');
+            redRegion1.setAttribute('fill-opacity', String(redOpacity));
+        }
+
+        if (nothingRegion1)
+            nothingRegion1.setAttribute('fill-opacity', "0.0");
+    }
+
+    updateExtensionEffort(value: number) {
+        let redRegion1;
+        let nothingRegion1;
+
+        let armExtendRegion1 = this.regions.get("wrist_extension_pos")!.path
+        let armRetractRegion1 = this.regions.get("wrist_extension_neg")!.path
+
+        if (value > 0.0) {
+            redRegion1 = armExtendRegion1;
+            nothingRegion1 = armRetractRegion1;
+        } else {
+            redRegion1 = armRetractRegion1;
+            nothingRegion1 = armExtendRegion1;
+        }
+
+        // make the torque positive and multiply it by a factor to
+        // make sure the video will always be visible even with
+
+        let redOpacity = Math.abs(value) * 0.005;
+
+        if (redRegion1) {
+            redRegion1.setAttribute('fill', 'red');
+            redRegion1.setAttribute('fill-opacity', String(redOpacity));
+        }
+
+        if (nothingRegion1)
+            nothingRegion1.setAttribute('fill-opacity', "0.0");
+    }
 }
 
 async function icon(name: string) {

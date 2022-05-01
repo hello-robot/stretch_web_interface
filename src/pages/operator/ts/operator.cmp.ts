@@ -703,6 +703,12 @@ export class OperatorComponent extends PageComponent {
             this.robot.sensors!.listenToKeyChange("wrist", "inJointLimits", value => {
                 ptManipOverlay.updateWristJointLimits(value)
             })
+            this.robot.sensors!.listenToKeyChange("lift", "effort", value => {
+                ptManipOverlay.updateLiftEffort(value)
+            })
+            this.robot!.sensors.listenToKeyChange("arm", "effort", value => {
+                ptManipOverlay.updateExtensionEffort(value)
+            })
             this.robot.sensors!.listenToKeyChange("gripper", "effort", value => {
                 ptManipOverlay.updateGripperEffort(value)
             })
