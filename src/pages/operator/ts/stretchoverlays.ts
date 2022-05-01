@@ -233,9 +233,9 @@ export class OverheadNavigationOverlay extends OverlaySVG {
         let mobile_base_height = h / 10.0;
 
         // small rectangle around the mobile base
-        let baseRect = makeSquare((w / 2.0) - (mobile_base_width * 1.25),
-            (2.0 * h / 3.0) - (mobile_base_height * 1.25),
-            mobile_base_width * 1.5);
+        let baseRect = makeRectangle((w / 2.0) - (mobile_base_width * 1.25),
+            (2.0 * h / 2.5) - (mobile_base_height * 1.2),
+            mobile_base_width * 1.5, mobile_base_height*1.2);
 
         this.Ready = new Promise(async (resolve, reject) => {
             this.createRegion("doNothing", { label: 'do nothing', poly: rectToPoly(baseRect) });
@@ -586,7 +586,7 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let handOpenRegion = this.regions.get("gripperOpen")!.path
         if (handCloseRegion && handOpenRegion) {
             let redRegion;
-            let nothingRegion;
+	    let nothingRegion;
             if (value > 0.0) {
                 redRegion = handOpenRegion;
                 nothingRegion = handCloseRegion;
@@ -598,7 +598,7 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
             // make the torque positive and multiply it by a factor to
             // make sure the video will 	always be visible even with
 
-            let redOpacity = Math.abs(value) * 0.015;
+            let redOpacity = Math.abs(value) * 0.03;
             if (redRegion) {
                 redRegion.setAttribute('fill', 'red');
                 redRegion.setAttribute('fill-opacity', String(redOpacity));
@@ -640,7 +640,6 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         let armDownRegion1 = this.regions.get("joint_lift_neg")!.path
         let redRegion1;
         let nothingRegion1;
-
         if (adjusted_value > 0.0) {
             redRegion1 = armUpRegion1;
             nothingRegion1 = armDownRegion1;
@@ -650,7 +649,7 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         }
         // make the torque positive and multiply it by a factor to
         // make sure the video will always be visible even with
-        let redOpacity = Math.abs(adjusted_value) * 0.005;
+        let redOpacity = Math.abs(adjusted_value) * 0.015;
 
         if (redRegion1) {
             redRegion1.setAttribute('fill', 'red');
