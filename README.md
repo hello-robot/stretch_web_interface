@@ -38,21 +38,20 @@ especially if you use the default credentials. Use this code at your own risk.**
 This web interface works via [Web Real-Time Communication (WebRTC)](https://en.wikipedia.org/wiki/WebRTC). Code runs in
 a browser on the robot, in a browser on the operator's device (e.g., a mobile phone), and on a server. This is analogous
 to the robot and the operator video conferencing with one another, although they communicate via realtime data in
-addition to audio and video. By using web browsers, the robot and the operator make use of well-tested high-performance
+addition to audio and video. The class that manages the WebRTC connection, [webrtcconnection.ts](./src/shared/webrtcconnection.ts), is the same on both the robot and the operator side. By using web browsers, the robot and the operator make use of well-tested high-performance
 implementations of WebRTC. This symmetry also simplifies development, since a developer can use the same browser-based
 developer tools on both sides of the communication. The robot's browser and the operator's browser first login to the
-server, which helps connect them and provides them with the interface code.
+server, which helps connect them by providing a signaling message channel ([signaling_sockets.js](./signaling_sockets.js)) as well as by serving the interface code.
 
 The robot’s browser uses [rosbridge](http://wiki.ros.org/rosbridge_suite) to connect with ROS on the robot. Rosbridge
 translates [JSON](https://en.wikipedia.org/wiki/JSON) from the robot’s browser into ROS communications and vice versa.
 The JavaScript code used by the robot’s browser to connect with ROS can be found
-in [ros_connect.js](https://github.com/hello-robot/stretch_web_interface/blob/master/robot/ros_connect.js) under
-the [robot directory](https://github.com/hello-robot/stretch_web_interface/tree/master/robot), which holds files made
+in [robot.ts](./src/pages/robot/ts/robot.ts) under the [robot directory](./src/pages/robot), which holds files made
 available to the robot's browser.
 
-With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browers.js](https://github.com/hello-robot/stretch_web_interface/blob/master/start_robot_browser.js) uses puppeteer to launch the robot's browser and login.
+With [puppeteer](https://github.com/puppeteer/puppeteer) the robot can automatically launch and login to its browser. For example, [start_robot_browser.js](./start_robot_browser.js) uses puppeteer to launch the robot's browser and login.
 
-While the robot’s browser has access to most of the robot via ROS, the operator’s browser can only access the robot indirectly through the robot’s browser. The robotic commands available to the operator’s browser can be found in [commands.js](https://github.com/hello-robot/stretch_web_interface/blob/master/shared/commands.js) under the [shared directory](https://github.com/hello-robot/stretch_web_interface/tree/master/shared), which holds files available to both the operator's browser and the robot's browser. The operator's browser also has access to files in the [operator directory](https://github.com/hello-robot/stretch_web_interface/tree/master/operator).
+While the robot’s browser has access to most of the robot via ROS, the operator’s browser can only access the robot indirectly through the robot’s browser. The robotic commands available to the operator’s browser can be found in [commands.ts](./src/shared/commands.ts) under the [shared directory](./src/shared/), which holds files available to both the operator's browser and the robot's browser. The operator's browser also has access to files in the [operator directory](./src/pages/operator).
 
 <a name="server"/>
 
@@ -64,7 +63,7 @@ The web server uses the [Express](https://expressjs.com/) web framework with [Pu
 
 [passport](http://www.passportjs.org/) provides authentication for the robot and the operator. [mongoose](https://mongoosejs.com/) and a [MongoDB](https://www.mongodb.com/) database store credentials for robots and operators. The *stretch_web_interface* repository comes with default MongoDB content found at [./mongodb/](./mongodb/) for testing behind a firewall. These default contents come with multiple robot and operator accounts. **Make sure not to use these default database contents on a deployed system!** 
 
-By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server provided by Google. [The Amazon Lightsail example below](#server_lightsail) uses [coturn](https://github.com/coturn/coturn) as a [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/).   
+By default, the code uses a free STUN server provided by Google. [The Amazon Lightsail example below](#server_lightsail) uses [coturn](https://github.com/coturn/coturn) as a [STUN and TURN server](https://www.html5rocks.com/en/tutorials/webrtc/infrastructure/).   
 
 <a name="getting_started"/>
 
