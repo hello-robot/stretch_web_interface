@@ -551,18 +551,18 @@ export class OperatorComponent extends PageComponent {
         // If click on the robot, rotate in place
         if (overlay.inBaseRect(px, py)) {
             if (execute) {
-                this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.3) : this.robot!.driveWithVelocities(0, scale * -0.3);
+                this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.2) : this.robot!.driveWithVelocities(0, scale * -0.2);
             }
             heading <= Math.PI / 2 ? overlay.drawRotateIcon('rotate_left') : overlay.drawRotateIcon('rotate_right')
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
-            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * -magnitude, 0.0) : undefined;
+            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * -magnitude * 0.5, 0.0) : undefined;
             overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, circle);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
-            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * magnitude * 0.4, -(heading - Math.PI / 2) * 0.4 * scale) : undefined;
+            this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * magnitude * 0.3, -(heading - Math.PI / 2) * 0.3 * scale) : undefined;
             overlay.drawArc(px, py, Math.PI / 2, heading, circle);
         }
     }
