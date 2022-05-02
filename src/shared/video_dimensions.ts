@@ -36,8 +36,8 @@ export const overheadManipCrop: Crop = ((x: number, y: number) => {
     return {
         sx: wideVideoDimensions.w * (1.0 - x) * 1.2, //get more from the right
         sy: wideVideoDimensions.w * 0.045, // get more from the top
-	sw: wideVideoDimensions.w / 1.3,
-	sh: wideVideoDimensions.h / 1.3,
+	    sw: wideVideoDimensions.w / 1.3,
+	    sh: wideVideoDimensions.h / 1.3,
         dx: 0,
         dy: 0,
         dw: wideVideoDimensions.w,

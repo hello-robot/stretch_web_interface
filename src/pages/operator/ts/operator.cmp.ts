@@ -337,17 +337,7 @@ export class OperatorComponent extends PageComponent {
 
     updateNavDisplay() {
         let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
-        let namespace = currMode === "nav" ? "nav" : "manip";
-        let actionMode = this.model.getSetting("actionMode", namespace)
         this.setMode(currMode)
-        let displayMode = this.model.getSetting("displayMode", "nav")
-        if (currMode === "nav" && displayMode === "predictive-display") {
-            this.robot?.setBaseMode("navigation")
-        } else if ( currMode === "nav" && actionMode === "incremental") {
-            this.robot?.setBaseMode("navigation")
-        } else {
-            this.robot?.setBaseMode("position")
-        }
     }
 
     configureVelocityControls(namespace?: string) {
@@ -414,9 +404,11 @@ export class OperatorComponent extends PageComponent {
         let velocity = this.model.getSetting("velocity", modeId)
         this.refs.get("velocity-toggle").querySelector(`input[value='${velocity}']`).checked = true
 
-        let pan = this.model.getSetting("joint_head_pan", modeId)
-        let tilt = this.model.getSetting("joint_head_tilt", modeId)
-        this.robot?.setPanTilt({"pan": pan, "tilt": tilt})
+        if (!this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("#follow-check").checked) {
+            let pan = this.model.getSetting("joint_head_pan", modeId)
+            let tilt = this.model.getSetting("joint_head_tilt", modeId)
+            this.robot?.setPanTilt({"pan": pan, "tilt": tilt})
+        }
 
         if (modeId === 'nav') {
             this.robot?.configureOverheadCamera(true, overheadNavCrop)
@@ -657,13 +649,16 @@ export class OperatorComponent extends PageComponent {
         }]]));
         let extraPanTiltButtons = this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("div").cloneNode(true)
         extraPanTiltButtons.querySelector("#follow-check").onchange = (event) => {
+            this.shadowRoot.getElementById("pantilt-extra-controls").content.querySelector("#follow-check").checked = event.target.checked
             this.robot!.setPanTiltFollowGripper(event.target.checked)
         }
         extraPanTiltButtons.querySelector("button").onclick = () => {
             let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
             currMode === "nav" ? this.robot!.lookAtBase() : this.robot!.lookAtArm() 
             this.model.resetSetting("joint_head_pan", currMode);
-            this.model.resetSetting("joint_head_tilt", currMode);            
+            this.model.resetSetting("joint_head_tilt", currMode); 
+            this.robot!.setPanTiltFollowGripper(false)           
+            extraPanTiltButtons.querySelector("#follow-check").checked = false;
         }
         pantilt.setExtraContents(extraPanTiltButtons)
         const gripper = new VideoControl();
@@ -769,6 +764,7 @@ export class OperatorComponent extends PageComponent {
         gripper.addOverlay(gripperOverlay, 'all');
 
         this.setMode('nav')
+        this.robot?.setBaseMode("navigation")
         this.updateNavDisplay()
 
         let overheadControl = this.controls["overhead"]
