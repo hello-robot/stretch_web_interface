@@ -549,7 +549,7 @@ export class OperatorComponent extends PageComponent {
         let circle = execute ? true : false;
         let scale = Number(this.model.getSetting("velocityScale"))
         // If click on the robot, rotate in place
-        if (Math.abs(magnitude) <= 0.1) {
+        if (overlay.inBaseRect(px, py)) {
             if (execute) {
                 this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.3) : this.robot!.driveWithVelocities(0, scale * -0.3);
             }
@@ -920,9 +920,8 @@ export class OperatorComponent extends PageComponent {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
                         } else {
-                            this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction!.affirm!()
+                                this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             }, 10)
                         }
 
@@ -934,9 +933,6 @@ export class OperatorComponent extends PageComponent {
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
                         if (lastActiveRegion === regionName && this.activeVelocityAction) {
                             this.stopCurrentAction()
-                            if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-                                this.robot!.velocityMove(jointName, 0);
-                            }
                             return;
                         }
 
@@ -952,14 +948,15 @@ export class OperatorComponent extends PageComponent {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
                         } else {
-                            this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            // this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 if (!this.activeVelocityAction) {
                                     // clean up
                                     clearInterval(this.velocityExecutionHeartbeat)
                                     this.velocityExecutionHeartbeat = undefined
                                 } else {
-                                    this.activeVelocityAction!.affirm!()
+                                    this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                                 }
                             }, 10)
                         }

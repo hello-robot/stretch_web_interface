@@ -446,17 +446,33 @@ export class OverheadManipulationOverlay extends OverlaySVG {
 }
 
 export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
+    baseRect
     w
     h
 
     constructor(aspectRatio: number) {
         super(aspectRatio);
-        const w = 100 * aspectRatio
+        this.w = 100 * aspectRatio
+        this.h = 100
 
-        const baseRect = makeSquare(0, 0, w);
-        this.w = w;
-        this.h = w;
-        this.createRegion("clickNavigate", { label: 'clickNavigate', poly: rectToPoly(baseRect) });
+        const overlayRect = makeSquare(0, 0, this.w);
+        this.createRegion("clickNavigate", { label: 'clickNavigate', poly: rectToPoly(overlayRect) });
+    
+        let mobile_base_width = this.w / 10.0;
+        let mobile_base_height = this.h / 10.0;
+        this.baseRect = makeRectangle((this.w / 2.0) - (mobile_base_width * 1.25),
+            (2.0 * this.h / 2.5) - (mobile_base_height * 1.2),
+            mobile_base_width * 1.5, mobile_base_height*1.2);
+    }
+
+    inBaseRect(x: number, y: number) {
+        if (x >= this.baseRect.ul.x && y >= this.baseRect.ul.y &&
+            x <= this.baseRect.ur.x && y >= this.baseRect.ur.y &&
+            x >= this.baseRect.ll.x && y <= this.baseRect.ll.y &&
+            x <= this.baseRect.lr.x && y <= this.baseRect.lr.y) {
+            return true
+        }
+        return false
     }
 
     normalizeAngle(angle: number) {
@@ -471,6 +487,7 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
     }
 
     drawRotateIcon(name) {
+        console.log
         icon(name).then(i => {
             this.createTraj({ iconImage: i })
         })

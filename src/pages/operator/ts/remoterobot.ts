@@ -92,6 +92,12 @@ export class RemoteRobot {
         let cmd: cmd = { type: "incrementalMove", jointName: jointName, increment: direction! * increment! }
         this.robotChannel(cmd);
         this.emitCommandEvent(cmd);
+        return {
+            "stop": () => {
+                this.robotChannel({ type: "stop" })
+                this.emitCommandEvent({ type: "stop" })
+            }
+        }
     }
 
     velocityMove(jointName: ValidJoints, velocity: number): VelocityCommand {
