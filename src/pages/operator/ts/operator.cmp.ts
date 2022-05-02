@@ -612,7 +612,7 @@ export class OperatorComponent extends PageComponent {
         const pantilt = new VideoControl(new Map([
             ["left", {
                 title: "look left",
-                label: "&#8592",
+                label: "&#9665",
                 action: () => {
                     let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                     let inc = this.getIncrementForJoint("joint_head_pan")
@@ -621,7 +621,7 @@ export class OperatorComponent extends PageComponent {
                 }
         }], ["right", {
                 title: "look right",
-                label: "&#8594",
+                label: "&#9655",
                 action: () => {
                     let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                     let inc = this.getIncrementForJoint("joint_head_pan")
@@ -630,7 +630,7 @@ export class OperatorComponent extends PageComponent {
                 }
         }], ["top", {
                 title: "look up",
-                label: "&#8593",
+                label: "&#9651",
                 action: () => {
                     let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                     let inc = this.getIncrementForJoint("joint_head_tilt")
@@ -639,7 +639,7 @@ export class OperatorComponent extends PageComponent {
                 }
         }], ["bottom", {
                 title: "look down",
-                label: "&#8595",
+                label: "&#9661",
                 action: () => {
                     let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
                     let inc = this.getIncrementForJoint("joint_head_tilt")
