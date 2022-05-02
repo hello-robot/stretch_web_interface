@@ -867,8 +867,8 @@ export class OperatorComponent extends PageComponent {
         let jointName: ValidJoints;
         const onOverlayMouseUp = (event: MouseEvent) => {
             event.stopPropagation()
-            if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
-                this.robot?.velocityMove(jointName, 0);
+            if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw") {
+                this.robot!.velocityMove(jointName, 0);
             }
             this.stopCurrentAction();
         };
@@ -919,10 +919,15 @@ export class OperatorComponent extends PageComponent {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
-                        } else {
+                        } else if (jointName == "joint_wrist_yaw") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
-                            }, 10)
+                            }, 150)
+                        } else {
+                            this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            this.velocityExecutionHeartbeat = window.setInterval(() => {
+                                this.activeVelocityAction = this.robot!.affirm!()
+                            }, 150)
                         }
 
                         // When mouse is up, delete trajectory
@@ -948,17 +953,25 @@ export class OperatorComponent extends PageComponent {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
                         } else {
-                            // this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
-                            this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                            if (jointName == "joint_wrist_yaw") {
+                                this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                            } else {
+                                this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
+                            }
+
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 if (!this.activeVelocityAction) {
                                     // clean up
                                     clearInterval(this.velocityExecutionHeartbeat)
                                     this.velocityExecutionHeartbeat = undefined
                                 } else {
-                                    this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                                    if (jointName == "joint_wrist_yaw") {
+                                        this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                                    } else {
+                                        this.activeVelocityAction = this.robot!.affirm!()
+                                    }
                                 }
-                            }, 10)
+                            }, 150)
                         }
                     }
                 }
