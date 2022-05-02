@@ -867,9 +867,9 @@ export class OperatorComponent extends PageComponent {
         let jointName: ValidJoints;
         const onOverlayMouseUp = (event: MouseEvent) => {
             event.stopPropagation()
-            if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw") {
-                this.robot!.velocityMove(jointName, 0);
-            }
+	    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw") {
+	        this.robot!.velocityMove(jointName, 0);
+	    }
             this.stopCurrentAction();
         };
 
@@ -926,7 +926,7 @@ export class OperatorComponent extends PageComponent {
                         } else {
                             this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
-                                this.activeVelocityAction = this.robot!.affirm!()
+                                this.activeVelocityAction!.affirm!()
                             }, 150)
                         }
 
@@ -937,7 +937,7 @@ export class OperatorComponent extends PageComponent {
                         let lastActiveRegion = this.activeVelocityRegion
                         // If they just clicked the joint that was active, assume that stopping was the point and return early
                         if (lastActiveRegion === regionName && this.activeVelocityAction) {
-                            this.stopCurrentAction()
+                            onOverlayMouseUp(event);
                             return;
                         }
 
@@ -968,7 +968,7 @@ export class OperatorComponent extends PageComponent {
                                     if (jointName == "joint_wrist_yaw") {
                                         this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                                     } else {
-                                        this.activeVelocityAction = this.robot!.affirm!()
+                                        this.activeVelocityAction!.affirm!()
                                     }
                                 }
                             }, 150)
