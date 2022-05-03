@@ -84,9 +84,9 @@ const template = `
                     <legend class="col-form-label col-sm-2">Velocity Scale</legend>
                     <div class="col-sm-10">
                         <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
-                            <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="0.5" autocomplete="off" checked>
+                            <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="0.5" autocomplete="off">
                             <label class="btn btn-sm btn-outline-secondary" for="speed-1">0.5x</label>
-                            <input type="radio" name="velocityScale" id="speed-2" class="btn-check" value="1" autocomplete="off">
+                            <input type="radio" name="velocityScale" id="speed-2" class="btn-check" value="1" autocomplete="off" checked>
                             <label class="btn btn-sm btn-outline-secondary" for="speed-2">1x</label>
                             <input type="radio" name="velocityScale" id="speed-3" class="btn-check" value="2" autocomplete="off">
                             <label class="btn btn-sm btn-outline-secondary" for="speed-3">2x</label>

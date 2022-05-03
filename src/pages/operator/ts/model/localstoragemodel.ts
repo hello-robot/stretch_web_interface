@@ -47,8 +47,9 @@ export class LocalStorageModel extends Model {
     }
 
     loadSettingProfile(profileName: string) {
-        let profile = JSON.parse(localStorage.getItem(`settingProfiles.${profileName}`)!);
+        let profile = JSON.parse(localStorage.getItem(`settingsProfiles.${profileName}`)!);
         for (const [key, value] in profile) {
+            if (!value) continue;
             this.setSetting(key, value);
         }
     }
@@ -96,7 +97,7 @@ export class LocalStorageModel extends Model {
     }
 
     reset() {
-        localStorage.clear();
+        // localStorage.clear();
         this.loadWithObject("", DEFAULTS);
     }
 

@@ -258,6 +258,7 @@ export class OperatorComponent extends PageComponent {
                 this.model.loadSettingProfile(event.detail.name)
             }
             this.settingsPane.configureInputs(this.model.getSettings())
+            this.configureVelocityControls(event.detail.namespace)
             this.updateNavDisplay()
         })
         this.addEventListener("deleteprofile", event => {
@@ -268,7 +269,7 @@ export class OperatorComponent extends PageComponent {
             let element = document.createElement('a');
             let settings = this.model.getSettings()
             let data = "text/json;charset=utf-8," +
-                encodeURIComponent(JSON.stringify(settings, null, 4));
+            encodeURIComponent(JSON.stringify(settings, null, 4));
             element.setAttribute('href', 'data:' + data);
 
             // TODO [vinitha]: find better way for make unique file name
@@ -347,7 +348,7 @@ export class OperatorComponent extends PageComponent {
             this.refs.get("velocity-toggle")!.style.display = "none";
             this.refs.get("velocity-slider")!.style.display = "none";
             return
-        }
+        } 
 
         const controlType = this.model.getSetting("velocityControlMode")
         if (controlType === "continuous") {
@@ -394,7 +395,7 @@ export class OperatorComponent extends PageComponent {
         let displayMode = this.model.getSetting("displayMode", "nav")
         // Tell the controls so they can swap out the overlays if necessary
         for (const control in this.controls) {
-            if (control === "overhead" && displayMode === "predictive-display" && modeId == "nav") {
+            if ((control === "overhead" || control === "pantilt") && displayMode === "predictive-display" && modeId == "nav") {
                 this.controls[control].setMode("clickNav")
             } else {
                 this.controls[control].setMode(modeId)
@@ -801,7 +802,6 @@ export class OperatorComponent extends PageComponent {
         overheadControl.addEventListener("mouseleave", (event: MouseEvent) => {
             let mode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value;
             if (this.model.getSetting("displayMode", 'nav') === "predictive-display" && mode === 'nav') {
-                console.log("stop")
                 stopAction(event);
                 overheadClickNavOverlay.removeTraj()
             }

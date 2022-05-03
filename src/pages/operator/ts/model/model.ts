@@ -10,7 +10,7 @@ export const DEFAULTS: Settings = {
         "showPermanentIconsOverhead": true,
         "showPermanentIconsPantilt": true,
         "velocityControlMode": "discrete",
-        "velocityScale": 2,
+        "velocityScale": 1,
         "continuousVelocityStepSize": 0.15,
         "nav": {
             "displayMode": "action-overlay",
