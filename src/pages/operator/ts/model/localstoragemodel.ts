@@ -107,7 +107,6 @@ export class LocalStorageModel extends Model {
     }
 
     reset() {
-        // localStorage.clear();
         this.loadWithObject("", DEFAULTS);
     }
 
