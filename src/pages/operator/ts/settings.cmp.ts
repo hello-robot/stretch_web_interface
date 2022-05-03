@@ -304,6 +304,15 @@ export class SettingsModal extends BaseComponent {
         });
     }
 
+    setProfiles(profiles: string[]) {
+        profiles.forEach(profile => {
+            let newOption = document.createElement("option")
+            newOption.value = profile
+            newOption.innerText = profile
+            this.profileSelect.appendChild(newOption)
+        })
+    }
+
     showModal() {
         this.modal.show();
     }
@@ -352,7 +361,8 @@ export function configureNamedInputs(values: object, container: HTMLElement) {
             }
             pairedInput!.checked = true
         } else {
-            console.warn("Could not configure", key)
+            if (key !== "profile-name")
+                console.warn("Could not configure", key)
         }
 
     }

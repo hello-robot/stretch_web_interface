@@ -325,6 +325,7 @@ export class OperatorComponent extends PageComponent {
         // TODO (kavidey): this function can get called twice if the user authenticates with google
         // make sure that each of these functions reacts okay to that
         this.settingsPane.configureInputs(model.getSettings())
+        this.settingsPane.setProfiles(model.getSettingProfiles())
 
         let poseLibrary = this.refs.get("pose-library")! as PoseLibrary;
         poseLibrary.clearPoses();

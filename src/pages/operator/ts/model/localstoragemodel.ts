@@ -17,7 +17,7 @@ export class LocalStorageModel extends Model {
     }
 
     authenticate(): void {
-        
+
     }
 
     addPose(name: string, pose: NamedPose) {
@@ -28,7 +28,7 @@ export class LocalStorageModel extends Model {
         return JSON.parse(localStorage.getItem(`pose.${name}`)!);
     }
 
-     getPoses(): NamedPose[] {
+    getPoses(): NamedPose[] {
         let poses = this.getAllForKeyPrefix("pose");
         // Poses are kept as JSON blobs
         return poses.map(([name, pose]) => JSON.parse(pose));
@@ -47,11 +47,11 @@ export class LocalStorageModel extends Model {
     }
 
     loadSettingProfile(profileName: string) {
-        let profile = JSON.parse(localStorage.getItem(`settingsProfiles.${profileName}`)!);
-        for (const [key, value] in profile) {
-            if (!value) continue;
-            this.setSetting(key, value);
-        }
+        let profile: string[][] = JSON.parse(localStorage.getItem(`settingsProfiles.${profileName}`)!);
+        if (profile)
+            profile.forEach(entry => {
+                this.setSetting(entry[0], entry[1]);
+            })
     }
 
     deleteSettingProfile(profileName: string) {
@@ -65,6 +65,16 @@ export class LocalStorageModel extends Model {
     saveSettingProfile(profileName: string) {
         let toSave = JSON.stringify(this.getAllForKeyPrefix("setting"));
         localStorage.setItem(`settingsProfiles.${profileName}`, toSave);
+    }
+
+    getSettingProfiles(): string[] {
+        const profiles = this.getAllForKeyPrefix("settingsProfiles");
+        console.log(profiles.map(profile => {
+            return profile[0]
+        }))
+        return profiles.map(profile => {
+            return profile[0]
+        })
     }
 
     getSetting(key: string, namespace?: string) {
@@ -126,20 +136,20 @@ export class LocalStorageModel extends Model {
         localStorage.setItem("sessions", JSON.stringify(sessions))
 
         this.logComand({
-			type: "startSession",
+            type: "startSession",
             username: username,
             settings: this.getSettings(),
             timestamp: new Date().getTime()
-		});
+        });
     }
 
     stopSession(): void {
         this.sid = "";
 
         this.logComand({
-			type: "stopSession",
+            type: "stopSession",
             timestamp: new Date().getTime()
-		});
+        });
     }
 
     logComand(cmd: cmd): void {

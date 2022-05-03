@@ -58,6 +58,7 @@ export abstract class Model {
     abstract loadSettingProfile(profileName: string): void;
     abstract deleteSettingProfile(profileName: string): boolean;
     abstract saveSettingProfile(profileName: string): void;
+    abstract getSettingProfiles(): string[];
 
     abstract setSetting(key: string, value: SettingEntry, namespace?: string): void;
     abstract getSetting(key: string, namespace?: string): SettingEntry;
