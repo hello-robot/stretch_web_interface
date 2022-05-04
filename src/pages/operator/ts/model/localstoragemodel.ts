@@ -48,10 +48,11 @@ export class LocalStorageModel extends Model {
 
     loadSettingProfile(profileName: string) {
         let profile: string[][] = JSON.parse(localStorage.getItem(`settingsProfiles.${profileName}`)!);
-        if (profile)
+        if (profile) {
             profile.forEach(entry => {
                 this.setSetting(entry[0], entry[1]);
             })
+        }
     }
 
     deleteSettingProfile(profileName: string) {
@@ -123,7 +124,6 @@ export class LocalStorageModel extends Model {
             } else {
                 localStorage.setItem(newPrefix, value);
             }
-
         }
     }
 

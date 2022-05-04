@@ -920,7 +920,7 @@ export class OperatorComponent extends PageComponent {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
-                        } else if (jointName == "joint_wrist_yaw") {
+                        } else if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             }, 150)
@@ -954,7 +954,7 @@ export class OperatorComponent extends PageComponent {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
                         } else {
-                            if (jointName == "joint_wrist_yaw") {
+                            if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
                                 this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             } else {
                                 this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
@@ -966,7 +966,7 @@ export class OperatorComponent extends PageComponent {
                                     clearInterval(this.velocityExecutionHeartbeat)
                                     this.velocityExecutionHeartbeat = undefined
                                 } else {
-                                    if (jointName == "joint_wrist_yaw") {
+                                    if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
                                         this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                                     } else {
                                         this.activeVelocityAction!.affirm!()
