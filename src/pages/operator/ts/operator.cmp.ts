@@ -130,7 +130,7 @@ export class OperatorComponent extends PageComponent {
     JOINT_INCREMENTS: { [key in ValidJoints]?: number } = {
         "joint_head_tilt": 0.1,
         "joint_head_pan": 0.1,
-        "gripper_aperture": .01,
+        "joint_gripper_finger_left": .075,
         "wrist_extension": 0.075,
         "joint_lift": .075,
         "joint_wrist_yaw": .2,
@@ -868,7 +868,10 @@ export class OperatorComponent extends PageComponent {
         let jointName: ValidJoints;
         const onOverlayMouseUp = (event: MouseEvent) => {
             event.stopPropagation()
-	    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw" && jointName != "joint_gripper_finger_left") {
+	    if (jointName != "translate_mobile_base" && 
+            jointName != "rotate_mobile_base" && 
+            jointName != "joint_wrist_yaw" && 
+            jointName != "joint_gripper_finger_left") {
 	        this.robot!.velocityMove(jointName, 0);
 	    }
             this.stopCurrentAction();

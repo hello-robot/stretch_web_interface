@@ -324,8 +324,6 @@ export class Robot {
         if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
             // These imaginary joints are floating, always have 0 as their reference
             newJointValue = 0
-        } else if (jointName === "gripper_aperture") {
-            newJointValue = getJointValue(this.jointState, "joint_gripper_finger_left")
         }
         newJointValue = newJointValue + jointValueInc
 

@@ -696,8 +696,8 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("joint_gripper_finger_left_pos")!.path
-        let handOpenRegion = this.regions.get("joint_gripper_finger_left_neg")!.path
+        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")!.path
+        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")!.path
         if (handCloseRegion && handOpenRegion) {
             let redRegion;
 	    let nothingRegion;
