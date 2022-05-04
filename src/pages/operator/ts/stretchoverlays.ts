@@ -113,7 +113,7 @@ export class GripperOverlay extends OverlaySVG {
             wrist_region_width, h - (2.0 * lift_region_height));
 
         this.Ready = new Promise(async (resolve, reject) => {
-            this.createRegion("gripperClose", {
+            this.createRegion("joint_gripper_finger_left_neg", {
                 label: 'close hand',
                 poly: rectToPoly(fingertipRect),
                 iconImage: await icon('gripper_close')
@@ -121,7 +121,7 @@ export class GripperOverlay extends OverlaySVG {
             let regionPoly = [wristInRect.ur, wristOutRect.ul, wristOutRect.ll, fingertipRect.lr,
             fingertipRect.ur, fingertipRect.ul, fingertipRect.ll, fingertipRect.lr,
             wristOutRect.ll, wristInRect.lr];
-            this.createRegion("gripperOpen", {
+            this.createRegion("joint_gripper_finger_left_pos", {
                 label: 'open hand',
                 poly: regionPoly,
                 iconImage: await icon('gripper_open'),
@@ -197,16 +197,16 @@ export class GripperOverlay extends OverlaySVG {
     }
 
     updateGripperJointLimits(value) {
-        let gripperOpenRegion = this.regions.get("gripperOpen")
-        let gripperCloseRegion = this.regions.get("gripperClose")
+        let gripperOpenRegion = this.regions.get("joint_gripper_finger_left_pos")
+        let gripperCloseRegion = this.regions.get("joint_gripper_finger_left_neg")
         icon('stop').then(img => {
             this.updateJointLimits(value, gripperCloseRegion, gripperOpenRegion, img);
         })
     }
 
     updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("gripperClose")!.path
-        let handOpenRegion = this.regions.get("gripperOpen")!.path
+        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")!.path
+        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")!.path
         if (handCloseRegion && handOpenRegion) {
             let redRegion;
             let nothingRegion;
@@ -649,12 +649,12 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
                 poly: rectToPoly(rightRect),
                 iconImage: await icon('turn_right')
             });
-            this.createRegion("gripperClose", {
+            this.createRegion("joint_gripper_finger_left_neg", {
                 label: 'close hand',
                 poly: rectToPoly(leftRect2),
                 iconImage: await icon('gripper_close')
             });
-            this.createRegion("gripperOpen", {
+            this.createRegion("joint_gripper_finger_left_pos", {
                 label: 'open hand',
                 poly: rectToPoly(rightRect2),
                 iconImage: await icon('gripper_open')
@@ -688,16 +688,16 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
     }
 
     updateGripperJointLimits(value) {
-        let gripperOpenRegion = this.regions.get("gripperOpen")
-        let gripperCloseRegion = this.regions.get("gripperClose")
+        let gripperOpenRegion = this.regions.get("joint_gripper_finger_left_pos")
+        let gripperCloseRegion = this.regions.get("joint_gripper_finger_left_neg")
         icon('stop').then(img => {
             this.updateJointLimits(value, gripperCloseRegion, gripperOpenRegion, img);
         })
     }
 
     updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("gripperClose")!.path
-        let handOpenRegion = this.regions.get("gripperOpen")!.path
+        let handCloseRegion = this.regions.get("joint_gripper_finger_left_pos")!.path
+        let handOpenRegion = this.regions.get("joint_gripper_finger_left_neg")!.path
         if (handCloseRegion && handOpenRegion) {
             let redRegion;
 	    let nothingRegion;
