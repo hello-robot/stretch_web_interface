@@ -23,6 +23,7 @@ export class Robot {
     jointStateTopic?: ROSLIB.Topic<ROSJointState>
     cmdVel?: ROSLIB.Topic
     velocityGoal?: ROSLIB.Goal
+    poseGoal?: ROSLIB.Goal
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
     goalCallback: (goal: GoalMessage) => void
@@ -324,7 +325,7 @@ export class Robot {
         if (jointName === "translate_mobile_base" || jointName === "rotate_mobile_base") {
             // These imaginary joints are floating, always have 0 as their reference
             newJointValue = 0
-        }
+        } 
         newJointValue = newJointValue + jointValueInc
 
         if (jointName in JOINT_LIMITS) {
@@ -459,9 +460,12 @@ export class Robot {
     }
 
     executeIncrementalMove(jointName: ValidJoints, increment: number) {
+        this.stopExecution();
         this.moveBaseClient?.cancel();
         this.trajectoryClient?.cancel();
-        this.makeIncrementalMoveGoal(jointName, increment).send()
+        this.poseGoal = this.makeIncrementalMoveGoal(jointName, increment)
+        this.poseGoal.send()
+        // this.affirmExecution()
     }
 
     executeVelocityMove(jointName: ValidJoints, velocity: number) {
@@ -532,6 +536,10 @@ export class Robot {
             // this.currentTrajectoryKillInterval = null
         }
         this.moveBaseClient?.cancel()
+        if (this.poseGoal) {
+            this.poseGoal.cancel()
+            this.poseGoal = undefined
+        }
         if (this.velocityGoal) {
             this.velocityGoal.cancel()
             this.velocityGoal = undefined
