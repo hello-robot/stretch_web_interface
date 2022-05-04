@@ -868,7 +868,7 @@ export class OperatorComponent extends PageComponent {
         let jointName: ValidJoints;
         const onOverlayMouseUp = (event: MouseEvent) => {
             event.stopPropagation()
-	    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw") {
+	    if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base" && jointName != "joint_wrist_yaw" && jointName != "gripper_aperture") {
 	        this.robot!.velocityMove(jointName, 0);
 	    }
             this.stopCurrentAction();
@@ -920,7 +920,7 @@ export class OperatorComponent extends PageComponent {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
-                        } else if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
+                        } else if (jointName == "joint_wrist_yaw" || jointName == "gripper_aperture") {
                             this.velocityExecutionHeartbeat = window.setInterval(() => {
                                 this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             }, 150)
@@ -954,7 +954,7 @@ export class OperatorComponent extends PageComponent {
                                 this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                             }, 10)
                         } else {
-                            if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
+                            if (jointName == "joint_wrist_yaw" || jointName == "gripper_aperture") {
                                 this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                             } else {
                                 this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
@@ -966,7 +966,7 @@ export class OperatorComponent extends PageComponent {
                                     clearInterval(this.velocityExecutionHeartbeat)
                                     this.velocityExecutionHeartbeat = undefined
                                 } else {
-                                    if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
+                                    if (jointName == "joint_wrist_yaw" || jointName == "gripper_aperture") {
                                         this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                                     } else {
                                         this.activeVelocityAction!.affirm!()
