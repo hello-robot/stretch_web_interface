@@ -910,10 +910,12 @@ export class OperatorComponent extends PageComponent {
                 if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                     this.activeVelocityRegion = regionName
                     if (jointName == "translate_mobile_base") {
+                        this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                         }, 150);
                     } else if (jointName == "rotate_mobile_base") {
+                        this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
                         }, 150)
