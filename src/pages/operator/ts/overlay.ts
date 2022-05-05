@@ -112,6 +112,22 @@ export class OverlaySVG implements Overlay {
             this.removeStopIcon(region2)
         }
     }
+
+    updateEfforts(redRegion, nothingRegion, redOpacity) {
+        if (redRegion) {
+            redRegion.filter = "brightness(0.5) sepia(1) saturate(100) hue-rotate(-10deg)"
+            redRegion.fill = 'red'
+            redRegion.fillOpacity = String(redOpacity);
+            redRegion.opacity = 0.3;
+        }
+
+        if (nothingRegion) {
+            nothingRegion.filter = ''
+            nothingRegion.fill = 'white'
+            nothingRegion.fillOpacity = "0.0";
+            nothingRegion.opacity = 0.15;
+        }
+    }
 }
 
 export class TrajectoryOverlay extends OverlaySVG {

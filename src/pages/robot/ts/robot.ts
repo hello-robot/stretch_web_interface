@@ -461,8 +461,8 @@ export class Robot {
 
     executeIncrementalMove(jointName: ValidJoints, increment: number) {
         this.stopExecution();
-        this.moveBaseClient?.cancel();
-        this.trajectoryClient?.cancel();
+        // this.moveBaseClient?.cancel();
+        // this.trajectoryClient?.cancel();
         this.poseGoal = this.makeIncrementalMoveGoal(jointName, increment)
         this.poseGoal.send()
         // this.affirmExecution()

@@ -868,12 +868,12 @@ export class OperatorComponent extends PageComponent {
         let jointName: ValidJoints;
         const onOverlayMouseUp = (event: MouseEvent) => {
             event.stopPropagation()
-	    if (jointName != "translate_mobile_base" && 
-            jointName != "rotate_mobile_base" && 
-            jointName != "joint_wrist_yaw" && 
-            jointName != "joint_gripper_finger_left") {
-	        this.robot!.velocityMove(jointName, 0);
-	    }
+	        if (jointName != "translate_mobile_base" && 
+                jointName != "rotate_mobile_base" && 
+                jointName != "joint_wrist_yaw" && 
+                jointName != "joint_gripper_finger_left") {
+    	        this.robot!.velocityMove(jointName, 0);
+    	    }
             this.stopCurrentAction();
         };
 
@@ -895,7 +895,6 @@ export class OperatorComponent extends PageComponent {
             // This region is named after a joint
             let sign = regionName.substring(regionName.length - 3) === "pos" ? 1 : -1
             jointName = regionName.substring(0, regionName.length - 4)
-            console.log(jointName)
             let namespace = currMode === "nav" ? "nav" : "manip";
             if (this.model.getSetting("actionMode", namespace) === "incremental") {
                 let vel = sign * this.getVelocityForJoint(jointName)
@@ -911,24 +910,25 @@ export class OperatorComponent extends PageComponent {
                 if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                     this.activeVelocityRegion = regionName
                     if (jointName == "translate_mobile_base") {
+                        this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
-                        }, 10);
+                        }, 150);
                     } else if (jointName == "rotate_mobile_base") {
+                        this.activeVelocityAction = this.robot!.driveWithVelocities(sign * this.getVelocityForJoint(jointName), 0.0)
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction = this.robot!.driveWithVelocities(0.0, sign * this.getVelocityForJoint(jointName))
-                        }, 10)
+                        }, 150)
                     } else if (jointName == "joint_wrist_yaw" || jointName == "joint_gripper_finger_left") {
+                        this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                         }, 150)
-                    } else {
                         this.activeVelocityAction = this.robot!.velocityMove(jointName, sign * this.getVelocityForJoint(jointName))
                         this.velocityExecutionHeartbeat = window.setInterval(() => {
                             this.activeVelocityAction!.affirm!()
                         }, 150)
                     }
-
                     // When mouse is up, delete trajectory
                     document.body.addEventListener("click", onOverlayMouseUp);
 
