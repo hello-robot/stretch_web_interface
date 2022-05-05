@@ -168,20 +168,17 @@ export class GripperOverlay extends OverlaySVG {
         })
     }
 
-    updateLiftEffort(value: number) {
-        // adjust for the effort needed to hold the arm in place
-        // against gravity
-        value = value - 53.88;
-        let armUpRegion = this.regions.get("joint_lift_pos").icon.style
-        let armDownRegion = this.regions.get("joint_lift_neg").icon.style
+    updateLiftEffort(value: number, icon: boolean) {
+        let armUpRegion = this.regions.get("joint_lift_pos")
+        let armDownRegion = this.regions.get("joint_lift_neg")
         let redOpacity = Math.abs(value) * 0.015;
-        if (value > 0.05) {
-            this.updateEfforts(armUpRegion, armDownRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(armDownRegion, armUpRegion, redOpacity)   
+        if (value > 55) {
+            this.updateEfforts(armUpRegion, armDownRegion, redOpacity, icon)   
+        } else if (value < 10) {
+            this.updateEfforts(armDownRegion, armUpRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, armUpRegion, 0.0)   
-            this.updateEfforts(null, armDownRegion, 0.0)   
+            this.updateEfforts(null, armUpRegion, 0.0, icon)   
+            this.updateEfforts(null, armDownRegion, 0.0, icon)   
         }
     }
 
@@ -193,34 +190,33 @@ export class GripperOverlay extends OverlaySVG {
         })
     }
 
-    updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")!.icon.style
-        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")!.icon.style
+    updateGripperEffort(value: number, icon: boolean) {
+        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")
+        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")
         // make the torque positive and multiply it by a factor to
         // make sure the video will     always be visible even with
         let redOpacity = Math.abs(value) * 0.03;
         if (value > 0.05) {
-            this.updateEfforts(handOpenRegion, handCloseRegion, redOpacity)   
+            this.updateEfforts(handOpenRegion, handCloseRegion, redOpacity, icon)   
         } else if (value < -0.05) {
-            this.updateEfforts(handCloseRegion, handOpenRegion, redOpacity)   
+            this.updateEfforts(handCloseRegion, handOpenRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, handOpenRegion, 0.0)   
-            this.updateEfforts(null, handCloseRegion, 0.0)   
+            this.updateEfforts(null, handOpenRegion, 0.0, icon)   
+            this.updateEfforts(null, handCloseRegion, 0.0, icon)   
         }
     }
 
-    updateWristEffort(value: number) {
-        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")!.icon.style
-        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")!.icon.style
-        value = value - 1.0
+    updateWristEffort(value: number, icon: boolean) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
         let redOpacity = Math.abs(value) * 0.015;
-        if (value > 0.05) {
-            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity)   
+        if (value > 2) {
+            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity, icon)   
+        } else if (value < -2) {
+            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, yawOutRegion, 0.0)   
-            this.updateEfforts(null, yawInRegion, 0.0)   
+            this.updateEfforts(null, yawOutRegion, 0.0, icon)   
+            this.updateEfforts(null, yawInRegion, 0.0, icon)   
         }
     }
 }
@@ -361,35 +357,31 @@ export class OverheadManipulationOverlay extends OverlaySVG {
         })
     }
 
-    updateExtensionEffort(value: number) {
-        let armExtendRegion = this.regions.get("wrist_extension_pos")!.icon.style
-        let armRetractRegion = this.regions.get("wrist_extension_neg")!.icon.style
-        
-        // make the torque positive and multiply it by a factor to
-        // make sure the video will always be visible even with
+    updateExtensionEffort(value: number, icon: boolean) {
+        let armExtendRegion = this.regions.get("wrist_extension_pos")
+        let armRetractRegion = this.regions.get("wrist_extension_neg")
         let redOpacity = Math.abs(value) * 0.005;
-        if (value > 0.05) {
-            this.updateEfforts(armExtendRegion, armRetractRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(armRetractRegion, armExtendRegion, redOpacity)   
+        if (value > 15) {
+            this.updateEfforts(armExtendRegion, armRetractRegion, redOpacity, icon)   
+        } else if (value < -15) {
+            this.updateEfforts(armRetractRegion, armExtendRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, armExtendRegion, 0.0)   
-            this.updateEfforts(null, armRetractRegion, 0.0)   
+            this.updateEfforts(null, armExtendRegion, 0.0, icon)   
+            this.updateEfforts(null, armRetractRegion, 0.0, icon)   
         }
     }
 
-    updateWristEffort(value: number) {
-        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")!.icon.style
-        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")!.icon.style
-        value = value - 1.0
+    updateWristEffort(value: number, icon: boolean) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
         let redOpacity = Math.abs(value) * 0.015;
-        if (value > 0.05) {
-            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity)   
+        if (value > 2) {
+            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity, icon)   
+        } else if (value < -2) {
+            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, yawOutRegion, 0.0)   
-            this.updateEfforts(null, yawInRegion, 0.0)   
+            this.updateEfforts(null, yawOutRegion, 0.0, icon)   
+            this.updateEfforts(null, yawInRegion, 0.0, icon)   
         }
     }
 }
@@ -644,68 +636,61 @@ export class PanTiltManipulationOverlay extends OverlaySVG {
         })
     }
 
-    updateGripperEffort(value: number) {
-        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")!.icon.style
-        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")!.icon.style
+    updateGripperEffort(value: number, icon: boolean) {
+        let handCloseRegion = this.regions.get("joint_gripper_finger_left_neg")
+        let handOpenRegion = this.regions.get("joint_gripper_finger_left_pos")
         // make the torque positive and multiply it by a factor to
         // make sure the video will     always be visible even with
         let redOpacity = Math.abs(value) * 0.03;
         if (value > 0.05) {
-            this.updateEfforts(handOpenRegion, handCloseRegion, redOpacity)   
+            this.updateEfforts(handOpenRegion, handCloseRegion, redOpacity, icon)   
         } else if (value < -0.05) {
-            this.updateEfforts(handCloseRegion, handOpenRegion, redOpacity)   
+            this.updateEfforts(handCloseRegion, handOpenRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, handOpenRegion, 0.0)   
-            this.updateEfforts(null, handCloseRegion, 0.0)   
+            this.updateEfforts(null, handOpenRegion, 0.0, icon)   
+            this.updateEfforts(null, handCloseRegion, 0.0, icon)   
         }
     }
 
-    updateWristEffort(value: number) {
-        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")!.icon.style
-        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")!.icon.style
-        value = value - 1.0
+    updateWristEffort(value: number, icon: boolean) {
+        let yawInRegion = this.regions.get("joint_wrist_yaw_pos")
+        let yawOutRegion = this.regions.get("joint_wrist_yaw_neg")
         let redOpacity = Math.abs(value) * 0.015;
-        if (value > 0.05) {
-            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity)   
+        if (value > 2) {
+            this.updateEfforts(yawOutRegion, yawInRegion, redOpacity, icon)   
+        } else if (value < -2) {
+            this.updateEfforts(yawInRegion, yawOutRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, yawOutRegion, 0.0)   
-            this.updateEfforts(null, yawInRegion, 0.0)   
+            this.updateEfforts(null, yawOutRegion, 0.0, icon)   
+            this.updateEfforts(null, yawInRegion, 0.0, icon)   
         }
     }
 
-    updateLiftEffort(value: number) {
-        // adjust for the effort needed to hold the arm in place
-        // against gravity
-        value = value - 53.88;
-        let armUpRegion = this.regions.get("joint_lift_pos").icon.style
-        let armDownRegion = this.regions.get("joint_lift_neg").icon.style
+    updateLiftEffort(value: number, icon: boolean) {
+        let armUpRegion = this.regions.get("joint_lift_pos")
+        let armDownRegion = this.regions.get("joint_lift_neg")
         let redOpacity = Math.abs(value) * 0.015;
-        if (value > 0.05) {
-            this.updateEfforts(armUpRegion, armDownRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(armDownRegion, armUpRegion, redOpacity)   
+        if (value > 55) {
+            this.updateEfforts(armUpRegion, armDownRegion, redOpacity, icon)   
+        } else if (value < 10) {
+            this.updateEfforts(armDownRegion, armUpRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, armUpRegion, 0.0)   
-            this.updateEfforts(null, armDownRegion, 0.0)   
+            this.updateEfforts(null, armUpRegion, 0.0, icon)   
+            this.updateEfforts(null, armDownRegion, 0.0, icon)   
         }
     }
 
-    updateExtensionEffort(value: number) {
-        let armExtendRegion = this.regions.get("wrist_extension_pos")!.icon.style
-        let armRetractRegion = this.regions.get("wrist_extension_neg")!.icon.style
-        
-        // make the torque positive and multiply it by a factor to
-        // make sure the video will always be visible even with
+    updateExtensionEffort(value: number, icon: boolean) {
+        let armExtendRegion = this.regions.get("wrist_extension_pos")
+        let armRetractRegion = this.regions.get("wrist_extension_neg")
         let redOpacity = Math.abs(value) * 0.005;
-        if (value > 0.05) {
-            this.updateEfforts(armExtendRegion, armRetractRegion, redOpacity)   
-        } else if (value < -0.05) {
-            this.updateEfforts(armRetractRegion, armExtendRegion, redOpacity)   
+        if (value > 15) {
+            this.updateEfforts(armExtendRegion, armRetractRegion, redOpacity, icon)   
+        } else if (value < -15) {
+            this.updateEfforts(armRetractRegion, armExtendRegion, redOpacity, icon)   
         } else {
-            this.updateEfforts(null, armExtendRegion, 0.0)   
-            this.updateEfforts(null, armRetractRegion, 0.0)   
+            this.updateEfforts(null, armExtendRegion, 0.0, icon)   
+            this.updateEfforts(null, armRetractRegion, 0.0, icon)   
         }
     }
 }

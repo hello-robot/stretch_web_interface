@@ -113,19 +113,32 @@ export class OverlaySVG implements Overlay {
         }
     }
 
-    updateEfforts(redRegion, nothingRegion, redOpacity) {
+    updateEfforts(redRegion, nothingRegion, redOpacity: number, icon: boolean) {
         if (redRegion) {
-            redRegion.filter = "brightness(0.5) sepia(1) saturate(100) hue-rotate(-10deg)"
-            redRegion.fill = 'red'
-            redRegion.fillOpacity = String(redOpacity);
-            redRegion.opacity = 0.3;
+            if (icon) {
+                redRegion!.icon.style.filter = "brightness(0.5) sepia(1) saturate(100) hue-rotate(-10deg)"
+                redRegion!.icon.style.fill = 'red'
+                redRegion!.icon.style.fillOpacity = String(redOpacity);
+                redRegion!.icon.style.opacity = 0.3;
+                redRegion!.path.setAttribute('fill', 'white');
+                redRegion!.path.setAttribute('fill-opacity', "0.0");
+            } else {
+                redRegion!.icon.style.filter = ""
+                redRegion!.icon.style.fill = 'white'
+                redRegion!.icon.style.fillOpacity = "0.0";
+                redRegion!.icon.style.opacity = 0.15;
+                redRegion!.path.setAttribute('fill', 'red');
+                redRegion!.path.setAttribute('fill-opacity', String(redOpacity));
+            }
         }
 
         if (nothingRegion) {
-            nothingRegion.filter = ''
-            nothingRegion.fill = 'white'
-            nothingRegion.fillOpacity = "0.0";
-            nothingRegion.opacity = 0.15;
+            nothingRegion!.icon.style.filter = ''
+            nothingRegion!.icon.style.fill = 'white'
+            nothingRegion!.icon.style.fillOpacity = "0.0";
+            nothingRegion!.icon.style.opacity = 0.15;
+            nothingRegion!.path.setAttribute('fill', 'white');
+            nothingRegion!.path.setAttribute('fill-opacity', "0.0");
         }
     }
 }

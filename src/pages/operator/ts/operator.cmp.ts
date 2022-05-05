@@ -704,16 +704,16 @@ export class OperatorComponent extends PageComponent {
                 ptManipOverlay.updateGripperJointLimits(value)
             })
             this.robot.sensors!.listenToKeyChange("lift", "effort", value => {
-                ptManipOverlay.updateLiftEffort(value)
+                ptManipOverlay.updateLiftEffort(value, this.model.getSetting("showPermanentIconsPantilt"))
             })
             this.robot!.sensors.listenToKeyChange("arm", "effort", value => {
-                ptManipOverlay.updateExtensionEffort(value)
+                ptManipOverlay.updateExtensionEffort(value, this.model.getSetting("showPermanentIconsPantilt"))
             })
             this.robot.sensors!.listenToKeyChange("gripper", "effort", value => {
-                ptManipOverlay.updateGripperEffort(value)
+                ptManipOverlay.updateGripperEffort(value, this.model.getSetting("showPermanentIconsPantilt"))
             })
             this.robot!.sensors.listenToKeyChange("wrist", "effort", value => {
-                ptManipOverlay.updateWristEffort(value)
+                ptManipOverlay.updateWristEffort(value, this.model.getSetting("showPermanentIconsPantilt"))
             })
         })
         pantilt.addOverlay(reachOverlayTHREE, "all");
@@ -729,10 +729,10 @@ export class OperatorComponent extends PageComponent {
                 overheadManipOverlay.updateWristJointLimits(value)
             })
             this.robot.sensors.listenToKeyChange("arm", "effort", value => {
-                overheadManipOverlay.updateExtensionEffort(value)
+                overheadManipOverlay.updateExtensionEffort(value, this.model.getSetting("showPermanentIconsOverhead"))
             })
             this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
-                overheadManipOverlay.updateWristEffort(value)
+                overheadManipOverlay.updateWristEffort(value, this.model.getSetting("showPermanentIconsOverhead"))
             })
         })
         overhead.addOverlay(overheadManipOverlay, 'manip');
@@ -745,13 +745,13 @@ export class OperatorComponent extends PageComponent {
         let gripperOverlay = new GripperOverlay(1);
         gripperOverlay.Ready.then(() => {
             this.robot.sensors.listenToKeyChange("lift", "effort", value => {
-                gripperOverlay.updateLiftEffort(value)
+                gripperOverlay.updateLiftEffort(value, this.model.getSetting("showPermanentIconsGripper"))
             })
             this.robot.sensors.listenToKeyChange("gripper", "effort", value => {
-                gripperOverlay.updateGripperEffort(value)
+                gripperOverlay.updateGripperEffort(value, this.model.getSetting("showPermanentIconsGripper"))
             })
             this.robot.sensors.listenToKeyChange("wrist", "effort", value => {
-                gripperOverlay.updateWristEffort(value)
+                gripperOverlay.updateWristEffort(value, this.model.getSetting("showPermanentIconsGripper"))
             })
             this.robot.sensors.listenToKeyChange("lift", "inJointLimits", value => {
                 gripperOverlay.updateLiftJointLimits(value)
