@@ -35,3 +35,10 @@
     color: black;
 }
 
+.nav-link {
+  color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0080FF;
+}
