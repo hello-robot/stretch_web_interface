@@ -312,6 +312,7 @@ export class Trajectory {
 
     constructor({leftTraj, centerTraj, rightTraj, center, iconImage}) {
         this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+        let color = center ? "#DB2225" : "#006164"
         if (iconImage) {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             // icon.setAttribute("class", "overlay-icon")
@@ -323,7 +324,7 @@ export class Trajectory {
             this.container.appendChild(icon)
         } else {
             let leftPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            leftPath.setAttribute('stroke', '#4169E1')
+            leftPath.setAttribute('stroke', color)
             leftPath.setAttribute('fill', 'none')
             leftPath.setAttribute('stroke-width', '1')
             leftPath.setAttribute('d', leftTraj);
@@ -331,7 +332,7 @@ export class Trajectory {
             this.container.appendChild(leftPath)
 
             let centerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            centerPath.setAttribute('stroke', '#4169E1')
+            centerPath.setAttribute('stroke', color)
             centerPath.setAttribute('fill', 'none')
             centerPath.setAttribute('stroke-dasharray', "4 1")
             centerPath.setAttribute('stroke-width', '1')
@@ -340,7 +341,7 @@ export class Trajectory {
             this.container.appendChild(centerPath)
 
             let rightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            rightPath.setAttribute('stroke', '#4169E1')
+            rightPath.setAttribute('stroke', color)
             rightPath.setAttribute('fill', 'none')
             rightPath.setAttribute('stroke-width', '1')
             rightPath.setAttribute('d', rightTraj);
@@ -352,7 +353,7 @@ export class Trajectory {
                 circle.setAttribute('cx', String(center.x));
                 circle.setAttribute('cy', String(center.y));
                 circle.setAttribute('stroke', 'none')
-                circle.setAttribute('fill', '#4169E1')
+                circle.setAttribute('fill', color)
                 circle.setAttribute('r', '6');
                 circle.setAttribute('fill-opacity', '0.3');
                 this.circle = circle;
@@ -365,6 +366,9 @@ export class Trajectory {
         if (this.circle) {
             this.circle.style.visibility = "hidden"
         }
+        this.leftPath.setAttribute('stroke', '#006164')
+        this.centerPath.setAttribute('stroke', '#006164')
+        this.rightPath.setAttribute('stroke', '#006164')
     }
 }
 
