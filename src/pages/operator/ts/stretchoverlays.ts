@@ -427,14 +427,14 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         ].join(" ");
     }
 
-    drawRotateIcon(name) {
+    drawRotateIcon(name, execute) {
         console.log
         icon(name).then(i => {
-            this.createTraj({ iconImage: i })
+            this.createTraj({ iconImage: i, execute: execute })
         })
     }
 
-    drawArc(x: number, y: number, startHeading: number, goalHeading: number, circle = true) {
+    drawArc(x: number, y: number, startHeading: number, goalHeading: number, execute = true) {
         const largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
         const sweepFlag = goalHeading < Math.PI / 2 ? "0" : "1";
         const sign = goalHeading < Math.PI / 2 ? 1 : -1;
@@ -473,9 +473,9 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         let rightTraj = this.svgArcString(x1, y1, r, largeArcFlag, sweepFlag, x2, y2);
 
         // Circle center
-        let center = circle ? { x: x, y: y } : null;
+        let center = execute ? { x: x, y: y } : null;
         let icon = null;
-        this.createTraj({ icon, leftTraj, centerTraj, rightTraj, center });
+        this.createTraj({ icon, leftTraj, centerTraj, rightTraj, center, execute });
     }
 }
 

@@ -548,24 +548,23 @@ export class OperatorComponent extends PageComponent {
         let dy = py - 70; // robot position y offset
         let magnitude = Math.sqrt(Math.pow(dx / overlayWidth, 2) + Math.pow(dy / overlayHeight, 2));
         let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
-        let circle = execute ? true : false;
         let scale = Number(this.model.getSetting("velocityScale"))
         // If click on the robot, rotate in place
         if (overlay.inBaseRect(px, py)) {
             if (execute) {
                 this.activeVelocityAction = heading < Math.PI / 2 ? this.robot!.driveWithVelocities(0, scale * 0.2) : this.robot!.driveWithVelocities(0, scale * -0.2);
             }
-            heading <= Math.PI / 2 ? overlay.drawRotateIcon('rotate_left') : overlay.drawRotateIcon('rotate_right')
+            heading <= Math.PI / 2 ? overlay.drawRotateIcon('rotate_left', execute) : overlay.drawRotateIcon('rotate_right', execute)
         }
         // If clicking behind the robot, move backward
         else if (heading < 0) {
             this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * -magnitude * 0.5, 0.0) : undefined;
-            overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, circle);
+            overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, execute);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
             this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * magnitude * 0.3, -(heading - Math.PI / 2) * 0.3 * scale) : undefined;
-            overlay.drawArc(px, py, Math.PI / 2, heading, circle);
+            overlay.drawArc(px, py, Math.PI / 2, heading, execute);
         }
     }
 
@@ -782,7 +781,7 @@ export class OperatorComponent extends PageComponent {
         var stopAction = (event) => {
             event.stopPropagation();
             this.stopCurrentAction();
-            overheadClickNavOverlay.removeCircle();
+            overheadClickNavOverlay.resetTraj();
             overheadControl.removeEventListener('mousemove', updateAction);
             overheadControl.addEventListener('mousemove', drawTraj);
         };
@@ -858,7 +857,7 @@ export class OperatorComponent extends PageComponent {
                     // execute trajectory once
                     this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
                     setTimeout(() => {
-                        overheadClickNavOverlay.removeCircle()
+                        overheadClickNavOverlay.resetTraj()
                     }, 1500);
                     overheadControl.addEventListener("mousemove", drawTraj)
                 }

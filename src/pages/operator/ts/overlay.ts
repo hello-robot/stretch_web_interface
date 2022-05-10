@@ -150,8 +150,8 @@ export class TrajectoryOverlay extends OverlaySVG {
         super(aspectRatio);
     }
 
-    removeCircle() {
-        this.trajectory?.removeCircle()
+    resetTraj() {
+        this.trajectory?.resetTraj()
     }
 
     removeTraj() {
@@ -310,9 +310,16 @@ export class Trajectory {
     circle?: SVGCircleElement
     icon: SVGImageElement
 
-    constructor({leftTraj, centerTraj, rightTraj, center, iconImage}) {
+    // https://codepen.io/sosuke/pen/Pjoqqp
+    COLOR_FILTERS: { [key: string]: string } = {
+        "#DB2225": "invert(18%) sepia(69%) saturate(4409%) hue-rotate(348deg) brightness(90%) contrast(91%)", // red
+        "#107C10": "invert(25%) sepia(99%) saturate(1759%) hue-rotate(98deg) brightness(88%) contrast(87%)",  // green
+        "#006164": "invert(27%) sepia(83%) saturate(765%) hue-rotate(141deg) brightness(89%) contrast(101%)", // blue-green
+    }
+
+    constructor({leftTraj, centerTraj, rightTraj, center, iconImage, execute}) {
         this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-        let color = center ? "#DB2225" : "#006164"
+        let color = execute ? "#DB2225" : "#107C10"
         if (iconImage) {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             // icon.setAttribute("class", "overlay-icon")
@@ -320,6 +327,7 @@ export class Trajectory {
             icon.setAttribute('x', "39%");
             icon.setAttribute('y', "69%");
             icon.setAttribute('width', "12")
+            icon.style.filter = this.COLOR_FILTERS[color]
             this.icon = icon
             this.container.appendChild(icon)
         } else {
@@ -362,13 +370,22 @@ export class Trajectory {
         }
     }
 
-    removeCircle() {
+    resetTraj() {
         if (this.circle) {
             this.circle.style.visibility = "hidden"
         }
-        this.leftPath.setAttribute('stroke', '#006164')
-        this.centerPath.setAttribute('stroke', '#006164')
-        this.rightPath.setAttribute('stroke', '#006164')
+        if (this.icon) {
+            this.icon.style.filter = this.COLOR_FILTERS["#107C10"]
+        }
+        if (this.leftPath) {
+            this.leftPath.setAttribute('stroke', '#107C10')
+        }
+        if (this.centerPath) {    
+            this.centerPath.setAttribute('stroke', '#107C10')
+        }
+        if (this.rightPath) {    
+            this.rightPath.setAttribute('stroke', '#107C10')
+        }
     }
 }
 
