@@ -44,7 +44,8 @@ const template = `
 
 <div class="card mx-auto text-left">
 <div class="card-body">
-<div class="d-flex flex-fill justify-content-end">
+<div class="d-flex flex-fill justify-content-between">
+    <h5 data-ref="action-mode-title">Action Mode: </h5>
     <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
         <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
         <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
@@ -156,6 +157,12 @@ export class OperatorComponent extends PageComponent {
         "joint_wrist_yaw": "manip",
         "translate_mobile_base": "nav",
         "rotate_mobile_base": "nav"
+    }
+
+    ACTION_MODE_TITLES: { [key: string]: string } = {
+        "incremental": "Step Actions",
+        "press-release": "Press-Release",
+        "click-click": "Click-Click"
     }
 
     constructor() {
@@ -342,6 +349,17 @@ export class OperatorComponent extends PageComponent {
     updateNavDisplay() {
         let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
         this.setMode(currMode)
+
+        let mode: string;
+        let actionMode = this.model.getSetting("actionMode", currMode)
+        let startStopMode = this.model.getSetting("startStopMode", currMode)
+        if (actionMode === "control-continuous") {
+            mode = this.ACTION_MODE_TITLES[startStopMode]
+        } else {
+            mode = this.ACTION_MODE_TITLES[actionMode]
+        }
+
+        this.refs.get("action-mode-title").innerHTML = "Action Mode: " + mode
     }
 
     configureVelocityControls(namespace?: string) {
