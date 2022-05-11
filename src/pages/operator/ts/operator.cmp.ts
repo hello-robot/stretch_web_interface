@@ -43,7 +43,7 @@ const template = `
 </div>
 
 <div class="card mx-auto text-left">
-<div class="card-body">
+<div class="card-header">
 <div class="d-flex flex-fill justify-content-between">
     <h5 data-ref="action-mode-title">Action Mode: </h5>
     <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
@@ -65,8 +65,10 @@ const template = `
         <button class="down-btn" data-ref="slider-step-down">&#8595;</button> -->
     </div>
 </div>
+</div>
+<div class="card-body">
 
-<section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1 bg-danger" id="video-control-container" data-ref="video-control-container"></section>
+<section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1" id="video-control-container" data-ref="video-control-container"></section>
 <template id="pantilt-extra-controls">
     <div class="d-flex justify-content-around mt-2">
         <div class='form-check form-check-inline'>
