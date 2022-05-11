@@ -120,6 +120,8 @@ export class OperatorComponent extends PageComponent {
     activeVelocityAction?: VelocityCommand
     velocityExecutionHeartbeat?: number // ReturnType<typeof setInterval>
     activeVelocityActionTimeout?: number // ReturnType<typeof setTimeout>
+    activeVelocityRegionPath?: SVGPathElement
+    activeVelocityRegionPathTimeout?: number // ReturnType<typeof setTimeout>
 
     controlsContainer: HTMLElement
     mapInteractive?: MapInteractive
@@ -772,13 +774,13 @@ export class OperatorComponent extends PageComponent {
         var mouseMoveX = 0;
         var mouseMoveY = 0;
         // Event handlers
-        var updateAction = (event) => {
+        var updateAction = (event: MouseEvent) => {
             overheadClickNavOverlay.removeTraj();
             mouseMoveX = event.offsetX
             mouseMoveY = event.offsetY
             this.drawAndExecuteTraj(mouseMoveX, mouseMoveY, overheadClickNavOverlay)
         }
-        var stopAction = (event) => {
+        var stopAction = (event: MouseEvent) => {
             event.stopPropagation();
             this.stopCurrentAction();
             overheadClickNavOverlay.resetTraj();
@@ -874,6 +876,9 @@ export class OperatorComponent extends PageComponent {
     	        this.robot!.velocityMove(jointName, 0);
     	    }
             this.stopCurrentAction();
+            let composedTarget = event.composedPath()[0]
+            composedTarget.setAttribute("stroke", "white");
+            composedTarget.setAttribute("stroke-opacity", "0.3");
         };
 
         // Action Overlay Display Mode
@@ -887,6 +892,17 @@ export class OperatorComponent extends PageComponent {
             let composedTarget = event.composedPath()[0]
             let regionName = composedTarget.dataset.name
             if (!regionName || regionName === "doNothing") return;
+
+            if (this.activeVelocityRegionPath && this.activeVelocityRegionPath != composedTarget) {
+                this.activeVelocityRegionPath.setAttribute("stroke", "white");
+                this.activeVelocityRegionPath.setAttribute("stroke-opacity", "0.3");
+            } else {
+                clearTimeout(this.activeVelocityRegionPathTimeout)
+                this.activeVelocityRegionPathTimeout = undefined
+            }
+            this.activeVelocityRegionPath = composedTarget
+            this.activeVelocityRegionPath.setAttribute("stroke", "red");
+            this.activeVelocityRegionPath.setAttribute("stroke-opacity", "1.0");
 
             // Remove old event handlers
             document.body.removeEventListener('click', onOverlayMouseUp);
@@ -902,9 +918,13 @@ export class OperatorComponent extends PageComponent {
                 } else if (jointName == "rotate_mobile_base") {
                     this.setIncrementalVelocities(regionName, 0, vel);
                 } else {
-                    this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
+                    this.activeVelocityAction = this.robot!.incrementalMove(jointName, sign, this.getIncrementForJoint(jointName))
                 }
                 this.activeVelocityRegion = regionName
+                this.activeVelocityRegionPathTimeout = setTimeout(() => {
+                    this.activeVelocityRegionPath.setAttribute("stroke", "white");
+                    this.activeVelocityRegionPath.setAttribute("stroke-opacity", "0.3");
+                }, 1500)
             } else if (this.model.getSetting("actionMode", namespace) === "control-continuous") {
                 if (this.model.getSetting("startStopMode", namespace) === "press-release") {
                     this.activeVelocityRegion = regionName
@@ -984,12 +1004,14 @@ export class OperatorComponent extends PageComponent {
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
                     let regionName = composedTarget.dataset.name
-                    let jointName = this.activeVelocityRegion!.substring(0, this.activeVelocityRegion!.length - 4)
                     if (regionName != this.activeVelocityRegion) {
                         this.stopCurrentAction()
+                        let jointName = this.activeVelocityRegion!.substring(0, this.activeVelocityRegion!.length - 4)
                         if (jointName != "translate_mobile_base" && jointName != "rotate_mobile_base") {
                             this.robot!.velocityMove(jointName as ValidJoints, 0);
                         }
+                        this.activeVelocityRegionPath.setAttribute("stroke", "white");
+                        this.activeVelocityRegionPath.setAttribute("stroke-opacity", "0.3");
                     }
                 }
             }

@@ -268,9 +268,10 @@ export class Region {
         }
 
         let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('class', 'overlay-region')
+        // path.setAttribute('class', 'overlay-region')
         path.setAttribute('fill-opacity', '0.3');
-        path.setAttribute('stroke-opacity', '1.0');
+        path.setAttribute('stroke', 'white');
+        path.setAttribute('stroke-opacity', '0.3');
         path.setAttribute('stroke-linejoin', "round");
         path.setAttribute('stroke-width', String(stroke_width));
         path.setAttribute('vector-effect', "non-scaling-stroke")
