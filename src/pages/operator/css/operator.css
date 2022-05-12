@@ -24,12 +24,12 @@
     color: black
 }
 
-#mode-toggle .btn-check:checked + .btn-secondary {
-    background-color: var(--bs-cyan);
+.btn-group.mode-toggle label {
+    color: white;
 }
-#mode-toggle .btn-secondary {
-    background-color: var(--bs-white);
-    color: black;
+
+#mode-toggle .btn-check:checked + .btn-secondary {
+    background-color: #0065FF;
 }
 
 #mode-toggle.btn-group {
@@ -63,6 +63,10 @@
 
 pose-library {
     background-color: #dddddd;
+}
+
+.tooltip-btn {
+    padding:  0;
 }
 
 /***************************************************/

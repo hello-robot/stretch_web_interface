@@ -1,7 +1,7 @@
 import { BaseComponent, bootstrapCSS, Component } from "shared/base.cmp"
 import { ManipulationSettings } from "./manipulationsettings.cmp";
 import { NavigationSettings } from "./navigationsettings.cmp";
-import { Modal } from "bootstrap";
+import { Modal, Tooltip } from "bootstrap";
 
 
 import * as settingsCSS from '../css/settings.css';
@@ -81,7 +81,10 @@ const template = `
                 </fieldset>
                 
                 <fieldset class="row mb-3" id="settings-vscale" data-ref="settings-vscale">
-                    <legend class="col-form-label col-sm-2">Velocity Scale</legend>
+                    <legend class="col-form-label col-sm-2 tab-legend">
+                        Velocity<br>
+                        Scale <button class="btn btn-lg tooltip-btn" data-toggle="tooltip" title="Scale the velocities on the main page by 0.5, 1 or 2x.">&#9432</button>
+                    </legend>
                     <div class="col-sm-10">
                         <div class="btn-group vscale-toggle" role="group" data-ref="vscale-toggle">
                             <input type="radio" name="velocityScale" id="speed-1" class="btn-check" value="0.5" autocomplete="off">
@@ -186,6 +189,7 @@ export class SettingsModal extends BaseComponent {
     deleteProfileButton: HTMLElement
     removeAllProfilesButton: HTMLElement
     authButton: HTMLElement
+    tooltip: Tooltip
 
     constructor() {
         super(template, false);
@@ -206,6 +210,11 @@ export class SettingsModal extends BaseComponent {
         this.modalContainer.addEventListener("change", this.handleInputChange.bind(this, ""))
         this.navTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "nav"))
         this.manipTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "manip"))
+
+        this.tooltip = new Tooltip(this.refs.get("settings-vscale").querySelector("button"), {
+            placement: "right",
+            container: 'body',
+        })
 
         this.newProfileName.addEventListener("change", () => {
             this.saveProfileButton.disabled = this.newProfileName.value.length < 1

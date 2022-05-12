@@ -3,7 +3,7 @@
 }
 
 #control-mode-toggle {
-    padding-top: 30px;
+    padding-top: 15px;
 }
 
 #continuous-mode-toggle, #vmode-toggle {
@@ -11,7 +11,7 @@
 }
 
 .mode-toggle .btn-check:checked + .btn-secondary {
-    background-color: var(--bs-cyan) !important;
+    background-color: #0065FF !important;
 }
 
 /* Velocity modifer control */
@@ -28,4 +28,8 @@
 .btn-check:checked + .btn[for="speed-3"], .btn-check:checked + .btn[for="speed-6"] {
     background: #ff0000;
     color: black;
+}
+
+.tooltip-btn {
+    padding:  0;
 }

@@ -7,7 +7,7 @@
     color: black
 }*/
 
-#vmode-toggle {
+#vmode-toggle, .vscale-toggle {
     padding-top: 10px;
 }
 
@@ -41,4 +41,8 @@
 
 .nav-tabs .nav-link.active {
   color: #0080FF;
+}
+
+.tooltip-btn {
+    padding:  0;
 }

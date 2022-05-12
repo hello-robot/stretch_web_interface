@@ -26,6 +26,7 @@ import { mapView } from "shared/requestresponse";
 import { AvailableRobots } from "shared/socketio";
 import { CommandRecorder } from "./commandrecorder.cmp";
 import { PoseLibrary } from "./poselibrary.cmp";
+import { Tooltip } from "bootstrap";
 
 const template = `
 <style>${bootstrapCSS}</style>
@@ -45,7 +46,9 @@ const template = `
 <div class="card mx-auto text-left">
 <div class="card-header">
 <div class="d-flex flex-fill justify-content-between">
-    <h5 data-ref="action-mode-title">Action Mode: </h5>
+    <div class="d-flex justify-content-start ">
+        <h5 data-ref="action-mode-title">Action Mode: </h5>
+    </div>
     <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
         <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
         <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
@@ -71,11 +74,17 @@ const template = `
 <section class="px-sm-2 py-sm-2 mb-3 d-flex justify-content-center gap-1" id="video-control-container" data-ref="video-control-container"></section>
 <template id="pantilt-extra-controls">
     <div class="d-flex justify-content-around mt-2">
-        <div class='form-check form-check-inline'>
+        <div class='form-check form-check-inline justify-content-left'>
             <input type='checkbox' class="form-check-input" value='follow' id="follow-check" />
-            <label class="form-check-label" for="follow-check">Follow gripper</label>
+            <label class="form-check-label" for="follow-check">
+                Follow gripper
+            </label>
+            <button class="btn btn-sm tooltip-btn" data-toggle="tooltip" title="Camera will follow the gripper while you move the arm.">&#9432</button>    
         </div>
-        <button class='btn btn-secondary btn-sm'>Reset view</button>
+        <div class="justify-content-right">
+            <button class='btn btn-secondary btn-sm'>Reset view</button>
+            <button class="btn btn-sm tooltip-btn" data-toggle="tooltip" title="Camera will look at the robot base.">&#9432</button>        
+        </div>
     </div>
 </template>
 
@@ -118,6 +127,8 @@ export class OperatorComponent extends PageComponent {
     currentMode = undefined
     model: Model
     settingsPane: SettingsModal
+    header_tooltip: Tooltip
+    tooltips = []
 
     activeVelocityRegion?: ValidJoints
     activeVelocityAction?: VelocityCommand
@@ -161,10 +172,10 @@ export class OperatorComponent extends PageComponent {
         "rotate_mobile_base": "nav"
     }
 
-    ACTION_MODE_TITLES: { [key: string]: string } = {
-        "incremental": "Step Actions",
-        "press-release": "Press-Release",
-        "click-click": "Click-Click"
+    ACTION_MODE_TOOLTIPS: { [key: string]: [string, string] } = {
+        "incremental": ["Step Actions", "When the button is clicked, the robot moves a fixed amount based on the selected speed."],
+        "press-release": ["Press-Release", "Press and hold the button to move the robot. When the button is released, the robot will stop moving."],
+        "click-click": ["Click-Click", "Click the button to move the robot. Click again to stop the robot."]
     }
 
     constructor() {
@@ -318,7 +329,6 @@ export class OperatorComponent extends PageComponent {
 
         })
 
-
         // this.refs.get("slider-step-up").addEventListener("click", () => {
         //     this.shadowRoot.getElementById("slider").value =
         //         parseFloat(this.shadowRoot.getElementById("slider").value) +
@@ -352,16 +362,20 @@ export class OperatorComponent extends PageComponent {
         let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
         this.setMode(currMode)
 
-        let mode: string;
+        let mode: [string, string];
         let actionMode = this.model.getSetting("actionMode", currMode)
         let startStopMode = this.model.getSetting("startStopMode", currMode)
         if (actionMode === "control-continuous") {
-            mode = this.ACTION_MODE_TITLES[startStopMode]
+            mode = this.ACTION_MODE_TOOLTIPS[startStopMode]
         } else {
-            mode = this.ACTION_MODE_TITLES[actionMode]
+            mode = this.ACTION_MODE_TOOLTIPS[actionMode]
         }
 
-        this.refs.get("action-mode-title").innerHTML = "Action Mode: " + mode
+        this.refs.get("action-mode-title").innerHTML = `Action Mode: ${mode[0]} <button class="btn btn-lg tooltip-btn" data-toggle="tooltip" title="${mode[1]}">&#9432</button>`
+        this.header_tooltip = new Tooltip(this.refs.get("action-mode-title").querySelector("button"), {
+            placement: "right",
+            container: 'body',
+        })
     }
 
     configureVelocityControls(namespace?: string) {
@@ -683,6 +697,14 @@ export class OperatorComponent extends PageComponent {
             this.robot!.setPanTiltFollowGripper(false)           
             extraPanTiltButtons.querySelector("#follow-check").checked = false;
         }
+        console.log(extraPanTiltButtons.querySelectorAll('[data-toggle=tooltip'))
+        extraPanTiltButtons.querySelectorAll('[data-toggle=tooltip').forEach(option => {
+            this.tooltips.push(new Tooltip(option, {
+                placement: "bottom",
+                container: "body",
+                html: true       
+            }))
+        })
         pantilt.setExtraContents(extraPanTiltButtons)
         const gripper = new VideoControl();
 

@@ -2,8 +2,12 @@
     color: black
 }
 
-fieldset, legend, .tab-legend {
-    padding-top: 20px;
+fieldset {
+    padding-top: 10px;
+}
+
+.mode-toggle {
+    padding-top: 10px;
 }
 
 #control-display-mode-toggle {
@@ -11,5 +15,9 @@ fieldset, legend, .tab-legend {
 }
 
 .mode-toggle .btn-check:checked + .btn-secondary {
-    background-color: var(--bs-cyan) !important;
+    background-color: #0065FF !important;
+}
+
+.tooltip-btn {
+    padding:  0;
 }
