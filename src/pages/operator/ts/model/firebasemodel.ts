@@ -203,6 +203,15 @@ export class FirebaseModel extends Model {
 		}
 	}
 
+	getSettingProfiles(): string[] {
+		let profiles = []
+		console.log(this.localSettings!.settingsProfiles)
+		if (this.localSettings!.settingsProfiles) {
+			this.localSettings!.settingsProfiles.forEach((value, name) => profiles.push({ name }));
+		}
+		return profiles
+	}
+
 	async saveSettingProfile(profileName: string) {
 		if (!this.enabled) {
 			return
