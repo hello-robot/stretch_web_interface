@@ -150,8 +150,8 @@ export class TrajectoryOverlay extends OverlaySVG {
         super(aspectRatio);
     }
 
-    resetTraj() {
-        this.trajectory?.resetTraj()
+    resetTraj(colorBlind: boolean) {
+        this.trajectory?.resetTraj(colorBlind)
     }
 
     removeTraj() {
@@ -318,9 +318,10 @@ export class Trajectory {
         "#006164": "invert(27%) sepia(83%) saturate(765%) hue-rotate(141deg) brightness(89%) contrast(101%)", // blue-green
     }
 
-    constructor({leftTraj, centerTraj, rightTraj, center, iconImage, execute}) {
+    constructor({leftTraj, centerTraj, rightTraj, center, iconImage, execute, colorBlind}) {
         this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-        let color = execute ? "#DB2225" : "#107C10"
+        let colors = colorBlind ? ["#DB2225", "#006164"] : ["#DB2225", "#107C10"]
+        let color = execute ? colors[0] : colors[1]
         if (iconImage) {
             let icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             // icon.setAttribute("class", "overlay-icon")
@@ -371,21 +372,23 @@ export class Trajectory {
         }
     }
 
-    resetTraj() {
+    resetTraj(colorBlind: boolean) {
+        let color = colorBlind ? "#006164" : "#107C10"
+
         if (this.circle) {
             this.circle.style.visibility = "hidden"
         }
         if (this.icon) {
-            this.icon.style.filter = this.COLOR_FILTERS["#107C10"]
+            this.icon.style.filter = this.COLOR_FILTERS[color]
         }
         if (this.leftPath) {
-            this.leftPath.setAttribute('stroke', '#107C10')
+            this.leftPath.setAttribute('stroke', color)
         }
         if (this.centerPath) {    
-            this.centerPath.setAttribute('stroke', '#107C10')
+            this.centerPath.setAttribute('stroke', color)
         }
         if (this.rightPath) {    
-            this.rightPath.setAttribute('stroke', '#107C10')
+            this.rightPath.setAttribute('stroke', color)
         }
     }
 }

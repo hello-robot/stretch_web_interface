@@ -38,7 +38,7 @@
 }
 
 /* Velocity modifer control */
-.btn-check:checked + .btn[for="speed-1"] {
+/*.btn-check:checked + .btn[for="speed-1"] {
     background: #00ff00;
     color: black;
 }
@@ -59,7 +59,7 @@
 
 .btn-check:checked + .btn[for="speed-5"] {
     background: #ff0000;
-}
+}*/
 
 pose-library {
     background-color: #dddddd;

@@ -31,19 +31,19 @@ const template = `
                     <legend class="col-form-label col-sm-2 pt-0">Permanent Icons</legend>
                     <div class="col-sm-10 pt-0">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" name="showPermanentIconsOverhead" id="showPermanentIconsOverhead" checked>
+                            <input class="form-check-input bigCheckBox" type="checkbox" value="" name="showPermanentIconsOverhead" id="showPermanentIconsOverhead" checked>
                             <label class="form-check-label" for="showPermanentIconsOverhead">
                                 Overhead view
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" name="showPermanentIconsPantilt" id="showPermanentIconsPantilt" checked>
+                            <input class="form-check-input bigCheckBox" type="checkbox" value="" name="showPermanentIconsPantilt" id="showPermanentIconsPantilt" checked>
                             <label class="form-check-label" for="showPermanentIconsPantilt">
                                 Pan-tilt view
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" name="showPermanentIconsGripper" id="showPermanentIconsGripper" checked>
+                            <input class="form-check-input bigCheckBox" type="checkbox" value="" name="showPermanentIconsGripper" id="showPermanentIconsGripper" checked>
                             <label class="form-check-label" for="showPermanentIconsGripper">
                                 Gripper view
                             </label>
@@ -54,7 +54,7 @@ const template = `
                 <div class="row mb-3">
                     <label class="col-sm-2" for="armReachVisualization">Arm Reach Visualization</label>
                     <div class="form-check col-sm-10">
-                        <input class="form-check-input" type="checkbox" name="armReachVisualization" id="armReachVisualization">
+                        <input class="form-check-input bigCheckBox" type="checkbox" name="armReachVisualization" id="armReachVisualization">
                     </div>
                 </div>
 
@@ -108,6 +108,17 @@ const template = `
                             <input type="radio" name="continuousVelocityStepSize" id="speed-6" class="btn-check" value="0.15" autocomplete="off">
                             <label class="btn btn-sm btn-outline-secondary" for="speed-6">Large</label>
                         </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="row mb-3" data-ref="color-blind-mode">
+                    <label class="col-sm-2" for="colorblindMode">
+                        Color Blind Mode
+                        <button class="btn btn-lg tooltip-btn" data-toggle="tooltip" title="Changes color scheme to accomodate color blindeness">&#9432</button>
+                    </label>
+                    <div class="form-check col-sm-10">
+                        <input class="form-check-input bigCheckBox" type="checkbox" name="colorblindMode" id="colorblindMode">
+
                     </div>
                 </fieldset>
 
@@ -189,7 +200,7 @@ export class SettingsModal extends BaseComponent {
     deleteProfileButton: HTMLElement
     removeAllProfilesButton: HTMLElement
     authButton: HTMLElement
-    tooltip: Tooltip
+    tooltips = []
 
     constructor() {
         super(template, false);
@@ -211,9 +222,11 @@ export class SettingsModal extends BaseComponent {
         this.navTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "nav"))
         this.manipTabContainer.container.addEventListener("change", this.handleInputChange.bind(this, "manip"))
 
-        this.tooltip = new Tooltip(this.refs.get("settings-vscale").querySelector("button"), {
-            placement: "right",
-            container: 'body',
+        this.modalContainer.querySelectorAll('[data-toggle=tooltip').forEach(option => {
+            this.tooltips.push(new Tooltip(option, {
+                placement: "right",
+                container: "body",
+            }))
         })
 
         this.newProfileName.addEventListener("change", () => {
@@ -292,7 +305,6 @@ export class SettingsModal extends BaseComponent {
                 composed: true
             }))
         })
-
     }
 
     configureInputs(values: object) {
@@ -305,6 +317,7 @@ export class SettingsModal extends BaseComponent {
             delete values.manip
         }
         configureNamedInputs(values, this.modalContainer)
+        this.updateColors(values["colorblindMode"])
     }
 
     configureAuthCallback(callback: () => void) {
@@ -336,6 +349,26 @@ export class SettingsModal extends BaseComponent {
         this.refs.get("settings-step-size").style.display = null;
     }
 
+    updateColors(colorBlindMode: boolean) {
+        // Reset all background colors
+        this.refs.get("vscale-toggle").querySelectorAll("input").forEach(option => {
+            this.modalContainer.querySelector(`.btn-check + .btn[for="${option.id}"]`).style.background = "white";
+            this.modalContainer.querySelector(`.btn-check + .btn[for="${option.id}"]`).style.color = "black";   
+        })
+
+        let speed = this.refs.get("vscale-toggle").querySelector("input:checked").id
+        let speed_idx = Math.floor(this.refs.get("vscale-toggle").querySelector("input:checked").value) * 2
+        let colors = colorBlindMode ? ["#006164", "#57C4AD", "#E6E1BC", "#EDA247", "#DB4325"] : ["#00ff00", "#80FF00", "#ffff00", "#ff8000", "#ff0000"]
+        this.modalContainer.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.background = colors[speed_idx];   
+        
+        if (speed === "speed-2" || speed === "speed-3") {
+            this.modalContainer.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.color = "black";   
+        }
+        if (speed === "speed-1") {
+            this.modalContainer.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.color = colorBlindMode ? "white" : "black" 
+        }
+    }
+
     private handleInputChange(namespace, event) {
         let target = event.target
         let isInput = target.tagName === "INPUT"
@@ -344,6 +377,9 @@ export class SettingsModal extends BaseComponent {
         let value = target.value
         if (target.type === "checkbox") {
             value = target.checked
+        }
+        if (target.name === "velocityScale" || target.name === "colorblindMode") {
+            this.updateColors(this.refs.get("color-blind-mode").querySelector("input").checked)
         }
         this.dispatchEvent(new CustomEvent("settingchanged", {
             bubbles: true,
@@ -373,6 +409,5 @@ export function configureNamedInputs(values: object, container: HTMLElement) {
             if (key !== "profile-name")
                 console.warn("Could not configure", key)
         }
-
     }
 }

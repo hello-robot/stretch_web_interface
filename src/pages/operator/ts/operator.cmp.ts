@@ -188,16 +188,16 @@ export class OperatorComponent extends PageComponent {
 
 
         // Firebase Code
-        // this.model = new FirebaseModel(undefined, (model) => {
-        //     this.modelReadyCallback(model)
-        //     this.settingsPane.configureAuthCallback(() => {
-        //         this.model.authenticate();
-        //     })
-        // })
+        this.model = new FirebaseModel(undefined, (model) => {
+            this.modelReadyCallback(model)
+            this.settingsPane.configureAuthCallback(() => {
+                this.model.authenticate();
+            })
+        })
 
         // Local Storage Code
-        this.model = new LocalStorageModel();
-        this.modelReadyCallback(this.model)
+        // this.model = new LocalStorageModel();
+        // this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
@@ -243,6 +243,7 @@ export class OperatorComponent extends PageComponent {
             option.addEventListener("click", () => {
                 this.updateNavDisplay()
                 this.configureVelocityControls()
+                this.updateColors(this.model.getSetting("colorblindMode"))
                 this.dispatchCommand({ type: "mode-toggle", mode: option.value })
             })
         })
@@ -309,12 +310,14 @@ export class OperatorComponent extends PageComponent {
         this.addEventListener("settingchanged", event => {
             // Emitted when user has interactively changed a setting
             const change = event.detail
-
             this.model.setSetting(change.key, change.value, change.namespace)
 
             // User changed this setting in the modal pane, so we may need to reflect changes here
             if (change.key === "displayMode") {
                 this.configureVelocityControls(change.namespace)
+            }
+            if (change.key === "velocity" || change.key === "colorblindMode") {
+                this.updateColors(this.model.getSetting("colorblindMode"))
             }
             if (change.key.startsWith("showPermanentIcons")) {
                 let controlName = change.key.substring(18).toLowerCase()
@@ -356,6 +359,8 @@ export class OperatorComponent extends PageComponent {
 
         this.commandRecorder = this.refs.get("recorder") as CommandRecorder;
         this.commandRecorder.initializeLogging(model);
+
+        this.updateColors(this.model.getSetting("colorblindMode"))
     }
 
     updateNavDisplay() {
@@ -397,6 +402,26 @@ export class OperatorComponent extends PageComponent {
         }
         // const stepSize = parseFloat(this.model.getSetting("continuousVelocityStepSize"))
         // this.shadowRoot.getElementById("slider").step = stepSize
+    }
+
+    updateColors(colorBlindMode: boolean) {
+        // Reset all background colors
+        this.refs.get("velocity-toggle").querySelectorAll("input").forEach(option => {
+            this.shadowRoot.querySelector(`.btn-check + .btn[for="${option.id}"]`).style.background = "white";
+            this.shadowRoot.querySelector(`.btn-check + .btn[for="${option.id}"]`).style.color = "black";   
+        })
+
+        let speed = this.refs.get("velocity-toggle").querySelector("input:checked").id
+        let speed_idx = this.refs.get("velocity-toggle").querySelector("input:checked").value
+        let colors = colorBlindMode ? ["#006164", "#57C4AD", "#E6E1BC", "#EDA247", "#DB4325"] : ["#00ff00", "#80FF00", "#ffff00", "#ff8000", "#ff0000"]
+        this.shadowRoot.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.background = colors[speed_idx];   
+        
+        if (speed === "speed-2" || speed === "speed-3") {
+            this.shadowRoot.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.color = "black";   
+        }
+        if (speed === "speed-1") {
+            this.shadowRoot.querySelector(`.btn-check:checked + .btn[for="${speed}"]`).style.color = colorBlindMode ? "white" : "black" 
+        }
     }
 
     getVelocityForJoint(jointName: ValidJoints) {
@@ -585,6 +610,7 @@ export class OperatorComponent extends PageComponent {
         let magnitude = Math.sqrt(Math.pow(dx / overlayWidth, 2) + Math.pow(dy / overlayHeight, 2));
         let heading = Math.atan2(-dy + 10, -dx) // offset for behind the robot
         let scale = Number(this.model.getSetting("velocityScale"))
+        let colorBlind = this.model.getSetting("colorblindMode")
         // If click on the robot, rotate in place
         if (overlay.inBaseRect(px, py)) {
             if (execute) {
@@ -595,12 +621,12 @@ export class OperatorComponent extends PageComponent {
         // If clicking behind the robot, move backward
         else if (heading < 0) {
             this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * -magnitude * 0.5, 0.0) : undefined;
-            overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, execute);
+            overlay.drawArc(px, py, Math.PI / 2, Math.PI / 2 - 0.001, colorBlind, execute);
         }
         // Otherwise move based off heading and magnitude of vector
         else {
             this.activeVelocityAction = execute ? this.robot!.driveWithVelocities(scale * magnitude * 0.3, -(heading - Math.PI / 2) * 0.3 * scale) : undefined;
-            overlay.drawArc(px, py, Math.PI / 2, heading, execute);
+            overlay.drawArc(px, py, Math.PI / 2, heading, colorBlind, execute);
         }
     }
 
@@ -697,7 +723,6 @@ export class OperatorComponent extends PageComponent {
             this.robot!.setPanTiltFollowGripper(false)           
             extraPanTiltButtons.querySelector("#follow-check").checked = false;
         }
-        console.log(extraPanTiltButtons.querySelectorAll('[data-toggle=tooltip'))
         extraPanTiltButtons.querySelectorAll('[data-toggle=tooltip').forEach(option => {
             this.tooltips.push(new Tooltip(option, {
                 placement: "bottom",
@@ -811,6 +836,7 @@ export class OperatorComponent extends PageComponent {
         this.setMode('nav')
         this.robot?.setBaseMode("navigation")
         this.updateNavDisplay()
+        this.updateColors(this.model.getSetting("colorblindMode"))
 
         let overheadControl = this.controls["overhead"]
         var mouseMoveX = 0;
@@ -825,7 +851,7 @@ export class OperatorComponent extends PageComponent {
         var stopAction = (event: MouseEvent) => {
             event.stopPropagation();
             this.stopCurrentAction();
-            overheadClickNavOverlay.resetTraj();
+            overheadClickNavOverlay.resetTraj(this.model.getSetting("colorblindMode"));
             overheadControl.removeEventListener('mousemove', updateAction);
             overheadControl.addEventListener('mousemove', drawTraj);
         };
@@ -901,7 +927,7 @@ export class OperatorComponent extends PageComponent {
                     // execute trajectory once
                     this.drawAndExecuteTraj(x, y, overheadClickNavOverlay);
                     setTimeout(() => {
-                        overheadClickNavOverlay.resetTraj()
+                        overheadClickNavOverlay.resetTraj(this.model.getSetting("colorblindMode"))
                     }, 1500);
                     overheadControl.addEventListener("mousemove", drawTraj)
                 }

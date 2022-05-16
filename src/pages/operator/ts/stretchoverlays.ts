@@ -434,7 +434,7 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         })
     }
 
-    drawArc(x: number, y: number, startHeading: number, goalHeading: number, execute = true) {
+    drawArc(x: number, y: number, startHeading: number, goalHeading: number, colorBlind: boolean, execute = true) {
         const largeArcFlag = goalHeading - startHeading <= Math.PI ? "0" : "1";
         const sweepFlag = goalHeading < Math.PI / 2 ? "0" : "1";
         const sign = goalHeading < Math.PI / 2 ? 1 : -1;
@@ -475,7 +475,7 @@ export class OverheadClickNavigationOverlay extends TrajectoryOverlay {
         // Circle center
         let center = execute ? { x: x, y: y } : null;
         let icon = null;
-        this.createTraj({ icon, leftTraj, centerTraj, rightTraj, center, execute });
+        this.createTraj({ icon, leftTraj, centerTraj, rightTraj, center, execute, colorBlind });
     }
 }
 
