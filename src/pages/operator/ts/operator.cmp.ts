@@ -1066,9 +1066,9 @@ export class OperatorComponent extends PageComponent {
 
         // Safety: Set velocity to 0 when mouse leaves clicked region
         this.addEventListener("mousemove", event => {
+            let navDisplayMode = this.model.getSetting("displayMode", "nav")
             if (this.activeVelocityAction && this.activeVelocityRegion) {
                 let currMode = this.refs.get("mode-toggle")!.querySelector("input[type=radio]:checked")!.value
-                let navDisplayMode = this.model.getSetting("displayMode", "nav")
                 if ((currMode === 'nav' && navDisplayMode === "action-overlay") || (currMode === 'manip')) {
                     let composedTarget = event.composedPath()[0]
                     let regionName = composedTarget.dataset.name
@@ -1081,6 +1081,16 @@ export class OperatorComponent extends PageComponent {
                         this.activeVelocityRegionPath.setAttribute("stroke", "white");
                         this.activeVelocityRegionPath.setAttribute("stroke-opacity", "0.3");
                     }
+                }
+            }
+            // Work around for scenarios where mouseleave doesn't fire
+            let rect = overheadControl.getBoundingClientRect()
+            let x = event.clientX - rect.left
+            let y = event.clientY - rect.top
+            if (navDisplayMode === "predictive-display") {
+                if (x >= 700 || x <= 0 || y >= 700 || y <= 0) {
+                    stopAction(event);
+                    overheadClickNavOverlay.removeTraj()
                 }
             }
         })
