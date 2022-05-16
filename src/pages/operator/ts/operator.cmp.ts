@@ -1084,10 +1084,10 @@ export class OperatorComponent extends PageComponent {
                 }
             }
             // Work around for scenarios where mouseleave doesn't fire
-            let rect = overheadControl.getBoundingClientRect()
-            let x = event.clientX - rect.left
-            let y = event.clientY - rect.top
             if (navDisplayMode === "predictive-display") {
+                let rect = overheadControl.getBoundingClientRect()
+                let x = event.clientX - rect.left
+                let y = event.clientY - rect.top
                 if (x >= 700 || x <= 0 || y >= 700 || y <= 0) {
                     stopAction(event);
                     overheadClickNavOverlay.removeTraj()
