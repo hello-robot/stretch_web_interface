@@ -11,7 +11,7 @@ export const DEFAULTS: Settings = {
         "showPermanentIconsPantilt": true,
         "velocityControlMode": "discrete",
         "velocityScale": 1,
-        "colorBlindMode": false,
+        "colorblindMode": false,
         "continuousVelocityStepSize": 0.15,
         "nav": {
             "displayMode": "action-overlay",

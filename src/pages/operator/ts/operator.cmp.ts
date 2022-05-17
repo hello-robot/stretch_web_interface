@@ -275,11 +275,7 @@ export class OperatorComponent extends PageComponent {
             this.model.saveSettingProfile(event.detail.name)
         })
         this.addEventListener("loadprofile", event => {
-            if (event.detail.name === "default") {
-                this.model.reset();
-            } else {
-                this.model.loadSettingProfile(event.detail.name)
-            }
+            this.model.loadSettingProfile(event.detail.name)
             this.settingsPane.configureInputs(this.model.getSettings())
             this.configureVelocityControls(event.detail.namespace)
             this.updateNavDisplay()
