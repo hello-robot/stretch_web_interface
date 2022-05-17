@@ -25,7 +25,7 @@ export class FirebaseModel extends Model {
 	private localSettings?: Settings
 	private sessions: string[] = [];
 
-	constructor(config = CONFIG, readyCallback = (model: FirebaseModel) => { }) {
+	constructor(config: FirebaseOptions = CONFIG, readyCallback = (model: FirebaseModel) => { }) {
 		super();
 		this.isAnonymous = false;
 		this.uid = "";
@@ -350,5 +350,10 @@ export class FirebaseModel extends Model {
 		let updates: any = {};
 		updates['/users/' + (this.uid) + '/settings'] = settings;
 		return update(ref(this.database), updates);
+	}
+
+	static isConfigurationValid(config: FirebaseOptions) {
+		// Do we atleast have a key configured?
+		return config.apiKey != undefined
 	}
 }
