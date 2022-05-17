@@ -41,7 +41,7 @@ export class FirebaseModel extends Model {
 		this.auth = getAuth(this.app);
 		onAuthStateChanged(this.auth, (user) => this.handleAuthStateChange(user));
 
-		this.signInAnonymous(); // the user can manually sign in with google later
+		// this.signInAnonymous(); // the user can manually sign in with google later
 	}
 
 	private signInAnonymous() {
@@ -75,6 +75,10 @@ export class FirebaseModel extends Model {
 
 	private handleAuthStateChange(user: User | null) {
 		if (user) {
+			if (user.isAnonymous && this.uid && this.userEmail) {
+				return
+			}
+
 			this.isAnonymous = user.isAnonymous;
 			this.uid = user.uid;
 
@@ -110,8 +114,11 @@ export class FirebaseModel extends Model {
 			this.getUserDataFirebase().then(async (userData) => {
 				this.localSettings = userData.settings;
 				this.sessions = userData.sessions ? userData.sessions : [];
+				this.localSettings.settingsProfiles = userData.settings.settingsProfiles ? userData.settings.settingsProfiles : {} 
+				console.log(userData.settings.settingsProfiles)
 				this.readyCallback(this);
 			}).catch((error) => {
+				console.trace(error)
 				console.warn("Detected that FirebaseModel isn't initialized. Reinitializing.");
 				this.reset();
 				this.readyCallback(this);
@@ -188,7 +195,13 @@ export class FirebaseModel extends Model {
 			return
 		}
 
-		this.localSettings!.setting = { ...this.localSettings!.settingsProfiles[profileName] }
+		console.log(profileName)
+		if (profileName === "default") {
+			console.log("default")
+			this.localSettings!.setting = JSON.parse(JSON.stringify(DEFAULTS.setting))	
+		} else {
+			this.localSettings!.setting = JSON.parse(JSON.stringify(this.localSettings!.settingsProfiles[profileName]))
+		}
 		return this.writeSettings(this.localSettings!)
 	}
 
@@ -204,12 +217,7 @@ export class FirebaseModel extends Model {
 	}
 
 	getSettingProfiles(): string[] {
-		let profiles = []
-		console.log(this.localSettings!.settingsProfiles)
-		if (this.localSettings!.settingsProfiles) {
-			this.localSettings!.settingsProfiles.forEach((value, name) => profiles.push({ name }));
-		}
-		return profiles
+		return Object.keys(this.localSettings!.settingsProfiles)
 	}
 
 	async saveSettingProfile(profileName: string) {
@@ -217,7 +225,7 @@ export class FirebaseModel extends Model {
 			return
 		}
 
-		this.localSettings!.settingsProfiles[profileName] = { ...this.localSettings!.setting }
+		this.localSettings!.settingsProfiles[profileName] = JSON.parse(JSON.stringify(this.localSettings!.setting))
 		return this.writeSettings(this.localSettings!)
 	}
 
@@ -329,7 +337,7 @@ export class FirebaseModel extends Model {
 			return
 		}
 
-		return this.writeSettings(DEFAULTS);
+		return this.writeSettings(JSON.parse(JSON.stringify(DEFAULTS)));
 	}
 
 	private async writeSettings(settings: Settings) {

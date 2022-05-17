@@ -144,10 +144,13 @@ export class CommandRecorder extends BaseComponent {
     logCommand(event: CustomEvent<cmd>) {
         let command = { ...event.detail };
 		command.timestamp = command.timestamp ? command.timestamp : new Date().getTime();
-        command.robotState = {
-            basePos: this.robot?.sensors.sensors.base.transform as ROSLIB.Transform,
-            jointStates: this.robot?.sensors.jointState
+        if (this.robot?.sensors.sensors.base.transform && this.robot?.sensors.jointState) {
+            command.robotState = {
+                basePos: this.robot?.sensors.sensors.base.transform as ROSLIB.Transform,
+                jointStates: this.robot?.sensors.jointState
+            }
         }
+        console.log(this.model.uid);
         this.model?.logComand(command);
     };
 
