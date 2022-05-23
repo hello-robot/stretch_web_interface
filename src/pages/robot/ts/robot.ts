@@ -3,7 +3,7 @@ import { NavGoalCommand, PoseGoalCommand } from "shared/commands";
 import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, GoalMessage, PoseGoalMessage, NavGoalMessage, quaternionToEuler } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
-export const JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
+export let JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
     "wrist_extension": [0, .518],
     "joint_wrist_yaw": [-1.38, 4.58],
     "joint_lift": [0.15, 1.1],
@@ -189,6 +189,13 @@ export class Robot {
 
                 simTime.get(value => {
                     this.inSim = value
+                    if (this.inSim) {
+                        // Joints have different limits in simulator.
+                        JOINT_LIMITS["joint_gripper_finger_left"]![1] = .6
+                        JOINT_LIMITS["wrist_extension"]![1] = .51
+                        JOINT_LIMITS["joint_wrist_yaw"]![0] = -1.74
+                        JOINT_LIMITS["joint_wrist_yaw"]![1] = 3.99
+                    }
                 });
                 await this.onConnect(ros);
                 res()
@@ -330,8 +337,8 @@ export class Robot {
 
         if (jointName in JOINT_LIMITS) {
             // Make sure new joint value is within limits
-            let minJointVal = JOINT_LIMITS[jointName][0]
-            let maxJointVal = JOINT_LIMITS[jointName][1]
+            let minJointVal = JOINT_LIMITS[jointName]![0]
+            let maxJointVal = JOINT_LIMITS[jointName]![1]
             if (newJointValue > maxJointVal) {
                 newJointValue = maxJointVal;
             } else if (newJointValue < minJointVal) {
@@ -374,10 +381,12 @@ export class Robot {
     lookAtGripper(panOffset: number, tiltOffset: number) {
         if (!this.linkGripperFingerLeftTF) throw 'linkGripperFingerLeftTF is undefined';
         if (!this.linkHeadTiltTF) throw 'linkHeadTiltTF is undefined';
+        let gripperTF = this.linkGripperFingerLeftTF!
+        let tiltTF = this.linkHeadTiltTF!
         let posDifference = {
-            x: this.linkGripperFingerLeftTF.translation.x - this.linkHeadTiltTF.translation.x,
-            y: this.linkGripperFingerLeftTF.translation.y - this.linkHeadTiltTF.translation.y,
-            z: this.linkGripperFingerLeftTF.translation.z - this.linkHeadTiltTF.translation.z
+            x: gripperTF.translation.x - tiltTF.translation.x,
+            y: gripperTF.translation.y - tiltTF.translation.y,
+            z: gripperTF.translation.z - tiltTF.translation.z
         };
 
         // Normalize posDifference
@@ -410,7 +419,7 @@ export class Robot {
         makePoseGoal({
             'joint_head_pan': pan,
             'joint_head_tilt': tilt
-        }, this.trajectoryClient).send()
+        }, this.trajectoryClient!).send()
     }
 
     lookAtBase() {
@@ -817,14 +826,14 @@ export function getJointValue(jointStateMessage: ROSJointState, jointName: Valid
     return jointStateMessage.position[jointIndex]
 }
 
-export function inJointLimits(jointStateMessage, jointName) {
+export function inJointLimits(jointStateMessage: ROSJointState, jointName: ValidJoints) : [boolean, boolean] {
     let jointValue = getJointValue(jointStateMessage, jointName)
-    let jointLimits = JOINT_LIMITS[jointName]
-    var eps = 0.05
-    let inLimits = []
+    let jointLimits = JOINT_LIMITS[jointName]!
+    let eps = 0.05
+    let inLimits: [boolean, boolean] = [false, false]
 
-    jointValue - eps >= jointLimits[0] ? inLimits.push(true) : inLimits.push(false)
-    jointValue + eps <= jointLimits[1] ? inLimits.push(true) : inLimits.push(false)
+    inLimits[0] = jointValue - eps >= jointLimits[0]
+    inLimits[1] = jointValue + eps <= jointLimits[1]
     return inLimits
 }
 
