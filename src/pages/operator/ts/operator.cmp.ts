@@ -116,6 +116,7 @@ const template = `
 `;
 
 import * as operatorCSS from '../css/operator.css';
+import {CONFIG} from "./model/firebase.config";
 @Component('operator-page', operatorCSS)
 export class OperatorComponent extends PageComponent {
     title = '';
@@ -188,16 +189,20 @@ export class OperatorComponent extends PageComponent {
 
 
         // Firebase Code
-        this.model = new FirebaseModel(undefined, (model) => {
-            this.modelReadyCallback(model)
-            this.settingsPane.configureAuthCallback(() => {
-                this.model.authenticate();
+        if (FirebaseModel.isConfigurationValid(CONFIG)) {
+            this.model = new FirebaseModel(CONFIG, (model) => {
+                this.modelReadyCallback(model)
+                this.settingsPane.configureAuthCallback(() => {
+                    this.model.authenticate();
+                })
             })
-        })
+        } else {
+            // Local Storage Code
+            console.warn("No valid Firebase configuration. Using LocalStorage backend.")
+            this.model = new LocalStorageModel();
+            this.modelReadyCallback(this.model)
+        }
 
-        // Local Storage Code
-        // this.model = new LocalStorageModel();
-        // this.modelReadyCallback(this.model)
 
         this.controlsContainer = this.refs.get("video-control-container")!
         // Bind events from the pose library so that they actually do something to the model
