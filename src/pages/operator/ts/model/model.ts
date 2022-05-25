@@ -39,7 +39,7 @@ export const DEFAULTS: Settings = {
 
 export type SettingEntry = boolean | number | string;
 export interface Settings {
-    "pose": { [key: string]: NamedPose};
+    "pose": { [key: string]: NamedPose };
     "setting": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
     "settingsProfiles": { [key: string]: { [key: string]: SettingEntry | { [key: string]: SettingEntry } } };
     "reserved": { [key: string]: SettingEntry | { [key: string]: SettingEntry } };
@@ -55,7 +55,7 @@ export abstract class Model {
     abstract getPose(id: string): NamedPose | undefined;
     abstract getPoses(): NamedPose[];
     abstract removePose(id: string): void;
-    
+
     abstract loadSettingProfile(profileName: string): void;
     abstract deleteSettingProfile(profileName: string): boolean;
     abstract saveSettingProfile(profileName: string): void;
@@ -70,7 +70,7 @@ export abstract class Model {
     abstract logComand(cmd: cmd): void;
     abstract getSessions(): string[];
     abstract getCommands(sessionId: string): Promise<cmd[]>;
-    
+
     abstract reset(): void
 
     resetSetting(key: string, namespace?: string) {
@@ -97,4 +97,18 @@ export function parseFromString(asString: string): string | number | boolean {
 
 export function generateSessionID(): string {
     return Date.now().toString() + "-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+export function requiresEnabled() {
+    console.log("Outer: expression");
+    return function (target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
+        const originalMethod = descriptor.value;
+        descriptor.value = function(this: any, ...args: any[]): any {
+            if (!this.enabled) {
+                throw `Model is not enabled. Cannot call Model.${propertyKey}`
+            }
+            return originalMethod.apply(this, args);
+        };
+        return descriptor;
+    };
 }

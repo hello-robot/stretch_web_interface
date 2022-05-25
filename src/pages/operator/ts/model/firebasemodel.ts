@@ -8,7 +8,7 @@ const GAuthProvider = new GoogleAuthProvider();
 import { CONFIG } from "./firebase.config";
 import { NamedPose } from 'shared/util';
 import { cmd } from "shared/commands"
-import { Model, SettingEntry, Settings, DEFAULTS, generateSessionID } from "./model";
+import { Model, SettingEntry, Settings, DEFAULTS, generateSessionID, requiresEnabled } from "./model";
 
 export class FirebaseModel extends Model {
 	private isAnonymous: boolean;
@@ -114,7 +114,7 @@ export class FirebaseModel extends Model {
 			this.getUserDataFirebase().then(async (userData) => {
 				this.localSettings = userData.settings;
 				this.sessions = userData.sessions ? userData.sessions : [];
-				this.localSettings.settingsProfiles = userData.settings.settingsProfiles ? userData.settings.settingsProfiles : {} 
+				this.localSettings.settingsProfiles = userData.settings.settingsProfiles ? userData.settings.settingsProfiles : {}
 				console.log(userData.settings.settingsProfiles)
 				this.readyCallback(this);
 			}).catch((error) => {
@@ -134,10 +134,8 @@ export class FirebaseModel extends Model {
 		this.enabled = false;
 	}
 
+	@requiresEnabled()
 	addPose(id: string, pose: NamedPose) {
-		if (!this.enabled) {
-			return
-		}
 		if (!("pose" in this.localSettings!))
 			this.localSettings!.pose = {}
 
@@ -150,11 +148,8 @@ export class FirebaseModel extends Model {
 		return this.localSettings!.pose[id];
 	}
 
+	@requiresEnabled()
 	getPoses(): NamedPose[] {
-		if (!this.enabled) {
-			return []
-		}
-
 		const poses = this.localSettings!.pose
 		if (poses)
 			return Object.keys(poses)
@@ -164,19 +159,14 @@ export class FirebaseModel extends Model {
 		return []
 	}
 
+	@requiresEnabled()
 	removePose(id: string) {
-		if (!this.enabled) {
-			return
-		}
 		delete this.localSettings!.pose[id]
 		return this.writeSettings(this.localSettings!);
 	}
 
+	@requiresEnabled()
 	setSetting(key: string, value: SettingEntry, namespace?: string) {
-		if (!this.enabled) {
-			return
-		}
-
 		if (namespace == '') {
 			this.localSettings!.setting[key] = value;
 		} else {
@@ -190,21 +180,19 @@ export class FirebaseModel extends Model {
 		return this.writeSettings(this.localSettings!);
 	}
 
+	@requiresEnabled()
 	loadSettingProfile(profileName: string) {
-		if (!this.enabled) {
-			return
-		}
-
 		console.log(profileName)
 		if (profileName === "default") {
 			console.log("default")
-			this.localSettings!.setting = JSON.parse(JSON.stringify(DEFAULTS.setting))	
+			this.localSettings!.setting = JSON.parse(JSON.stringify(DEFAULTS.setting))
 		} else {
 			this.localSettings!.setting = JSON.parse(JSON.stringify(this.localSettings!.settingsProfiles[profileName]))
 		}
 		return this.writeSettings(this.localSettings!)
 	}
 
+	@requiresEnabled()
 	deleteSettingProfile(profileName: string): boolean {
 		if (this.localSettings!.settingsProfiles[profileName]) {
 			delete this.localSettings!.settingsProfiles[profileName];
@@ -216,24 +204,19 @@ export class FirebaseModel extends Model {
 		}
 	}
 
+	@requiresEnabled()
 	getSettingProfiles(): string[] {
 		return Object.keys(this.localSettings!.settingsProfiles)
 	}
 
+	@requiresEnabled()
 	async saveSettingProfile(profileName: string) {
-		if (!this.enabled) {
-			return
-		}
-
 		this.localSettings!.settingsProfiles[profileName] = JSON.parse(JSON.stringify(this.localSettings!.setting))
 		return this.writeSettings(this.localSettings!)
 	}
 
+	@requiresEnabled()
 	getSetting(key: string, namespace?: string): SettingEntry {
-		if (!this.enabled) {
-			return false
-		}
-
 		const settings = this.localSettings!;
 
 		if (namespace == undefined) {
@@ -251,6 +234,7 @@ export class FirebaseModel extends Model {
 		}
 	}
 
+	@requiresEnabled()
 	getSettings() {
 		return JSON.parse(JSON.stringify(this.localSettings!.setting));
 	}
@@ -265,10 +249,8 @@ export class FirebaseModel extends Model {
 		}
 	}
 
+	@requiresEnabled()
 	async startSession(username: string, sessionId: string) {
-		if (!this.enabled) {
-			return
-		}
 		this.sid = sessionId ? sessionId : generateSessionID();
 
 		this.sessions.push(this.sid);
@@ -281,24 +263,23 @@ export class FirebaseModel extends Model {
 			type: "startSession",
 			username: username,
 			settings: this.getSettings(),
-            timestamp: new Date().getTime()
+			timestamp: new Date().getTime()
 		});
 	}
 
+	@requiresEnabled()
 	stopSession() {
-		if (!this.enabled) {
-			return
-		}
 		this.logComand({
 			type: "stopSession",
-            timestamp: new Date().getTime()
+			timestamp: new Date().getTime()
 		})
 
 		this.sid = "";
 	}
 
+	@requiresEnabled()
 	async logComand(cmd: cmd) {
-		if (!this.enabled || this.sid == "") {
+		if (this.sid == "") {
 			return
 		}
 
@@ -310,15 +291,13 @@ export class FirebaseModel extends Model {
 		return update(ref(this.database), updates);
 	}
 
+	@requiresEnabled()
 	getSessions(): string[] {
 		return this.sessions;
 	}
 
+	@requiresEnabled()
 	async getCommands(sessionId: string): Promise<cmd[]> {
-		if (!this.enabled) {
-			return []
-		}
-
 		let snapshot = await get(child(ref(this.database), `/sessions/${sessionId}`));
 
 		if (snapshot.exists()) {
@@ -332,19 +311,13 @@ export class FirebaseModel extends Model {
 		}
 	}
 
+	@requiresEnabled()
 	async reset() {
-		if (!this.enabled) {
-			return
-		}
-
 		return this.writeSettings(JSON.parse(JSON.stringify(DEFAULTS)));
 	}
 
+	@requiresEnabled()
 	private async writeSettings(settings: Settings) {
-		if (!this.enabled) {
-			return
-		}
-
 		this.localSettings = settings;
 
 		let updates: any = {};
