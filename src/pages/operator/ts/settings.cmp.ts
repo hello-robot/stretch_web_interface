@@ -177,7 +177,10 @@ const template = `
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="d-flex flex-fill justify-content-between">
+                        <button type="button" class="btn restart-button" data-ref="btn-restart">RESTART</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -301,6 +304,13 @@ export class SettingsModal extends BaseComponent {
 
         this.refs.get("btn-download-settings")!.addEventListener("click", () => {
             this.dispatchEvent(new CustomEvent("downloadsettings", {
+                bubbles: true,
+                composed: true
+            }))
+        })
+
+        this.refs.get("btn-restart")!.addEventListener("click", () => {
+            this.dispatchEvent(new CustomEvent("restart", {
                 bubbles: true,
                 composed: true
             }))

@@ -307,6 +307,15 @@ export class OperatorComponent extends PageComponent {
             document.body.removeChild(element);
         })
 
+        this.addEventListener("restart", () => {
+            var txt;
+            if (confirm("This will restart the robot")) {
+                txt = "You pressed OK!";
+            } else {
+                txt = "You pressed Cancel!";
+            }
+        })
+
 
         this.addEventListener("settingchanged", event => {
             // Emitted when user has interactively changed a setting
