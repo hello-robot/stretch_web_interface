@@ -178,7 +178,7 @@ const template = `
             </div>
             <div class="modal-footer">
                 <div class="d-flex flex-fill justify-content-between">
-                        <button type="button" class="btn restart-button" data-ref="btn-restart">RESTART</button>
+                        <button disabled type="button" class="btn btn-danger" data-ref="btn-restart">RESTART</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>

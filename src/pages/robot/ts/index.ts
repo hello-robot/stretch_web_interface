@@ -1,4 +1,4 @@
-import { insertCSS, JointStateMessage, RobotPose } from "shared/util";
+import { insertCSS, JointStateMessage, RobotPose, ROSBatteryState } from "shared/util";
 
 import * as style from "../../../style.css";
 import * as bootstrap from "bootstrap/dist/css/bootstrap.min.css"
@@ -18,11 +18,13 @@ import { Transform } from "roslib";
 import { ROSJointState, ValidJoints, GoalMessage, WebRTCMessage, SensorMessage } from "shared/util";
 import { mapView } from "shared/requestresponse";
 
+
 let audioInId;
 let audioOutId;
 let connection: WebRTCConnection;
 const robot = new Robot(
     forwardJointStates,
+    forwardBattery,
     forwardTF,
     forwardGoalState,
 );
@@ -53,6 +55,8 @@ robot.connect().then(() => {
     mapROS = new MapROS();
     displayContainer.appendChild(mapROS);
     mapROS.init(robot.ros);
+
+    setInterval(() => {forwardBattery({voltage: 3, percentage: 5})}, 1000)
 
     // Audio stuff
     if (audioOutId) {
@@ -183,6 +187,17 @@ function forwardTF(frame: string, transform: Transform) {
     };
     connection.sendData(toSend);
 }
+function forwardBattery(batteryState: ROSBatteryState) {
+    let toSend: SensorMessage = {
+        type: 'sensor',
+        name: 'voltage',
+        subtype: 'battery',
+        value: batteryState.voltage
+    };
+    //console.log(toSend)
+    connection.sendData(toSend)
+}
+
 
 function forwardJointStates(jointState: ROSJointState) {
     if (!connection) return;
@@ -304,6 +319,9 @@ function handleMessage(message: WebRTCMessage) {
             break;
         case "poseGoal":
             robot.executePoseGoal(message);
+            break;
+        case "restart":
+            console.log("Restart robot");
             break;
         default:
             console.error("Unknown message type received", message.type)

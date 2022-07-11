@@ -45,10 +45,12 @@ const template = `
 
 <div class="card mx-auto text-left">
 <div class="card-header">
+
 <div class="d-flex flex-fill justify-content-between">
     <div class="d-flex justify-content-start ">
         <h5 data-ref="action-mode-title">Action Mode: </h5>
     </div>
+    
     <div class="btn-group velocity-toggle" role="group" aria-label="Select velocity" data-ref="velocity-toggle">
         <input type="radio" name="velocity" id="speed-1" class="btn-check" value="0" autocomplete="off">
         <label class="btn btn-sm btn-outline-secondary" for="speed-1">Slowest</label>
@@ -67,7 +69,11 @@ const template = `
         <!-- <button class="up-btn" data-ref="slider-step-up">&#8593;</button>
         <button class="down-btn" data-ref="slider-step-down">&#8595;</button> -->
     </div>
+    
 </div>
+<div class="d-flex flex-fill justify-content-start">
+        <battery-cmp data-ref="battery"></batter-cmp>
+    </div>
 </div>
 <div class="card-body">
 
@@ -122,7 +128,7 @@ export class OperatorComponent extends PageComponent {
     title = '';
     controls = {}
     robot?: RemoteRobot
-    connection
+    connection: WebRTCConnection
     pc?: WebRTCConnection
     allRemoteStreams = new Map()
     currentMode = undefined
@@ -311,6 +317,10 @@ export class OperatorComponent extends PageComponent {
             var txt;
             if (confirm("This will restart the robot")) {
                 txt = "You pressed OK!";
+                // then call 
+                this.connection.sendData({
+                    type: "restart"
+                });
             } else {
                 txt = "You pressed Cancel!";
             }
@@ -332,7 +342,7 @@ export class OperatorComponent extends PageComponent {
             if (change.key.startsWith("showPermanentIcons")) {
                 let controlName = change.key.substring(18).toLowerCase()
                 let control = this.controls[controlName]
-                // Might not have controls on screen!
+                // Might not have controlsconnection.sendData(toSend); on screen!
                 if (!control) return;
                 control.showIcons = change.value
                 return;
@@ -529,6 +539,9 @@ export class OperatorComponent extends PageComponent {
         }
         switch (message.type) {
             case "sensor":
+                if (message.subtype == "battery") {
+                    console.log(message.value)
+                }
                 this.robot!.sensors.set(message.subtype, message.name, message.value)
                 break;
             case "goal":
@@ -1127,5 +1140,6 @@ export class OperatorComponent extends PageComponent {
         this.robot?.sensors.listenToKeyChange("base", "transform", (value) => {
             this.mapInteractive!.updateMapDisplay(value);
         })
+        this.refs.get("battery")!.setUpCallbacks(this.robot);
     }
 }

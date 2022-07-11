@@ -69,12 +69,12 @@ export function quaternionToEuler(q: Quaternion, order: string) {
     }
 }
 
-export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage | JointStateMessage;
+export type WebRTCMessage = SensorMessage | GoalMessage | cmd | StopMessage | AffirmMessage | JointStateMessage | RestartMessage;
 
 export interface SensorMessage {
     type: "sensor",
     subtype: string,
-    name: "effort" | "transform" | "value",
+    name: "effort" | "transform" | "value" | "voltage",
     value: number | ROSLIB.Transform
 }
 export interface JointStateMessage {
@@ -104,6 +104,10 @@ interface StopMessage {
 
 interface AffirmMessage {
     type: "affirm"
+}
+
+interface RestartMessage {
+    type:"restart"
 }
 
 export interface CameraInfo {
@@ -140,6 +144,11 @@ export interface ROSJointState extends Message {
     position: [number],
     effort: [number],
     velocity: [number],
+}
+
+export interface ROSBatteryState extends Message {
+    voltage: number,
+    percentage: number,
 }
 
 //http://docs.ros.org/en/lunar/api/nav_msgs/html/msg/MapMetaData.html

@@ -205,7 +205,8 @@ class RobotSensors {
         "wrist": { "effort": undefined, "inJointLimits": undefined, "bend_torque": undefined, "roll_torque": undefined },
         "gripper": { "effort": undefined, "inJointLimits": undefined, "transform": undefined },
         "head": { "transform": undefined },
-        "base": { "transform": undefined }
+        "base": { "transform": undefined },
+        "battery": {"voltage": undefined}
     }
 
     listeners: {

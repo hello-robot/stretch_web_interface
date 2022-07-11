@@ -1,6 +1,7 @@
+import { ConsoleMessage } from "puppeteer";
 import * as ROSLIB from "roslib";
 import { NavGoalCommand, PoseGoalCommand } from "shared/commands";
-import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, GoalMessage, PoseGoalMessage, NavGoalMessage, quaternionToEuler } from "shared/util";
+import { Pose, ValidJoints, ROSCompressedImage, ROSJointState, VelocityGoalArray, GoalMessage, PoseGoalMessage, NavGoalMessage, quaternionToEuler, ROSBatteryState } from "shared/util";
 export const ALL_JOINTS: ValidJoints[] = ['joint_head_tilt', 'joint_head_pan', 'joint_gripper_finger_left', 'wrist_extension', 'joint_lift', 'joint_wrist_yaw', "translate_mobile_base", "rotate_mobile_base", 'gripper_aperture'];
 
 export let JOINT_LIMITS: { [key in ValidJoints]?: [number, number] } = {
@@ -21,11 +22,13 @@ export class Robot {
     trajectoryClient?: ROSLIB.ActionClient
     moveBaseClient?: ROSLIB.ActionClient
     jointStateTopic?: ROSLIB.Topic<ROSJointState>
+    batteryStateTopic?: ROSLIB.Topic<ROSBatteryState>
     cmdVel?: ROSLIB.Topic
     velocityGoal?: ROSLIB.Goal
     poseGoal?: ROSLIB.Goal
     tfCallback: (frame: string, tranform: ROSLIB.Transform) => void
     jointStateCallback: (jointState: ROSJointState) => void
+    batteryStateCallback: (batteryState: ROSBatteryState) => void
     goalCallback: (goal: GoalMessage) => void
 
     setNavMode?: ROSLIB.Service
@@ -169,10 +172,11 @@ export class Robot {
         }
     }
 
-    constructor(jointStateCallback: (jointState: ROSJointState) => void, tfCallback: (frame: string, tranform: ROSLIB.Transform) => void, goalCallback: (goal: GoalMessage) => void) {
+    constructor(jointStateCallback: (jointState: ROSJointState) => void, batteryStateCallback: (batteryState: ROSBatteryState) => void, tfCallback: (frame: string, tranform: ROSLIB.Transform) => void, goalCallback: (goal: GoalMessage) => void) {
         this.jointStateCallback = jointStateCallback
         this.tfCallback = tfCallback
         this.goalCallback = goalCallback
+        this.batteryStateCallback = batteryStateCallback
     }
 
     async connect(): Promise<void> {
@@ -224,6 +228,16 @@ export class Robot {
             }
             this.jointState = message;
             if (this.jointStateCallback) this.jointStateCallback(message)
+        });
+        this.ros = ros;
+        this.batteryStateTopic = new ROSLIB.Topic({
+            ros: this.ros,
+            name: '/stretch/battery',
+            messageType: 'sensor_msgs/BatteryState'
+        });
+        this.batteryStateTopic.subscribe(message => {
+            //console.log(message)
+            if (this.batteryStateCallback) this.batteryStateCallback(message)
         });
 
         this.setNavMode = new ROSLIB.Service({
