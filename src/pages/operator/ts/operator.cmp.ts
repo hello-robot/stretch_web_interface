@@ -30,16 +30,17 @@ import { Tooltip } from "bootstrap";
 
 const template = `
 <style>${bootstrapCSS}</style>
-<div class="mode-buttons px-3 py-3 d-flex justify-content-left">
-    <div class="d-flex flex-fill justify-content-start ">
+<div class="px-2 py-2 d-flex justify-content-between">
+    <div class="mr-auto">
         <div class="btn-group" role="group" aria-label="Select mode" id="mode-toggle" data-ref="mode-toggle">
             <input type="radio" id="mode-navigation" class="btn-check" name="mode" autocomplete="off" value="nav" checked disabled> 
             <label class="btn btn-secondary btn-sm" for="mode-navigation">Navigation</label>
-      
+
             <input type="radio" id="mode-manipulation" class="btn-check" name="mode" value="manip" autocomplete="off" disabled> 
             <label class="btn btn-secondary btn-sm" for="mode-manipulation">Manipulation</label>
         </div>
     </div>
+    <battery-cmp data-ref="battery"></battery-cmp>
     <command-recorder data-ref="recorder"></command-recorder>
 </div>
 
@@ -71,9 +72,7 @@ const template = `
     </div>
     
 </div>
-<div class="d-flex flex-fill justify-content-start">
-        <battery-cmp data-ref="battery"></batter-cmp>
-    </div>
+    
 </div>
 <div class="card-body">
 

@@ -320,9 +320,6 @@ function handleMessage(message: WebRTCMessage) {
         case "poseGoal":
             robot.executePoseGoal(message);
             break;
-        case "restart":
-            console.log("Restart robot");
-            break;
         default:
             console.error("Unknown message type received", message.type)
     }
