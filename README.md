@@ -20,7 +20,7 @@
 
 # Overview
 
-This repository holds code that enables a person (the operator) to remotely teleoperate a Stretch RE1 (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch RE1 is a mobile manipulator from Hello Robot Inc.
+This repository holds code that enables a person (the operator) to remotely teleoperate a Stretch (the robot) through a recent Chrome/Chromium web browser on an Android mobile phone, laptop, or desktop. The Stretch is a mobile manipulator from Hello Robot Inc.
 
 **WARNING: This prototype code has been useful to the community, but is not well tested. There are also security issues, especially if you use the default credentials. Use this code at your own risk.** 
 
@@ -64,7 +64,7 @@ By default, [send_recv_av.js](./shared/send_recv_av.js) uses a free STUN server 
  
 ## Installation 
 
-These installation instructions describe how to install both the server and relevant ROS code on the onboard computer of a Stretch RE1 robot. This is suitable for use on a trusted and secure local area network (LAN) behind a strong firewall. 
+These installation instructions describe how to install both the server and relevant ROS code on the onboard computer of a Stretch robot. This is suitable for use on a trusted and secure local area network (LAN) behind a strong firewall. 
 
 The web interface depends on [stretch_ros](http://github.com/hello-robot/stretch_ros), which is used to control the robot. You should first make sure it is up-to-date and working properly on the robot.
 
@@ -378,5 +378,5 @@ For license details for this repository, see the LICENSE files, including TUTORI
 The [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) license applies to all code written by Hello Robot Inc. contained within this repository. We have attempted to note where code was derived from other sources and the governing licenses. 
 
 ------
-<div align="center"> All materials are Copyright 2022 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. The Stretch RE1 and RE2 robots are covered by U.S. Patent 11,230,000 and other patents pending.</div>
+<div align="center"> All materials are Copyright 2023 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. The Stretch robots are covered by U.S. Patent 11,230,000 and other patents pending.</div>
 
