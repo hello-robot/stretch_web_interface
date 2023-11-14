@@ -1,4 +1,8 @@
-![](./images/banner.png)
+# Web Interface Deprecated
+
+This repo is DEPRECATED. It has been replaced with a fork called the [Stretch Teleop Interface](https://github.com/hcrlab/stretch_teleop_interface/). The original README is saved below.
+
+---
 
 # Table of Contents
 
