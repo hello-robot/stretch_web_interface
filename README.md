@@ -1,6 +1,6 @@
 # Web Interface Deprecated
 
-This repo is DEPRECATED. It has been replaced with a fork called the [Stretch Teleop Interface](https://github.com/hcrlab/stretch_teleop_interface/). The original README is saved below.
+This repo is DEPRECATED. It has been replaced with a fork called the [Stretch Teleop Interface](https://github.com/hello-robot/stretch_teleop_interface/). The original README is saved below.
 
 ---
 
